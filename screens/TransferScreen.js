@@ -98,6 +98,13 @@ const TransferScreen = ({ navigation, route }) => {
   return (
     <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
       <View style={styles.container}>
+        <TouchableOpacity 
+          style={styles.closeButton} 
+          onPress={() => navigation.navigate('Home', { userId })}
+        >
+          <Text style={styles.closeButtonText}>X</Text>
+        </TouchableOpacity>
+
         <View style={styles.card}>
           <Text style={styles.title}>Transfer Funds</Text>
 
@@ -160,6 +167,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 10,
+    zIndex: 1,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
   card: {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderRadius: 16,
@@ -191,7 +212,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   button: {
-    backgroundColor: '#D8D8D8', // Dirty white
+    backgroundColor: '#D8D8D8',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 30,

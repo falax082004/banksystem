@@ -2,20 +2,21 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  Button,
+  TouchableOpacity,
   StyleSheet,
   Image,
-  ImageBackground, // Import ImageBackground
+  ImageBackground,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
 import {
   db,
   ref,
   set,
   get,
   serverTimestamp,
-} from '../firebaseConfig'; // Adjust path if needed
-import cardIcon from '../assets/cardicon.png'; // Ensure this path is correct
-import bgapp3 from '../assets/bgapp3.jpg'; // Import the background image
+} from '../firebaseConfig';
+import cardIcon from '../assets/cardicon.png';
+import bgapp3 from '../assets/bgapp3.jpg';
 
 const generateCardNumber = () => {
   let cardNumber = '';
@@ -26,7 +27,6 @@ const generateCardNumber = () => {
   return cardNumber.trim();
 };
 
-// Fixed Expiration: 01/30
 const generateExpirationDate = () => {
   return '01/30';
 };
@@ -38,6 +38,7 @@ const CardScreen = ({ route }) => {
   const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(true);
   const [cardGenerated, setCardGenerated] = useState(false);
+  const [showCard, setShowCard] = useState(false); // visibility toggle
 
   useEffect(() => {
     fetchCardData();
@@ -95,28 +96,30 @@ const CardScreen = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text>Loading...</Text>
+        <Text style={{ color: '#fff' }}>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <ImageBackground source={bgapp3} style={styles.container}>
-      
-      {/* Custom Credit Card UI */}
+    <ImageBackground source={bgapp3} style={styles.container} resizeMode="cover">
       <View style={styles.customCard}>
         <View style={styles.cardTopRow}>
-          {/* Enlarged card icon */}
           <Image source={cardIcon} style={styles.enlargedCardIcon} />
-          <Text style={styles.cardLabel}>Virtual Credit Card</Text>
+          <Text style={styles.cardLabel}>Digital Bank Card</Text>
         </View>
 
         <View style={styles.cardNumberRow}>
-          {(cardNumber || '•••• •••• •••• ••••').split(' ').map((segment, index) => (
-            <Text key={index} style={styles.cardNumberSegment}>
-              {segment}
-            </Text>
-          ))}
+          <View style={styles.cardNumberGroup}>
+            {(showCard ? cardNumber : '•••• •••• •••• ••••').split(' ').map((segment, index) => (
+              <Text key={index} style={styles.cardNumberSegment}>
+                {segment}
+              </Text>
+            ))}
+          </View>
+          <TouchableOpacity onPress={() => setShowCard(!showCard)} style={styles.eyeIcon}>
+            <Icon name={showCard ? 'eye' : 'eye-off'} size={22} color="#C4A35A" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.cardFooter}>
@@ -129,9 +132,11 @@ const CardScreen = ({ route }) => {
       </View>
 
       {!cardGenerated ? (
-        <Button title="Generate Card" onPress={generateCard} />
+        <TouchableOpacity style={styles.generateButton} onPress={generateCard}>
+          <Text style={styles.generateButtonText}>Generate Card</Text>
+        </TouchableOpacity>
       ) : (
-        <Text style={styles.successMessage}>Card generated and saved!</Text>
+        <Text style={styles.successMessage}>✔ Card generated and saved!</Text>
       )}
     </ImageBackground>
   );
@@ -143,28 +148,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  subTitle: {
-    fontSize: 18,
-    marginTop: 10,
-    color: '#fff',
+    backgroundColor: '#000',
   },
   customCard: {
     width: '100%',
-    maxWidth: 350,
-    height: 200,
-    backgroundColor: '#1c1c1c',
-    borderRadius: 12,
+    maxWidth: 360,
+    height: 210,
+    backgroundColor: '#1e1e1e',
+    borderRadius: 16,
     padding: 20,
     overflow: 'hidden',
-    position: 'relative',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: 40,
+    shadowColor: '#C4A35A',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 10,
+    elevation: 10,
   },
   cardTopRow: {
     flexDirection: 'row',
@@ -172,25 +172,36 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   enlargedCardIcon: {
-    width: 70,  // Increase width for larger size
-    height: 50, // Increase height for larger size
+    width: 60,
+    height: 45,
     resizeMode: 'contain',
-    marginRight: 10,
   },
   cardLabel: {
-    color: '#ccc',
+    color: '#C4A35A',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   cardNumberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: 40,
+  },
+  cardNumberGroup: {
+    flexDirection: 'row',
+    gap: 6,
   },
   cardNumberSegment: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
+    letterSpacing: 1,
+    marginHorizontal: 2,
+  },
+  eyeIcon: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   cardFooter: {
     flexDirection: 'row',
@@ -202,7 +213,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardExpiry: {
-    color: '#fff',
+    color: '#ccc',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -214,8 +225,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -30,
     right: -30,
-    opacity: 0.7,
-    zIndex: -1, 
+    opacity: 0.5,
+    zIndex: -1,
   },
   circleOrange: {
     width: 60,
@@ -225,13 +236,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -20,
     left: -20,
-    opacity: 0.8,
-    zIndex: -1, 
+    opacity: 0.5,
+    zIndex: -1,
+  },
+  generateButton: {
+    marginTop: 30,
+    backgroundColor: '#C4A35A',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  generateButtonText: {
+    color: '#1e1e1e',
+    fontSize: 16,
+    fontWeight: '700',
   },
   successMessage: {
-    fontSize: 16,
-    color: 'green',
     marginTop: 20,
+    color: '#4CAF50',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

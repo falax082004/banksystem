@@ -63,6 +63,11 @@ const DepositScreen = ({ navigation, route }) => {
   return (
     <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
       <View style={styles.container}>
+        {/* Close button */}
+        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.navigate('Home', { userId })}>
+          <Text style={styles.closeButtonText}>X</Text>
+        </TouchableOpacity>
+
         <View style={styles.card}>
           <Text style={styles.title}>Deposit Funds</Text>
 
@@ -113,6 +118,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    backgroundColor: '#fff',
+    borderRadius: 50,
+    padding: 10,
+    zIndex: 1,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#333',
+    fontWeight: 'bold',
   },
   card: {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
