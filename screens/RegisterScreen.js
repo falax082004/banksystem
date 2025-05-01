@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
-import { db, ref, set, get, push } from '../firebaseConfig';
+import { db, ref, set, get } from '../firebaseConfig';
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -12,6 +12,9 @@ const RegisterScreen = ({ navigation }) => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleRegister = async () => {
+    setErrorMessage('');
+    setSuccessMessage('');
+
     if (!name.trim() || !email.trim() || !username.trim() || !password.trim() || !confirmPassword.trim()) {
       setErrorMessage('Please fill out all fields');
       return;
@@ -22,44 +25,42 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
-    // Check if email or username already exists
-    const emailRef = ref(db, 'users/');
-    const snapshot = await get(emailRef);
+    try {
+      const usersRef = ref(db, 'users/');
+      const snapshot = await get(usersRef);
 
-    let emailExists = false;
-    let usernameExists = false;
+      let emailExists = false;
+      let usernameExists = false;
 
-    snapshot.forEach((childSnapshot) => {
-      const userData = childSnapshot.val();
-      if (userData.email === email) {
-        emailExists = true;
+      snapshot.forEach((childSnapshot) => {
+        const userData = childSnapshot.val();
+        if (userData.email === email) emailExists = true;
+        if (childSnapshot.key === username) usernameExists = true;
+      });
+
+      if (emailExists) {
+        setErrorMessage('Email already taken');
+        return;
       }
-      if (userData.username === username) {
-        usernameExists = true;
+
+      if (usernameExists) {
+        setErrorMessage('Username already taken');
+        return;
       }
-    });
 
-    if (emailExists) {
-      setErrorMessage('Email already taken');
-      return;
+      const newUserRef = ref(db, 'users/' + username);
+      await set(newUserRef, {
+        name,
+        email,
+        username,
+        password,
+      });
+
+      setSuccessMessage('Account Created Successfully!');
+      navigation.navigate('Login');
+    } catch (error) {
+      setErrorMessage('Registration failed. Please try again.');
     }
-
-    if (usernameExists) {
-      setErrorMessage('Username already taken');
-      return;
-    }
-
-    // Create a new user record
-    const newUserRef = push(ref(db, 'users/'));
-    await set(newUserRef, {
-      name: name,
-      email: email,
-      username: username,
-      password: password,
-    });
-
-    setSuccessMessage('Account Created Successfully!');
-    navigation.navigate('Login');
   };
 
   return (
