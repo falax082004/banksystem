@@ -143,7 +143,7 @@ const ProfileScreen = ({ navigation, route }) => {
       resizeMode="cover"
     >
       <View style={styles.container}>
-        <Image source={require('../assets/profile.png')} style={styles.profileIcon} />
+        <Image source={require('../assets/apollo.png')} style={styles.profileIcon} />
         <Text style={styles.headerText}>Profile</Text>
 
         {loading ? (

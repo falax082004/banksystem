@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   cardLabel: {
-    color: '#C4A35A',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '700',
   },

@@ -9,7 +9,7 @@ import {
   ImageBackground,
   Modal,
 } from 'react-native';
-import { db, ref, get, push, set } from '../firebaseConfig';
+import { db, ref, get } from '../firebaseConfig';
 
 const HomeScreen = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -35,25 +35,6 @@ const HomeScreen = ({ navigation, route }) => {
     fetchUserData();
   }, [userId]);
 
-  const handleTransaction = async (type, amount, to = null, from = null) => {
-    const timestamp = new Date().toISOString();
-    const transactionData = { type, amount, to, from, timestamp };
-
-    const userRef = ref(db, 'users/' + userId + '/transactions');
-    await push(userRef, transactionData);
-
-    const userRefBalance = ref(db, 'users/' + userId);
-    const snapshot = await get(userRefBalance);
-    if (snapshot.exists()) {
-      const userData = snapshot.val();
-      const newBalance = type === 'deposit' ? userData.balance + amount : userData.balance - amount;
-      await set(userRefBalance, { ...userData, balance: newBalance });
-      setBalance(newBalance);
-    }
-
-    setTransactions(prev => [transactionData, ...prev]);
-  };
-
   const openTransactionModal = (txn) => {
     setSelectedTransaction(txn);
     setModalVisible(true);
@@ -71,111 +52,96 @@ const HomeScreen = ({ navigation, route }) => {
       resizeMode="cover"
     >
       <View style={styles.contentWrapper}>
+        {/* Header */}
         <View style={styles.headerRow}>
-          <Text style={styles.helloText}>
-            Hello, <Text style={styles.bold}>{userId}</Text> 👋
-          </Text>
+          <View>
+            <Text style={styles.welcomeText}>Hi, welcome</Text>
+            <Text style={styles.username}>{userId}</Text>
+          </View>
           <TouchableOpacity onPress={() => navigation.navigate('Profile', { userId })}>
-            <Image
-              source={require('../assets/profile.png')}
-              style={styles.profileImage}
-            />
+            <Image source={require('../assets/apollo.png')} style={styles.profileImage} />
           </TouchableOpacity>
         </View>
 
         {/* Balance Card */}
-        <View style={styles.card}>
-          <Text style={styles.balanceLabel}>Available Balance</Text>
-          <Text style={styles.balanceValue}>₱{parseFloat(balance).toFixed(2)}</Text>
+        <View style={styles.balanceCard}>
+          <View style={styles.balanceWrapper}>
+            <View style={styles.balanceTextWrapper}>
+              <Text style={styles.balanceLabel}>My Balance</Text>
+              <Text style={styles.balanceValue}>₱{parseFloat(balance).toFixed(2)}</Text>
+              <Text style={styles.currency}>PHP ⌄</Text>
+            </View>
+
+            <Image
+              source={require('../assets/cardicon.png')} // Make sure to use the correct path
+              style={styles.pantheonImage} // Custom style for the image
+            />
+          </View>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.button}
-              onPress={() => navigation.navigate('Deposit', { userId })}
-            >
-              <Text style={styles.buttonText}>Deposit</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.button}
+              style={styles.actionButton}
               onPress={() => navigation.navigate('Transfer', { userId })}
             >
-              <Text style={styles.buttonText}>Transfer</Text>
+              <Text style={styles.actionText}>Transfer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => navigation.navigate('Deposit', { userId })}
+            >
+              <Text style={styles.actionText}>Deposit</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <Text style={styles.historyTitle}>Recent Transactions</Text>
-        <ScrollView style={styles.historyScroll} contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Transactions */}
+        <Text style={styles.historyTitle}>Transactions</Text>
+        <ScrollView style={styles.historyScroll} contentContainerStyle={{ paddingBottom: 80 }}>
           {transactions.length === 0 ? (
             <Text style={styles.noTxnText}>No transactions yet</Text>
           ) : (
-            transactions.map((txn, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.transactionItem}
-                onPress={() => openTransactionModal(txn)}
-              >
-                <Text style={styles.txnText}>
-                  {txn.type === 'deposit' && (
-                    <>
-                      <Text style={styles.labelText}>Deposited </Text>
-                      <Text style={styles.greenValue}>₱{txn.amount}</Text>
-                    </>
-                  )}
-                  {txn.type === 'received' && (
-                    <>
-                      <Text style={styles.labelText}>Received </Text>
-                      <Text style={styles.greenValue}>₱{txn.amount}</Text>
-                      <Text style={styles.labelText}> from </Text>
-                      <Text style={styles.userText}>{txn.from}</Text>
-                    </>
-                  )}
-                  {txn.type === 'transfer' && (
-                    <>
-                      <Text style={styles.labelText}>Transferred </Text>
-                      <Text style={styles.redValue}>₱{txn.amount}</Text>
-                      <Text style={styles.labelText}> to </Text>
-                      <Text style={styles.userText}>{txn.to}</Text>
-                    </>
-                  )}
-                </Text>
-                <Text style={styles.txnTime}>
-                  {new Date(txn.timestamp).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </Text>
-              </TouchableOpacity>
-            ))
+            transactions.map((txn, index) => {
+              const amountColor =
+                txn.type === 'deposit' || txn.type === 'received' ? '#00c853' : '#d50000';
+              const sign = txn.type === 'deposit' || txn.type === 'received' ? '+' : '-';
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.transactionItem}
+                  onPress={() => openTransactionModal(txn)}
+                >
+                  <Text style={styles.txnLabel}>
+                    {txn.type === 'deposit'
+                      ? 'Deposit'
+                      : txn.type === 'received'
+                      ? 'Received'
+                      : 'Transfer'}
+                  </Text>
+                  <Text style={[styles.txnAmount, { color: amountColor }]}>{sign}₱{txn.amount}</Text>
+                  <Text style={styles.txnDate}>
+                    {new Date(txn.timestamp).toLocaleDateString()} | Completed
+                  </Text>
+                </TouchableOpacity>
+              );
+            })
           )}
         </ScrollView>
       </View>
 
+      {/* Modal */}
       {selectedTransaction && (
-        <Modal
-          transparent={true}
-          animationType="slide"
-          visible={modalVisible}
-          onRequestClose={closeModal}
-        >
+        <Modal transparent={true} animationType="slide" visible={modalVisible}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalText}>Type: <Text style={styles.modalValue}>{selectedTransaction.type}</Text></Text>
-                <Text style={styles.modalText}>Amount: <Text style={styles.modalValue}>₱{selectedTransaction.amount}</Text></Text>
-                {selectedTransaction.to && (
-                  <Text style={styles.modalText}>To: <Text style={styles.modalValue}>{selectedTransaction.to}</Text></Text>
-                )}
-                {selectedTransaction.from && (
-                  <Text style={styles.modalText}>From: <Text style={styles.modalValue}>{selectedTransaction.from}</Text></Text>
-                )}
-                <Text style={styles.modalText}>Date: <Text style={styles.modalValue}>
-                  {new Date(selectedTransaction.timestamp).toLocaleDateString()}
-                </Text></Text>
-              </View>
+              <Text style={styles.modalText}>Type: {selectedTransaction.type}</Text>
+              <Text style={styles.modalText}>Amount: ₱{selectedTransaction.amount}</Text>
+              {selectedTransaction.to && <Text style={styles.modalText}>To: {selectedTransaction.to}</Text>}
+              {selectedTransaction.from && <Text style={styles.modalText}>From: {selectedTransaction.from}</Text>}
+              <Text style={styles.modalText}>
+                Date: {new Date(selectedTransaction.timestamp).toLocaleDateString()}
+              </Text>
               <TouchableOpacity style={styles.modalButton} onPress={closeModal}>
                 <Text style={styles.modalButtonText}>Close</Text>
               </TouchableOpacity>
@@ -194,87 +160,67 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  helloText: { fontSize: 24, fontWeight: '400' },
-  bold: { fontWeight: 'bold' },
-  profileImage: { width: 42, height: 42, resizeMode: 'contain' },
+  welcomeText: { fontSize: 26, color: '#1c1c1e' },
+  username: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+  profileImage: { width: 52, height: 52, borderRadius: 21 },
 
-  card: {
-    backgroundColor: 'rgba(28, 28, 28, 0.95)',
+  balanceCard: {
+    backgroundColor: '#1c1c1e',
     borderRadius: 20,
     padding: 24,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#C4A35A',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
     marginTop: 20,
   },
-  balanceLabel: {
-    color: '#C4A35A',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 5,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
+  balanceWrapper: {
+    flexDirection: 'row', // Align the balance text and image horizontally
+    justifyContent: 'space-between', // Spread out the items
+    alignItems: 'center',
   },
-  balanceValue: {
-    color: '#FFFFFF',
-    fontSize: 36,
-    fontWeight: 'bold',
-    fontFamily: 'serif',
-    marginBottom: 20,
+  balanceTextWrapper: {
+    flex: 1, // Allow the text to take up available space
   },
+  pantheonImage: {
+    width: 100, // Set appropriate width
+    height: 100, // Set appropriate height
+    marginLeft: 20, // Add space between the text and the image
+  },
+  balanceLabel: { color: '#aaa', fontSize: 14, marginBottom: 5 },
+  balanceValue: { fontSize: 46, fontWeight: 'bold', color: '#fff' },
+  currency: { color: '#bbb', marginTop: 5 },
+
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
+    marginTop: 20,
   },
-  button: {
-    backgroundColor: '#C4A35A',
-    borderRadius: 10,
+  actionButton: {
+    flex: 1,
+    backgroundColor: '#2e2e2e',
     paddingVertical: 12,
-    paddingHorizontal: 28,
     marginHorizontal: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderRadius: 12,
+    alignItems: 'center',
   },
-  buttonText: {
-    color: '#1c1c1c',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
+  actionText: { color: '#fff', fontWeight: '600' },
 
-  historyTitle: { marginTop: 30, fontSize: 20, fontWeight: 'bold' },
-  historyScroll: { marginTop: 10, maxHeight: 300 },
+  historyTitle: { marginTop: 30, fontSize: 18, fontWeight: 'bold', color: '#2e2e2e' },
+  historyScroll: { marginTop: 10 },
   noTxnText: { textAlign: 'center', color: '#888', marginTop: 20 },
   transactionItem: {
     backgroundColor: '#fff',
     padding: 15,
+    borderRadius: 12,
     marginBottom: 10,
-    borderRadius: 10,
   },
-  txnText: { fontSize: 14 },
-  txnTime: { fontSize: 12, color: '#aaa', marginTop: 5 },
-  labelText: { color: '#000', fontWeight: '600' },
-  greenValue: { color: 'green' },
-  redValue: { color: 'red' },
-  userText: { fontWeight: '600' },
+  txnLabel: { fontSize: 14, color: '#333', fontWeight: 'bold' },
+  txnAmount: { fontSize: 18, fontWeight: '600' },
+  txnDate: { fontSize: 12, color: '#888', marginTop: 5 },
 
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContainer: {
     backgroundColor: 'white',
@@ -284,9 +230,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: { fontSize: 18, fontWeight: 'bold' },
-  modalContent: { marginTop: 15, alignItems: 'flex-start' },
   modalText: { fontSize: 16, marginTop: 10 },
-  modalValue: { fontWeight: 'bold', color: '#333' },
   modalButton: {
     backgroundColor: 'black',
     paddingVertical: 10,
@@ -294,12 +238,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 20,
   },
-  modalButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
+  modalButtonText: { color: 'white', fontWeight: 'bold' },
 });
 
 export default HomeScreen;
