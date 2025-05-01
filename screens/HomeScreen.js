@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground, Modal, Button } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ScrollView,
+  ImageBackground,
+  Modal,
+} from 'react-native';
 import { db, ref, get, push, set } from '../firebaseConfig';
 
 const HomeScreen = ({ navigation, route }) => {
   const { userId } = route.params;
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);  // For controlling modal visibility
-  const [selectedTransaction, setSelectedTransaction] = useState(null);  // For storing the selected transaction
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -28,13 +37,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   const handleTransaction = async (type, amount, to = null, from = null) => {
     const timestamp = new Date().toISOString();
-    const transactionData = {
-      type,
-      amount,
-      to,
-      from,
-      timestamp,
-    };
+    const transactionData = { type, amount, to, from, timestamp };
 
     const userRef = ref(db, 'users/' + userId + '/transactions');
     await push(userRef, transactionData);
@@ -44,26 +47,21 @@ const HomeScreen = ({ navigation, route }) => {
     if (snapshot.exists()) {
       const userData = snapshot.val();
       const newBalance = type === 'deposit' ? userData.balance + amount : userData.balance - amount;
-      await set(userRefBalance, {
-        ...userData,
-        balance: newBalance,
-      });
+      await set(userRefBalance, { ...userData, balance: newBalance });
       setBalance(newBalance);
     }
 
-    setTransactions(prevTransactions => [transactionData, ...prevTransactions]);
+    setTransactions(prev => [transactionData, ...prev]);
   };
 
-  // Function to open the modal and show transaction details
   const openTransactionModal = (txn) => {
     setSelectedTransaction(txn);
     setModalVisible(true);
   };
 
-  // Function to close the modal
   const closeModal = () => {
     setModalVisible(false);
-    setSelectedTransaction(null);  // Clear selected transaction when closing
+    setSelectedTransaction(null);
   };
 
   return (
@@ -85,8 +83,9 @@ const HomeScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Balance Card */}
         <View style={styles.card}>
-          <Text style={styles.balanceLabel}>Available balance</Text>
+          <Text style={styles.balanceLabel}>Available Balance</Text>
           <Text style={styles.balanceValue}>₱{parseFloat(balance).toFixed(2)}</Text>
 
           <View style={styles.buttonContainer}>
@@ -115,7 +114,7 @@ const HomeScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 key={index}
                 style={styles.transactionItem}
-                onPress={() => openTransactionModal(txn)}  // Open modal on transaction click
+                onPress={() => openTransactionModal(txn)}
               >
                 <Text style={styles.txnText}>
                   {txn.type === 'deposit' && (
@@ -154,19 +153,16 @@ const HomeScreen = ({ navigation, route }) => {
         </ScrollView>
       </View>
 
-      {/* Modal to show transaction details */}
       {selectedTransaction && (
         <Modal
           transparent={true}
           animationType="slide"
           visible={modalVisible}
-          onRequestClose={closeModal}  // Close the modal
+          onRequestClose={closeModal}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
-
-              {/* Align content neatly within the modal */}
               <View style={styles.modalContent}>
                 <Text style={styles.modalText}>Type: <Text style={styles.modalValue}>{selectedTransaction.type}</Text></Text>
                 <Text style={styles.modalText}>Amount: <Text style={styles.modalValue}>₱{selectedTransaction.amount}</Text></Text>
@@ -176,14 +172,10 @@ const HomeScreen = ({ navigation, route }) => {
                 {selectedTransaction.from && (
                   <Text style={styles.modalText}>From: <Text style={styles.modalValue}>{selectedTransaction.from}</Text></Text>
                 )}
-                <Text style={styles.modalText}>
-                  Date: <Text style={styles.modalValue}>
-                    {new Date(selectedTransaction.timestamp).toLocaleDateString()}
-                  </Text>
-                </Text>
+                <Text style={styles.modalText}>Date: <Text style={styles.modalValue}>
+                  {new Date(selectedTransaction.timestamp).toLocaleDateString()}
+                </Text></Text>
               </View>
-
-              {/* Custom close button with white text and black background */}
               <TouchableOpacity style={styles.modalButton} onPress={closeModal}>
                 <Text style={styles.modalButtonText}>Close</Text>
               </TouchableOpacity>
@@ -207,32 +199,61 @@ const styles = StyleSheet.create({
   helloText: { fontSize: 24, fontWeight: '400' },
   bold: { fontWeight: 'bold' },
   profileImage: { width: 42, height: 42, resizeMode: 'contain' },
+
   card: {
-    backgroundColor: '#1c1c1c',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: 'rgba(28, 28, 28, 0.95)',
+    borderRadius: 20,
+    padding: 24,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#C4A35A',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+    marginTop: 20,
   },
-  balanceLabel: { color: '#fff', marginTop: 20, fontSize: 14 },
+  balanceLabel: {
+    color: '#C4A35A',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 5,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
   balanceValue: {
-    color: '#fff',
-    fontSize: 32,
+    color: '#FFFFFF',
+    fontSize: 36,
     fontWeight: 'bold',
+    fontFamily: 'serif',
     marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
     width: '100%',
-    marginTop: 20,
   },
   button: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+    backgroundColor: '#C4A35A',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    marginHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  buttonText: { fontSize: 16, fontWeight: '600', color: '#000000' },
+  buttonText: {
+    color: '#1c1c1c',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+
   historyTitle: { marginTop: 30, fontSize: 20, fontWeight: 'bold' },
   historyScroll: { marginTop: 10, maxHeight: 300 },
   noTxnText: { textAlign: 'center', color: '#888', marginTop: 20 },
@@ -249,11 +270,10 @@ const styles = StyleSheet.create({
   redValue: { color: 'red' },
   userText: { fontWeight: '600' },
 
-  // Modal styles
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',  // Center the modal in the middle of the screen
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
@@ -261,27 +281,24 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: 300,
-    alignItems: 'center',  // Content centered within the modal
+    alignItems: 'center',
   },
   modalTitle: { fontSize: 18, fontWeight: 'bold' },
-  modalContent: { marginTop: 15, alignItems: 'flex-start' },  // Align content to the left
+  modalContent: { marginTop: 15, alignItems: 'flex-start' },
   modalText: { fontSize: 16, marginTop: 10 },
-  modalValue: { fontWeight: 'bold', color: '#333' },  // Style for values like amount, to, from, and date
-
-  // Modal button styles
+  modalValue: { fontWeight: 'bold', color: '#333' },
   modalButton: {
-    backgroundColor: 'black',   // Black background
-    paddingVertical: 10,        // Vertical padding
-    paddingHorizontal: 20,      // Horizontal padding
-    borderRadius: 8,            // Rounded corners
-    marginTop: 20,              // Space from the content above
+    backgroundColor: 'black',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 20,
   },
-
   modalButtonText: {
-    color: 'white',             // White text
-    fontSize: 16,               // Text size
-    fontWeight: 'bold',         // Bold text
-    textAlign: 'center',       // Center the text
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
