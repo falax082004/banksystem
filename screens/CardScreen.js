@@ -118,7 +118,7 @@ const CardScreen = ({ route }) => {
             ))}
           </View>
           <TouchableOpacity onPress={() => setShowCard(!showCard)} style={styles.eyeIcon}>
-            <Icon name={showCard ? 'eye' : 'eye-off'} size={22} color="#C4A35A" />
+            <Icon name={showCard ? 'eye' : 'eye-off'} size={22} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -172,8 +172,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   enlargedCardIcon: {
-    width: 60,
-    height: 45,
+    width: 100,
+    height: 75,
     resizeMode: 'contain',
   },
   cardLabel: {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 10,
   },
   cardNumberGroup: {
     flexDirection: 'row',
@@ -200,8 +200,7 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     padding: 6,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 20
   },
   cardFooter: {
     flexDirection: 'row',
@@ -241,7 +240,7 @@ const styles = StyleSheet.create({
   },
   generateButton: {
     marginTop: 30,
-    backgroundColor: '#C4A35A',
+    backgroundColor: '#FFF',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 8,

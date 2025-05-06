@@ -5,9 +5,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  ScrollView,
   ImageBackground,
   Modal,
+  ScrollView,
 } from 'react-native';
 import { db, ref, get } from '../firebaseConfig';
 
@@ -17,6 +17,7 @@ const HomeScreen = ({ navigation, route }) => {
   const [transactions, setTransactions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [isBalanceVisible, setIsBalanceVisible] = useState(true); // State to control balance visibility
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -45,6 +46,10 @@ const HomeScreen = ({ navigation, route }) => {
     setSelectedTransaction(null);
   };
 
+  const toggleBalanceVisibility = () => {
+    setIsBalanceVisible(!isBalanceVisible);
+  };
+
   return (
     <ImageBackground
       source={require('../assets/bgapp3.jpg')}
@@ -68,7 +73,11 @@ const HomeScreen = ({ navigation, route }) => {
           <View style={styles.balanceWrapper}>
             <View style={styles.balanceTextWrapper}>
               <Text style={styles.balanceLabel}>My Balance</Text>
-              <Text style={styles.balanceValue}>₱{parseFloat(balance).toFixed(2)}</Text>
+              {isBalanceVisible ? (
+                <Text style={styles.balanceValue}>₱{parseFloat(balance).toFixed(2)}</Text>
+              ) : (
+                <Text style={styles.balanceValue}>₱••••••</Text> // Hidden balance
+              )}
               <Text style={styles.currency}>PHP ⌄</Text>
             </View>
 
@@ -92,6 +101,14 @@ const HomeScreen = ({ navigation, route }) => {
               <Text style={styles.actionText}>Deposit</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Balance Visibility Toggle */}
+          <TouchableOpacity
+            style={styles.hideBalanceButton}
+            onPress={toggleBalanceVisibility}
+          >
+            <Text style={styles.hideBalanceText}>{isBalanceVisible ? 'Hide' : 'Show'} Balance</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Transactions */}
@@ -239,6 +256,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   modalButtonText: { color: 'white', fontWeight: 'bold' },
+
+  hideBalanceButton: {
+    marginTop: 10,
+    alignItems: 'center',
+    backgroundColor: '#555',
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  hideBalanceText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
 });
 
 export default HomeScreen;

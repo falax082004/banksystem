@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ImageBackground, Modal, Pressable
-} from 'react-native';
-import { db, ref, get, update } from '../firebaseConfig';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, Pressable, ImageBackground } from 'react-native';
+import { db, ref, get, update, serverTimestamp } from '../firebaseConfig';
 
 const TransferScreen = ({ navigation, route }) => {
   const [recipientUsername, setRecipientUsername] = useState('');
   const [amount, setAmount] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const { userId } = route.params;
 
@@ -46,45 +44,98 @@ const TransferScreen = ({ navigation, route }) => {
       }
 
       const senderData = senderSnapshot.val();
-      const recipientData = recipientSnapshot.val();
-
       const senderBalance = senderData.balance || 0;
+      const dailyOutgoing = senderData.dailyOutgoing || 0;
+
+      // Check if the transfer exceeds the daily limit
+      if (dailyOutgoing + transferAmount > 100000) {
+        setModalMessage('Transfer exceeds daily outgoing limit of ₱100,000');
+        setModalVisible(true);
+        return;
+      }
+
       if (transferAmount > senderBalance) {
         setModalMessage('Insufficient funds');
         setModalVisible(true);
         return;
       }
 
-      const newSenderBalance = senderBalance - transferAmount;
-      const newRecipientBalance = (recipientData.balance || 0) + transferAmount;
-
-      await update(senderRef, {
-        balance: newSenderBalance,
-        transactions: [...(senderData.transactions || []), {
-          type: 'transfer',
-          to: recipientUsername,
-          amount: transferAmount,
-          timestamp: new Date().toISOString(),
-        }],
-      });
-
-      await update(recipientRef, {
-        balance: newRecipientBalance,
-        transactions: [...(recipientData.transactions || []), {
-          type: 'received',
-          from: userId,
-          amount: transferAmount,
-          timestamp: new Date().toISOString(),
-        }],
-      });
-
-      setModalMessage(`Transferred ₱${transferAmount} to ${recipientUsername}`);
-      setModalVisible(true);
-
+      setConfirmationModalVisible(true);
     } catch (error) {
       console.error("Error during transfer:", error);
       setModalMessage('Something went wrong. Please try again.');
       setModalVisible(true);
+    }
+  };
+
+  const confirmTransfer = async () => {
+    const transferAmount = parseFloat(amount);
+    const senderRef = ref(db, 'users/' + userId);
+    const recipientRef = ref(db, 'users/' + recipientUsername);
+
+    try {
+      const senderSnapshot = await get(senderRef);
+      const recipientSnapshot = await get(recipientRef);
+
+      const senderData = senderSnapshot.val();
+      const recipientData = recipientSnapshot.val();
+
+      const senderBalance = senderData.balance || 0;
+      const newSenderBalance = senderBalance - transferAmount;
+      const newRecipientBalance = (recipientData.balance || 0) + transferAmount;
+
+      const senderTransactions = senderData.transactions || [];
+      const recipientTransactions = recipientData.transactions || [];
+
+      const timestamp = serverTimestamp();  // Use Firebase's server timestamp for accuracy
+
+      // Prepare transaction data
+      const senderTransaction = {
+        type: 'transfer',
+        to: recipientUsername,
+        amount: transferAmount,
+        timestamp,
+      };
+
+      const recipientTransaction = {
+        type: 'received',
+        from: userId,
+        amount: transferAmount,
+        timestamp,
+      };
+
+      // Update dailyOutgoing and monthlyIncoming for both sender and recipient
+      const today = new Date().toISOString().split('T')[0]; // 'yyyy-mm-dd' format
+      const currentMonth = new Date().toISOString().split('T')[0].slice(0, 7); // 'yyyy-mm' format
+
+      // Update sender dailyOutgoing
+      let dailyOutgoing = senderData.dailyOutgoing || 0;
+      dailyOutgoing += transferAmount;
+
+      // Update recipient monthlyIncoming
+      let monthlyIncoming = recipientData.monthlyIncoming || 0;
+      monthlyIncoming += transferAmount;
+
+      await update(senderRef, {
+        balance: newSenderBalance,
+        transactions: [...senderTransactions, senderTransaction],
+        dailyOutgoing,
+      });
+
+      await update(recipientRef, {
+        balance: newRecipientBalance,
+        transactions: [...recipientTransactions, recipientTransaction],
+        monthlyIncoming,
+      });
+
+      setModalMessage(`Transferred ₱${transferAmount} to ${recipientUsername}`);
+      setModalVisible(true);
+      setConfirmationModalVisible(false);
+    } catch (error) {
+      console.error("Error confirming transfer:", error);
+      setModalMessage('Transfer failed. Please try again.');
+      setModalVisible(true);
+      setConfirmationModalVisible(false);
     }
   };
 
@@ -98,10 +149,8 @@ const TransferScreen = ({ navigation, route }) => {
   return (
     <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
       <View style={styles.container}>
-        <TouchableOpacity 
-          style={styles.closeButton} 
-          onPress={() => navigation.navigate('Home', { userId })}
-        >
+        {/* Close button */}
+        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.navigate('Home', { userId })}>
           <Text style={styles.closeButtonText}>X</Text>
         </TouchableOpacity>
 
@@ -113,9 +162,7 @@ const TransferScreen = ({ navigation, route }) => {
             style={styles.input}
             value={recipientUsername}
             onChangeText={setRecipientUsername}
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder="Username"
+            placeholder="Enter recipient username"
             placeholderTextColor="#888"
           />
 
@@ -130,10 +177,11 @@ const TransferScreen = ({ navigation, route }) => {
           />
 
           <TouchableOpacity style={styles.button} onPress={handleTransfer}>
-            <Text style={styles.buttonText}>Send Transfer</Text>
+            <Text style={styles.buttonText}>Transfer</Text>
           </TouchableOpacity>
         </View>
 
+        {/* Modal for messages */}
         <Modal
           transparent={true}
           visible={modalVisible}
@@ -146,6 +194,30 @@ const TransferScreen = ({ navigation, route }) => {
               <Pressable style={styles.modalButton} onPress={closeModal}>
                 <Text style={styles.modalButtonText}>OK</Text>
               </Pressable>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Confirmation Modal */}
+        <Modal
+          transparent={true}
+          visible={confirmationModalVisible}
+          animationType="fade"
+          onRequestClose={() => setConfirmationModalVisible(false)}
+        >
+          <View style={styles.modalBackground}>
+            <View style={[styles.modalCard, { backgroundColor: '#222' }]}>
+              <Text style={[styles.modalText, { color: '#fff', marginBottom: 30 }]}>
+                Confirm transfer of ₱{amount} to @{recipientUsername}?
+              </Text>
+              <View style={styles.modalButtonContainer}>
+                <Pressable style={[styles.modalButton, styles.confirmButton]} onPress={confirmTransfer}>
+                  <Text style={styles.modalButtonText}>Confirm</Text>
+                </Pressable>
+                <Pressable style={[styles.modalButton, styles.cancelButton]} onPress={() => setConfirmationModalVisible(false)}>
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         </Modal>
@@ -169,16 +241,16 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 20,
+    top: 40,
     right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
+    backgroundColor: '#fff',
+    borderRadius: 50,
     padding: 10,
     zIndex: 1,
   },
   closeButtonText: {
-    color: '#fff',
     fontSize: 24,
+    color: '#333',
     fontWeight: 'bold',
   },
   card: {
@@ -219,11 +291,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignItems: 'center',
     width: '100%',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
   },
   buttonText: {
     color: '#333',
@@ -232,32 +299,45 @@ const styles = StyleSheet.create({
   },
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalCard: {
-    backgroundColor: '#f4f4f4',
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 30,
-    borderRadius: 20,
     alignItems: 'center',
     width: '80%',
+    maxWidth: 400,
   },
   modalText: {
     fontSize: 18,
-    marginBottom: 20,
-    color: '#111',
     textAlign: 'center',
+    marginBottom: 20,
   },
   modalButton: {
-    backgroundColor: '#333',
-    paddingVertical: 10,
-    paddingHorizontal: 25,
+    backgroundColor: '#007BFF',
     borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    marginTop: 10,
+    alignItems: 'center',
   },
   modalButtonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  confirmButton: {
+    backgroundColor: '#4CAF50',
+  },
+  cancelButton: {
+    backgroundColor: '#F44336',
   },
 });
 

@@ -3,29 +3,26 @@ import {
   View,
   Text,
   TouchableOpacity,
-  TextInput,
   StyleSheet,
-  ActivityIndicator,
-  ImageBackground,
   Image,
-  Alert,
+  ScrollView,
+  ActivityIndicator,
+  SafeAreaView,
+  Modal,
+  Pressable,
+  TextInput
 } from 'react-native';
-import { db, ref, get, update } from '../firebaseConfig'; // Adjust the path as needed
-import Icon from 'react-native-vector-icons/FontAwesome'; // Assuming you're using FontAwesome for icons
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { db, ref, get, update } from '../firebaseConfig';
 
 const ProfileScreen = ({ navigation, route }) => {
   const { userId } = route.params;
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(true);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [isEditingEmail, setIsEditingEmail] = useState(false);
-  const [isPasswordEditing, setIsPasswordEditing] = useState(false);
-  const [originalName, setOriginalName] = useState('');
-  const [originalEmail, setOriginalEmail] = useState('');
-  const [originalPassword, setOriginalPassword] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -34,348 +31,318 @@ const ProfileScreen = ({ navigation, route }) => {
         const snapshot = await get(userRef);
         if (snapshot.exists()) {
           const userData = snapshot.val();
-          setName(userData.name);
-          setEmail(userData.email);
-          setPassword(userData.password);
-          setOriginalName(userData.name);
-          setOriginalEmail(userData.email);
-          setOriginalPassword(userData.password);
-        } else {
-          setName('Unknown');
-          setEmail('Unknown');
-          setPassword('Unknown');
+          setName(userData.name || 'User');
+          setPhone(userData.phone || 'Unknown');
+          setEditName(userData.name || '');
+          setEditPhone(userData.phone || '');
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
-        setName('Error loading name');
-        setEmail('Error loading email');
-        setPassword('Error loading password');
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, [userId]);
-
-  const handleEditName = () => {
-    setIsEditingName(true);
-  };
-
-  const handleEditEmail = () => {
-    setIsEditingEmail(true);
-  };
-
-  const handleSaveName = async () => {
-    if (name.trim() === '') {
-      alert('Name cannot be empty');
-      return;
-    }
-
-    try {
-      const userRef = ref(db, 'users/' + userId);
-      await update(userRef, { name });
-      setOriginalName(name);
-      setIsEditingName(false);
-    } catch (error) {
-      console.error('Error updating name:', error);
-      alert('Failed to update name');
-    }
-  };
-
-  const handleSaveEmail = async () => {
-    if (email.trim() === '') {
-      alert('Email cannot be empty');
-      return;
-    }
-
-    try {
-      const userRef = ref(db, 'users/' + userId);
-      await update(userRef, { email });
-      setOriginalEmail(email);
-      setIsEditingEmail(false);
-    } catch (error) {
-      console.error('Error updating email:', error);
-      alert('Failed to update email');
-    }
-  };
-
-  const handleCancelName = () => {
-    setName(originalName);
-    setIsEditingName(false);
-  };
-
-  const handleCancelEmail = () => {
-    setEmail(originalEmail);
-    setIsEditingEmail(false);
-  };
-
-  const handlePasswordEdit = () => {
-    setIsPasswordEditing(true);
-  };
-
-  const handlePasswordSave = async () => {
-    if (newPassword.trim() === '') {
-      alert('New password cannot be empty');
-      return;
-    }
-
-    try {
-      const userRef = ref(db, 'users/' + userId);
-      await update(userRef, { password: newPassword });
-      setPassword(newPassword);
-      setIsPasswordEditing(false);
-      setNewPassword('');
-    } catch (error) {
-      console.error('Error updating password:', error);
-      alert('Failed to update password');
-    }
-  };
 
   const handleLogout = () => {
     navigation.navigate('Login');
   };
 
+  const handleProfilePress = () => {
+    setModalVisible(true);
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      const userRef = ref(db, 'users/' + userId);
+      await update(userRef, {
+        name: editName,
+        phone: editPhone
+      });
+      setName(editName);
+      setPhone(editPhone);
+      setModalVisible(false);
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
+  };
+
+  const MenuItem = ({ icon, label, onPress }) => (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+      <View style={styles.menuItemContent}>
+        <Icon name={icon} size={20} color="#FFF" />
+        <Text style={styles.menuLabel}>{label}</Text>
+      </View>
+      <Icon name="angle-right" size={20} color="#888" />
+    </TouchableOpacity>
+  );
+
   return (
-    <ImageBackground
-      source={require('../assets/bgapp3.jpg')} // Set the background image here
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Image source={require('../assets/apollo.png')} style={styles.profileIcon} />
-        <Text style={styles.headerText}>Profile</Text>
+        <TouchableOpacity style={styles.profileCard} onPress={handleProfilePress}>
+          <Image
+            source={require('../assets/apollo.png')}
+            style={styles.avatar}
+          />
+          <View style={styles.userInfo}>
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.phone}>{phone}</Text>
+          </View>
+          <Icon name="angle-right" size={20} color="#888" />
+        </TouchableOpacity>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#ffffff" />
-        ) : (
-          <View style={styles.userInfoContainer}>
-            {/* Full Name */}
-            <View style={styles.userInfoRow}>
-              <Text style={styles.label}>Full Name:</Text>
-              {isEditingName ? (
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.input}
-                    value={name}
-                    onChangeText={setName}
-                    autoFocus
-                  />
-                  <View style={styles.editButtonsContainer}>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleSaveName}
-                    >
-                      <Icon name="check" size={20} color="#4CAF50" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleCancelName}
-                    >
-                      <Icon name="times" size={20} color="#f44336" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoText}>{name}</Text>
-                  <TouchableOpacity onPress={handleEditName} style={styles.iconButton}>
-                    <Icon name="pencil" size={16} color="#000" />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
+        <View style={styles.verificationCard}>
+          <Icon name="check-circle" size={16} color="#76FF03" />
+          <Text style={styles.verificationText}>Fully Verified</Text>
+        </View>
 
-            {/* Email */}
-            <View style={styles.userInfoRow}>
-              <Text style={styles.label}>Email:</Text>
-              {isEditingEmail ? (
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                  />
-                  <View style={styles.editButtonsContainer}>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleSaveEmail}
-                    >
-                      <Icon name="check" size={20} color="#4CAF50" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleCancelEmail}
-                    >
-                      <Icon name="times" size={20} color="#f44336" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoText}>{email}</Text>
-                  <TouchableOpacity onPress={handleEditEmail} style={styles.iconButton}>
-                    <Icon name="pencil" size={16} color="#000" />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
+        <View style={styles.stretchArea}>
+          <ScrollView contentContainerStyle={styles.scroll}>
+            {loading ? (
+              <ActivityIndicator size="large" color="#76FF03" />
+            ) : (
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  icon="link"
+                  label="My Linked Accounts"
+                  onPress={() => navigation.navigate('My Linked Accounts', { userId })}
+                />
+                <MenuItem
+                  icon="qrcode"
+                  label="My QR Codes"
+                  onPress={() => navigation.navigate('MyQRCode' , { userId, fullName: name })}
+                />
+                <MenuItem
+                  icon="credit-card"
+                  label="Profile Limits"
+                  onPress={() => navigation.navigate('ProfileLimits', { userId })}
+                />
+                <MenuItem
+                  icon="tags"
+                  label="Promos"
+                  onPress={() => navigation.navigate('Promos')}
+                />
+                <MenuItem
+                  icon="gift"
+                  label="Voucher Pocket"
+                  onPress={() => navigation.navigate('Voucher')}
+                />
+                <MenuItem
+                  icon="building"
+                  label="Partner Merchants"
+                  onPress={() => navigation.navigate('Partners')}
+                />
+                <MenuItem
+                  icon="user-plus"
+                  label="Refer Friends"
+                  onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })}
+                />
+                <MenuItem
+                  icon="cog"
+                  label="Settings"
+                  onPress={() => navigation.navigate('Settings', { userId })}
+                />
+                <MenuItem
+                  icon="question-circle"
+                  label="Help"
+                  onPress={() => navigation.navigate('Help')}
+                />
+                <MenuItem
+                  icon="sign-out"
+                  label="Log out"
+                  onPress={handleLogout}
+                />
+              </View>
+            )}
+          </ScrollView>
+        </View>
 
-            {/* Password */}
-            <View style={styles.userInfoRow}>
-              <Text style={styles.label}>Password:</Text>
-              {isPasswordEditing ? (
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.input}
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    secureTextEntry
-                    autoFocus
-                  />
-                  <View style={styles.editButtonsContainer}>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handlePasswordSave}
-                    >
-                      <Icon name="check" size={20} color="#4CAF50" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={() => setIsPasswordEditing(false)}
-                    >
-                      <Icon name="times" size={20} color="#f44336" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoText}>{'******'}</Text>
-                  <TouchableOpacity onPress={handlePasswordEdit} style={styles.iconButton}>
-                    <Icon name="pencil" size={16} color="#000" />
-                  </TouchableOpacity>
-                </View>
-              )}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Edit Profile</Text>
+
+              <TextInput
+                style={styles.input}
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Enter your name"
+                placeholderTextColor="#888"
+              />
+              <TextInput
+                style={styles.input}
+                value={editPhone}
+                onChangeText={setEditPhone}
+                placeholder="Enter your phone number"
+                placeholderTextColor="#888"
+                keyboardType="phone-pad"
+              />
+
+              <View style={styles.buttonContainer}>
+                <Pressable style={styles.saveButton} onPress={handleSaveChanges}>
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                </Pressable>
+                <Pressable style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        )}
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.buttonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
+        </Modal>
       </View>
-    </ImageBackground>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
+  safeArea: {
     flex: 1,
-    width: '100%',
-    height: '100%',
+    backgroundColor: '#333',
   },
   container: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dark overlay for black-and-white theme
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    backgroundColor: '#333',
   },
-  profileIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 20,
-    alignSelf: 'center',
+  scroll: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
-  headerText: {
-    fontSize: 32,
-    fontWeight: '800',
-    marginBottom: 30,
-    color: '#ffffff',
-    textAlign: 'left',
-    textTransform: 'uppercase',
-    letterSpacing: 3,
-    alignSelf: 'center',
-  },
-  userInfoContainer: {
-    marginBottom: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent white background for user info
-    padding: 30,
-    borderRadius: 12,
-    width: '100%',
-    shadowColor: '#000000',
-    shadowOpacity: 0.3,
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#444',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 8,
-    borderWidth: 2,
-    borderColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    marginBottom: 10,
   },
-  userInfoRow: {
-    marginBottom: 12,
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginRight: 15,
+    backgroundColor: '#e0e0e0',
   },
-  label: {
-    fontSize: 16,
+  userInfo: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 18,
+    color: '#FFF',
     fontWeight: '600',
-    color: '#000000',
-    marginBottom: 4,
-    textAlign: 'left',
   },
-  inputContainer: {
+  phone: {
+    fontSize: 14,
+    color: '#AAA',
+  },
+  verificationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  input: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    borderBottomWidth: 1,
-    borderBottomColor: '#000000',
-    padding: 5,
-    width: '70%',
-  },
-  editButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    width: '30%',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    textAlign: 'left',
-  },
-  iconButton: {
-    marginLeft: 10,
-  },
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  logoutButton: {
-    backgroundColor: '#f44336',
-    padding: 18,
+    backgroundColor: '#555',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 12,
-    width: '100%',
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+  },
+  verificationText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#76FF03',
+    fontWeight: '500',
+  },
+  menuContainer: {
+    backgroundColor: '#444',
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+    marginBottom: 20,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 30,
+    borderBottomWidth: 1,
+    borderBottomColor: '#555',
+  },
+  menuItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuLabel: {
+    marginLeft: 15,
+    fontSize: 16,
+    color: '#FFF',
+  },
+  stretchArea: {
+    flex: 1,
+  },
+  modalBackground: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  modalContainer: {
+    width: 300,
+    backgroundColor: '#444',
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    color: '#FFF',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: '#555',
+    padding: 10,
+    borderRadius: 8,
+    color: '#FFF',
+    marginBottom: 15,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  saveButton: {
+    backgroundColor: '#76FF03',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  saveButtonText: {
+    color: '#333',
+    fontWeight: '500',
+  },
+  closeButton: {
+    backgroundColor: '#AAA',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  closeButtonText: {
+    color: '#333',
+    fontWeight: '500',
   },
 });
 
