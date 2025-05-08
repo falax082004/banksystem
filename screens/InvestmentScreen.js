@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const VoucherScreen = () => {
+const InvestmentScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Voucher Center</Text>
@@ -11,7 +11,7 @@ const VoucherScreen = () => {
   );
 };
 
-export default VoucherScreen;
+export default InvestmentScreen;
 
 const styles = StyleSheet.create({
   container: {

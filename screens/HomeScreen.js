@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { db, ref, get } from '../firebaseConfig';
+import { useFocusEffect } from '@react-navigation/native';
 
 const HomeScreen = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -19,22 +20,27 @@ const HomeScreen = ({ navigation, route }) => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isBalanceVisible, setIsBalanceVisible] = useState(true); // State to control balance visibility
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const userRef = ref(db, 'users/' + userId);
-      const snapshot = await get(userRef);
-      if (snapshot.exists()) {
-        const userData = snapshot.val();
-        setBalance(userData.balance || 0);
-        const txn = userData.transactions ? Object.values(userData.transactions).reverse() : [];
-        setTransactions(txn);
-      } else {
-        setBalance(0);
-        setTransactions([]);
-      }
-    };
-    fetchUserData();
-  }, [userId]);
+  // Move fetchUserData outside useEffect so it can be called after donation
+  const fetchUserData = async () => {
+    const userRef = ref(db, 'users/' + userId);
+    const snapshot = await get(userRef);
+    if (snapshot.exists()) {
+      const userData = snapshot.val();
+      setBalance(userData.balance || 0);
+      const txn = userData.transactions ? Object.values(userData.transactions).reverse() : [];
+      setTransactions(txn);
+    } else {
+      setBalance(0);
+      setTransactions([]);
+    }
+  };
+
+  // Use useFocusEffect to always refresh data when HomeScreen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [userId])
+  );
 
   const openTransactionModal = (txn) => {
     setSelectedTransaction(txn);
@@ -99,6 +105,7 @@ const HomeScreen = ({ navigation, route }) => {
               onPress={() => navigation.navigate('Deposit', { userId })}
             >
               <Text style={styles.actionText}>Deposit</Text>
+            
             </TouchableOpacity>
           </View>
 
@@ -133,6 +140,8 @@ const HomeScreen = ({ navigation, route }) => {
                       ? 'Deposit'
                       : txn.type === 'received'
                       ? 'Received'
+                      : txn.type === 'donation'
+                      ? 'Donation'
                       : 'Transfer'}
                   </Text>
                   <Text style={[styles.txnAmount, { color: amountColor }]}>{sign}₱{txn.amount}</Text>

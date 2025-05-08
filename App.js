@@ -15,10 +15,11 @@ import MyLinkedAccountsScreen from './screens/MyLinkedAccountsScreen';
 import MyQRCodeScreen from './screens/MyQRCodeScreen';
 import ProfileLimitsScreen from './screens/ProfileLimitsScreen';
 import ManageCardsScreen from './screens/ManageCardsScreen';
-import VoucherScreen from './screens/VoucherScreen';
-import PartnersScreen from './screens/PartnersScreen';
+import InvestmentScreen from './screens/InvestmentScreen';
+import CharityScreen from './screens/CharityScreen';
 import ReferFriendsScreen from './screens/ReferFriendsScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import ProfileEdit from './screens/ProfileEdit';
 import HelpScreen from './screens/HelpScreen';
 import CardScreen from './screens/CardScreen';
 import LockCardScreen from './screens/LockCardScreen';
@@ -77,8 +78,8 @@ export default function App() {
           }}
         />
         <Stack.Screen
-          name="Voucher"
-          component={VoucherScreen}
+          name="Investment"
+          component={InvestmentScreen}
           options={{
             headerStyle: { backgroundColor: '#333' },
             headerTitleStyle: { color: '#fff' },
@@ -86,8 +87,8 @@ export default function App() {
           }}
         />
           <Stack.Screen
-          name="Partners"
-          component={PartnersScreen}
+          name="Charity"
+          component={CharityScreen}
           options={{
             headerStyle: { backgroundColor: '#333' },
             headerTitleStyle: { color: '#fff' },
@@ -106,6 +107,15 @@ export default function App() {
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
+          options={{
+            headerStyle: { backgroundColor: '#333' },
+            headerTitleStyle: { color: '#fff' },
+            headerShown: true,
+          }}
+          />
+        <Stack.Screen
+          name="ProfileEdit"
+          component={ProfileEdit}
           options={{
             headerStyle: { backgroundColor: '#333' },
             headerTitleStyle: { color: '#fff' },
