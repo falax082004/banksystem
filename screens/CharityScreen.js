@@ -50,7 +50,9 @@ export default function DonationScreen({ route }) {
   const filteredOptions = selectedCategory === 'All'
     ? donationOptions
     : donationOptions.filter(opt => opt.category.toLowerCase() === selectedCategory.toLowerCase());
-  const donationData = filteredOptions[selectedIndex] || filteredOptions[0];
+  // Always use a safe index
+  const safeIndex = Math.min(selectedIndex, filteredOptions.length - 1);
+  const donationData = filteredOptions[safeIndex] || filteredOptions[0];
   const percent = Math.round((donationData.raised / donationData.target) * 100);
 
   const handleDonate = async () => {
@@ -141,7 +143,7 @@ export default function DonationScreen({ route }) {
                 style={[styles.catBtn, selectedCategory === cat && styles.catBtnActive]}
                 onPress={() => {
                   setSelectedCategory(cat);
-                  setSelectedIndex(0);
+                  setSelectedIndex(0); // Always reset to 0 on category change
                 }}
               >
                 <Text style={[styles.catText, selectedCategory === cat && styles.catTextActive]}>{cat}</Text>
@@ -153,7 +155,7 @@ export default function DonationScreen({ route }) {
             {filteredOptions.map((option, idx) => (
               <TouchableOpacity
                 key={option.category}
-                style={[styles.card, { width: 280, marginRight: 16, borderWidth: selectedIndex === idx ? 2 : 0, borderColor: '#1abc9c' }]}
+                style={[styles.card, { width: 280, marginRight: 16, borderWidth: safeIndex === idx ? 2 : 0, borderColor: '#1abc9c' }]}
                 onPress={() => { setSelectedIndex(idx); }}
                 onLongPress={() => { setSelectedIndex(idx); setScreen('details'); }}
               >
