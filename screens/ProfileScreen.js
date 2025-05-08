@@ -85,7 +85,7 @@ const ProfileScreen = ({ navigation, route }) => {
                 <MenuItem icon="qrcode" label="My QR Codes" onPress={() => navigation.navigate('MyQRCode', { userId, fullName: name })} />
                 <MenuItem icon="wallet" label="Profile Limits" onPress={() => navigation.navigate('ProfileLimits', { userId })} />
                 <MenuItem icon="credit-card" label="Manage Cards" onPress={() => navigation.navigate('ManageCards', { userId })} />
-                <MenuItem icon="chart-line" label="Investment Hub" onPress={() => navigation.navigate('Investment')} />
+                <MenuItem icon="chart-line" label="Investment Hub" onPress={() => navigation.navigate('Investment',{ userId, fullName: name })} />
                 <MenuItem icon="hands-helping" label="Charity and Donations" onPress={() => navigation.navigate('Charity',{ userId, fullName: name })} />
                 <MenuItem icon="user-friends" label="Refer Friends" onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })} />
                 <MenuItem icon="cog" label="Settings" onPress={() => navigation.navigate('Settings', { userId })} />
