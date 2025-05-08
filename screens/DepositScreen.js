@@ -1,21 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ImageBackground, Modal, Pressable
 } from 'react-native';
-import { db, ref, get, update } from '../firebaseConfig';
+import { db, ref, get, update, serverTimestamp } from '../firebaseConfig';
 
 const DepositScreen = ({ navigation, route }) => {
+  const { userId } = route.params;
   const [amount, setAmount] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
-  const { userId } = route.params;
+  const [lockStatus, setLockStatus] = useState(false);  // Lock status
+
+  useEffect(() => {
+    fetchLockStatus();
+  }, []);
+
+  const fetchLockStatus = async () => {
+    try {
+      const lockRef = ref(db, `users/${userId}/lock/status`);
+      const snapshot = await get(lockRef);
+      if (snapshot.exists()) {
+        setLockStatus(snapshot.val());
+      }
+    } catch (error) {
+      console.error('Error fetching lock status:', error);
+    }
+  };
 
   const handleDeposit = async () => {
     const depositAmount = parseFloat(amount);
 
     if (isNaN(depositAmount) || depositAmount <= 0) {
       setModalMessage('Please enter a valid deposit amount');
+      setModalVisible(true);
+      return;
+    }
+
+    if (lockStatus) {
+      setModalMessage('Your account is locked. Deposits are not allowed.');
       setModalVisible(true);
       return;
     }
@@ -39,7 +62,7 @@ const DepositScreen = ({ navigation, route }) => {
         transactions: [...(userData.transactions || []), {
           type: 'deposit',
           amount: depositAmount,
-          timestamp: new Date().toISOString(),
+          timestamp: serverTimestamp(),
         }],
       });
 

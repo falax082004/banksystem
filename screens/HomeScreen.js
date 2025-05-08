@@ -64,7 +64,7 @@ const HomeScreen = ({ navigation, route }) => {
             <Text style={styles.username}>{userId}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Profile', { userId })}>
-            <Image source={require('../assets/apollo.png')} style={styles.profileImage} />
+            <Image source={require('../assets/apolloo.png')} style={styles.profileImage} />
           </TouchableOpacity>
         </View>
 

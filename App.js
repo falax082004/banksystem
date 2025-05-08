@@ -14,13 +14,14 @@ import BottomTabs from './screens/BottomTabs';
 import MyLinkedAccountsScreen from './screens/MyLinkedAccountsScreen';
 import MyQRCodeScreen from './screens/MyQRCodeScreen';
 import ProfileLimitsScreen from './screens/ProfileLimitsScreen';
-import PromosScreen from './screens/PromosScreen';
+import ManageCardsScreen from './screens/ManageCardsScreen';
 import VoucherScreen from './screens/VoucherScreen';
 import PartnersScreen from './screens/PartnersScreen';
 import ReferFriendsScreen from './screens/ReferFriendsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import HelpScreen from './screens/HelpScreen';
 import CardScreen from './screens/CardScreen';
+import LockCardScreen from './screens/LockCardScreen';
 // Inbox Screen (new screen)
 import InboxScreen from './screens/InboxScreen'; // Ensure this is imported correctly
 
@@ -67,8 +68,8 @@ export default function App() {
           }}
         />
         <Stack.Screen
-          name="Promos"
-          component={PromosScreen}
+          name="ManageCards"
+          component={ManageCardsScreen}
           options={{
             headerStyle: { backgroundColor: '#333' },
             headerTitleStyle: { color: '#fff' },
@@ -78,6 +79,15 @@ export default function App() {
         <Stack.Screen
           name="Voucher"
           component={VoucherScreen}
+          options={{
+            headerStyle: { backgroundColor: '#333' },
+            headerTitleStyle: { color: '#fff' },
+            headerShown: true,
+          }}
+        />
+          <Stack.Screen
+          name="Partners"
+          component={PartnersScreen}
           options={{
             headerStyle: { backgroundColor: '#333' },
             headerTitleStyle: { color: '#fff' },
@@ -132,6 +142,16 @@ export default function App() {
             headerTitleStyle: { color: '#fff' },
             headerShown: true,
             title: 'CardScreen',
+          }}
+          />
+          <Stack.Screen
+          name="LockCardScreen"
+          component={LockCardScreen} // This is the Inbox screen
+          options={{
+            headerStyle: { backgroundColor: '#333' },
+            headerTitleStyle: { color: '#fff' },
+            headerShown: true,
+            title: 'LockCardScreen',
           }}
         />
       </Stack.Navigator>

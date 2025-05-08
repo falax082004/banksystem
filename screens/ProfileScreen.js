@@ -115,14 +115,14 @@ const ProfileScreen = ({ navigation, route }) => {
                   onPress={() => navigation.navigate('MyQRCode' , { userId, fullName: name })}
                 />
                 <MenuItem
-                  icon="credit-card"
+                  icon="bank"
                   label="Profile Limits"
                   onPress={() => navigation.navigate('ProfileLimits', { userId })}
                 />
                 <MenuItem
-                  icon="tags"
-                  label="Promos"
-                  onPress={() => navigation.navigate('Promos')}
+                  icon="credit-card"
+                  label="Manage Cards"
+                  onPress={() => navigation.navigate('ManageCards',{ userId })}
                 />
                 <MenuItem
                   icon="gift"
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   saveButton: {
-    backgroundColor: '#76FF03',
+    backgroundColor: '#ffffff',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   closeButton: {
-    backgroundColor: '#AAA',
+    backgroundColor: '#ffffff',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
