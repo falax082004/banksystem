@@ -21,6 +21,7 @@ const InboxScreen = ({ route }) => {
   const [transactions, setTransactions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [activeTab, setActiveTab] = useState('All');
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -39,12 +40,26 @@ const InboxScreen = ({ route }) => {
     fetchTransactions();
   }, [userId]);
 
+  const filteredTransactions = transactions.filter(transaction => {
+    console.log('Transaction type:', transaction.type); // Debug log
+    if (activeTab === 'All') return true;
+    if (activeTab === 'Transactions') {
+      return transaction.type === 'deposit' || transaction.type === 'transfer' || 
+             transaction.type === 'Deposit' || transaction.type === 'Transfer';
+    }
+    if (activeTab === 'Others') {
+      return transaction.type === 'donation' || transaction.type === 'investment' || 
+             transaction.type === 'Donation' || transaction.type === 'Investment';
+    }
+    return false;
+  });
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.item}
       onPress={() => {
-        setSelectedTransaction(item); // Set the clicked transaction
-        setModalVisible(true); // Open the modal
+        setSelectedTransaction(item);
+        setModalVisible(true);
       }}
     >
       <Ionicons name="mail-outline" size={30} color="#fff" style={styles.icon} />
@@ -66,21 +81,26 @@ const InboxScreen = ({ route }) => {
       <View style={styles.header}>
         <Text style={styles.headerText}>Inbox</Text>
         <View style={styles.tabContainer}>
-          <Text style={[styles.tabText, styles.tabActive]}>All</Text>
-          <Text style={styles.tabText}>Transactions</Text>
-          <Text style={styles.tabText}>Promos</Text>
+          <TouchableOpacity onPress={() => setActiveTab('All')}>
+            <Text style={[styles.tabText, activeTab === 'All' && styles.tabActive]}>All</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setActiveTab('Transactions')}>
+            <Text style={[styles.tabText, activeTab === 'Transactions' && styles.tabActive]}>Transactions</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setActiveTab('Others')}>
+            <Text style={[styles.tabText, activeTab === 'Others' && styles.tabActive]}>Others</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       <FlatList
-        data={transactions}
+        data={filteredTransactions}
         keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.emptyText}>No recent transactions</Text>}
       />
 
-      {/* Modal for displaying transaction details */}
       <Modal
         visible={modalVisible}
         animationType="fade"
@@ -133,15 +153,15 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingTop: 60, // Enlarged padding
-    paddingBottom: 25, // Enlarged padding
-    paddingHorizontal: 20, // Enlarged padding
+    paddingTop: 60,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
   },
   headerText: {
     color: '#fff',
-    fontSize: 28, // Enlarged font size
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 12, // Enlarged margin
+    marginBottom: 12,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -149,7 +169,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: '#aaa',
-    fontSize: 18, // Enlarged font size
+    fontSize: 18,
   },
   tabActive: {
     color: '#fff',
@@ -157,40 +177,40 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   list: {
-    padding: 20, // Enlarged padding
+    padding: 20,
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#111',
-    padding: 20, // Enlarged padding
-    borderRadius: 12, // Enlarged border radius
-    marginBottom: 15, // Enlarged margin
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 15,
   },
   icon: {
-    marginRight: 15, // Enlarged margin
+    marginRight: 15,
   },
   itemText: {
     flex: 1,
   },
   itemTitle: {
     color: '#fff',
-    fontSize: 18, // Enlarged font size
+    fontSize: 18,
     fontWeight: '600',
   },
   itemSubtitle: {
     color: '#aaa',
-    fontSize: 16, // Enlarged font size
+    fontSize: 16,
   },
   timeText: {
     color: '#aaa',
-    fontSize: 14, // Enlarged font size
+    fontSize: 14,
   },
   emptyText: {
     color: '#888',
     textAlign: 'center',
-    marginTop: 50, // Enlarged margin
-    fontSize: 18, // Enlarged font size
+    marginTop: 50,
+    fontSize: 18,
   },
   modalOverlay: {
     flex: 1,
@@ -200,32 +220,32 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#fff',
-    padding: 30, // Enlarged padding
-    borderRadius: 12, // Enlarged border radius
-    width: '85%', // Enlarged width
-    maxWidth: 450, // Enlarged max width
+    padding: 30,
+    borderRadius: 12,
+    width: '85%',
+    maxWidth: 450,
   },
   modalTitle: {
-    fontSize: 24, // Enlarged font size
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 15, // Enlarged margin
+    marginBottom: 15,
   },
   modalText: {
-    fontSize: 18, // Enlarged font size
-    marginBottom: 12, // Enlarged margin
+    fontSize: 18,
+    marginBottom: 12,
   },
   closeButton: {
-    marginTop: 25, // Enlarged margin
+    marginTop: 25,
     backgroundColor: '#1c1c1e',
-    paddingVertical: 15, // Enlarged padding
-    paddingHorizontal: 25, // Enlarged padding
-    borderRadius: 8, // Enlarged border radius
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 8,
     alignItems: 'center',
   },
   closeButtonText: {
     color: '#fff',
-    fontSize: 18, // Enlarged font size
+    fontSize: 18,
   },
 });
 
-export default InboxScreen;
+export default InboxScreen; 
