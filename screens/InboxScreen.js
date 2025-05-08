@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,9 @@ import {
   ImageBackground,
   Modal,
   TouchableWithoutFeedback,
-  Keyboard,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db, ref, get } from '../firebaseConfig';
+import { db, ref, get, update } from '../firebaseConfig';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const InboxScreen = ({ route }) => {
@@ -23,53 +22,130 @@ const InboxScreen = ({ route }) => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [activeTab, setActiveTab] = useState('All');
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const snapshot = await get(ref(db, `users/${userId}/transactions`));
-        if (snapshot.exists()) {
-          const transactionsData = snapshot.val();
-          const recentTransactions = Object.values(transactionsData).reverse();
-          setTransactions(recentTransactions);
-        }
-      } catch (error) {
-        console.error('Failed to fetch transactions:', error);
-      }
-    };
+  const fetchTransactions = useCallback(async () => {
+    try {
+      const [globalSnapshot, userSnapshot] = await Promise.all([
+        get(ref(db, 'transactions')),
+        get(ref(db, `users/${userId}/transactions`)),
+      ]);
 
-    fetchTransactions();
+      let allTransactions = [];
+
+      if (globalSnapshot.exists()) {
+        const globalTransactions = Object.values(globalSnapshot.val()).filter(
+          transaction => transaction.userId === userId
+        );
+        allTransactions = [...allTransactions, ...globalTransactions];
+      }
+
+      if (userSnapshot.exists()) {
+        const userTransactions = userSnapshot.val();
+        if (Array.isArray(userTransactions)) {
+          allTransactions = [...allTransactions, ...userTransactions];
+        }
+      }
+
+      allTransactions.sort((a, b) => {
+        const timeA = new Date(a.timestamp || a.date).getTime();
+        const timeB = new Date(b.timestamp || b.date).getTime();
+        return timeB - timeA;
+      });
+
+      setTransactions(allTransactions);
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+    }
   }, [userId]);
 
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
   const filteredTransactions = transactions.filter(transaction => {
-    console.log('Transaction type:', transaction.type); // Debug log
     if (activeTab === 'All') return true;
     if (activeTab === 'Transactions') {
-      return transaction.type === 'deposit' || transaction.type === 'transfer' || 
-             transaction.type === 'Deposit' || transaction.type === 'Transfer';
+      return ['deposit', 'transfer'].includes(transaction.type?.toLowerCase());
     }
     if (activeTab === 'Others') {
-      return transaction.type === 'donation' || transaction.type === 'investment' || 
-             transaction.type === 'Donation' || transaction.type === 'Investment';
+      return ['donation', 'investment'].includes(transaction.type?.toLowerCase());
     }
     return false;
   });
 
+  const getNotificationIcon = type => {
+    switch (type.toLowerCase()) {
+      case 'deposit':
+        return 'add-circle-outline';
+      case 'transfer':
+        return 'swap-horizontal-outline';
+      case 'investment':
+        return 'trending-up-outline';
+      case 'donation':
+        return 'heart-outline';
+      default:
+        return 'mail-outline';
+    }
+  };
+
+  const getNotificationColor = type => {
+    switch (type.toLowerCase()) {
+      case 'deposit':
+        return '#4CAF50';
+      case 'transfer':
+        return '#2196F3';
+      case 'investment':
+        return '#FF9800';
+      case 'donation':
+        return '#E91E63';
+      default:
+        return '#fff';
+    }
+  };
+
+  const getNotificationMessage = item => {
+    switch (item.type.toLowerCase()) {
+      case 'deposit':
+        return `You have deposited ₱${item.amount}`;
+      case 'transfer':
+        return `You have transferred ₱${item.amount} to ${item.to || 'recipient'}`;
+      case 'investment':
+        return `You have invested ₱${item.amount} in ${item.investmentType || 'investment'}`;
+      case 'donation':
+        return `You have donated ₱${item.amount}`;
+      default:
+        return `Transaction of ₱${item.amount}`;
+    }
+  };
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.item}
+      style={[
+        styles.item,
+        { borderLeftWidth: 4, borderLeftColor: getNotificationColor(item.type) },
+      ]}
       onPress={() => {
         setSelectedTransaction(item);
         setModalVisible(true);
+        if (!item.read) {
+          const transactionRef = ref(db, `transactions/${item.id}`);
+          update(transactionRef, { read: true });
+          setTransactions(prev =>
+            prev.map(t => (t.id === item.id ? { ...t, read: true } : t))
+          );
+        }
       }}
     >
-      <Ionicons name="mail-outline" size={30} color="#fff" style={styles.icon} />
+      <View style={[styles.iconContainer, { backgroundColor: getNotificationColor(item.type) }]}>
+        <Ionicons name={getNotificationIcon(item.type)} size={24} color="#fff" />
+      </View>
       <View style={styles.itemText}>
         <Text style={styles.itemTitle}>{item.type} Notification</Text>
-        <Text style={styles.itemSubtitle}>
-          You have {item.type === 'Received' ? 'received' : 'sent'} ₱{item.amount}
-        </Text>
+        <Text style={styles.itemSubtitle}>{getNotificationMessage(item)}</Text>
       </View>
-      <Text style={styles.timeText}>{getRelativeTime(item.timestamp)}</Text>
+      <View style={styles.rightContainer}>
+        <Text style={styles.timeText}>{getRelativeTime(item.timestamp || item.date)}</Text>
+        {!item.read && <View style={styles.unreadDot} />}
+      </View>
     </TouchableOpacity>
   );
 
@@ -79,17 +155,18 @@ const InboxScreen = ({ route }) => {
     <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.container}>
       <StatusBar barStyle="light-content" />
       <View style={styles.header}>
-        <Text style={styles.headerText}>Inbox</Text>
+        <View style={styles.headerTopRow}>
+          <Text style={styles.headerText}>Inbox</Text>
+          <TouchableOpacity onPress={fetchTransactions}>
+            <Ionicons name="refresh" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
         <View style={styles.tabContainer}>
-          <TouchableOpacity onPress={() => setActiveTab('All')}>
-            <Text style={[styles.tabText, activeTab === 'All' && styles.tabActive]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setActiveTab('Transactions')}>
-            <Text style={[styles.tabText, activeTab === 'Transactions' && styles.tabActive]}>Transactions</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setActiveTab('Others')}>
-            <Text style={[styles.tabText, activeTab === 'Others' && styles.tabActive]}>Others</Text>
-          </TouchableOpacity>
+          {['All', 'Transactions', 'Others'].map(tab => (
+            <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
+              <Text style={[styles.tabText, activeTab === tab && styles.tabActive]}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
@@ -101,30 +178,45 @@ const InboxScreen = ({ route }) => {
         ListEmptyComponent={<Text style={styles.emptyText}>No recent transactions</Text>}
       />
 
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={closeModal}
-      >
+      <Modal visible={modalVisible} animationType="fade" transparent onRequestClose={closeModal}>
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               {selectedTransaction && (
                 <>
-                  <Text style={styles.modalTitle}>Transaction Details</Text>
-                  <Text style={styles.modalText}>Type: {selectedTransaction.type}</Text>
-                  <Text style={styles.modalText}>Amount: ₱{selectedTransaction.amount}</Text>
-                  {selectedTransaction.type === 'Transfer' && (
-                    <Text style={styles.modalText}>To: {selectedTransaction.to}</Text>
-                  )}
-                  {selectedTransaction.type === 'Received' && (
-                    <Text style={styles.modalText}>From: {selectedTransaction.from}</Text>
-                  )}
-                  <Text style={styles.modalText}>Date: {new Date(selectedTransaction.timestamp).toLocaleString()}</Text>
-                  <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                    <Text style={styles.closeButtonText}>Close</Text>
-                  </TouchableOpacity>
+                  <View
+                    style={[
+                      styles.modalHeader,
+                      { backgroundColor: getNotificationColor(selectedTransaction.type) },
+                    ]}
+                  >
+                    <Ionicons
+                      name={getNotificationIcon(selectedTransaction.type)}
+                      size={32}
+                      color="#fff"
+                    />
+                    <Text style={styles.modalTitle}>{selectedTransaction.type} Details</Text>
+                  </View>
+                  <View style={styles.modalBody}>
+                    <Text style={styles.modalText}>Amount: ₱{selectedTransaction.amount}</Text>
+                    {selectedTransaction.type === 'Transfer' && (
+                      <Text style={styles.modalText}>To: {selectedTransaction.to}</Text>
+                    )}
+                    {selectedTransaction.type === 'Investment' && (
+                      <Text style={styles.modalText}>
+                        Investment Type: {selectedTransaction.investmentType}
+                      </Text>
+                    )}
+                    <Text style={styles.modalText}>
+                      Date:{' '}
+                      {new Date(
+                        selectedTransaction.timestamp || selectedTransaction.date
+                      ).toLocaleString()}
+                    </Text>
+                    <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                      <Text style={styles.closeButtonText}>Close</Text>
+                    </TouchableOpacity>
+                  </View>
                 </>
               )}
             </View>
@@ -135,7 +227,7 @@ const InboxScreen = ({ route }) => {
   );
 };
 
-const getRelativeTime = (timestamp) => {
+const getRelativeTime = timestamp => {
   const now = Date.now();
   const diff = now - new Date(timestamp).getTime();
   const minutes = Math.floor(diff / (1000 * 60));
@@ -157,15 +249,20 @@ const styles = StyleSheet.create({
     paddingBottom: 25,
     paddingHorizontal: 20,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   headerText: {
     color: '#fff',
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 12,
   },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    marginTop: 10,
   },
   tabText: {
     color: '#aaa',
@@ -187,7 +284,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 15,
   },
-  icon: {
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 15,
   },
   itemText: {
@@ -202,50 +304,67 @@ const styles = StyleSheet.create({
     color: '#aaa',
     fontSize: 16,
   },
+  rightContainer: {
+    alignItems: 'flex-end',
+  },
   timeText: {
     color: '#aaa',
     fontSize: 14,
   },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E91E63',
+    marginTop: 4,
+  },
   emptyText: {
-    color: '#888',
+    color: '#aaa',
+    fontSize: 16,
     textAlign: 'center',
     marginTop: 50,
-    fontSize: 18,
   },
   modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    padding: 30,
-    borderRadius: 12,
+    backgroundColor: '#222',
     width: '85%',
-    maxWidth: 450,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
   },
   modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    color: '#fff',
+    fontSize: 20,
+    marginLeft: 15,
+  },
+  modalBody: {
+    padding: 20,
   },
   modalText: {
-    fontSize: 18,
-    marginBottom: 12,
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 10,
   },
   closeButton: {
-    marginTop: 25,
-    backgroundColor: '#1c1c1e',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
+    backgroundColor: '#444',
+    paddingVertical: 10,
     borderRadius: 8,
-    alignItems: 'center',
+    marginTop: 20,
   },
   closeButtonText: {
     color: '#fff',
-    fontSize: 18,
+    textAlign: 'center',
+    fontSize: 16,
   },
 });
 
-export default InboxScreen; 
+export default InboxScreen;

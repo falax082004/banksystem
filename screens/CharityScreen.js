@@ -60,44 +60,45 @@ export default function DonationScreen({ route }) {
       Alert.alert('Error', 'User not identified.');
       return;
     }
-    const userRef = ref(db, 'users/' + userId);
+
     try {
+      const userRef = ref(db, 'users/' + userId);
       const snapshot = await get(userRef);
+      
       if (!snapshot.exists()) {
         Alert.alert('Error', 'User not found.');
         return;
       }
+
       const userData = snapshot.val();
       const currentBalance = userData.balance || 0;
+
       if (amount > currentBalance) {
         Alert.alert('Error', 'Insufficient balance.');
         return;
       }
-      // Deduct balance
-      const newBalance = currentBalance - amount;
-      // Update transactions as an array
-      const newTransactions = [
-        ...(userData.transactions || []),
-        {
-          type: 'donation',
-          category: donationData.category,
-          title: donationData.title,
-          amount: amount,
-          timestamp: new Date().toISOString(),
-        }
-      ];
-      await update(userRef, {
-        balance: newBalance,
-        transactions: newTransactions,
-      });
-      // Push donation record
-      await push(ref(db, 'donations/'), {
+
+      const timestamp = new Date().toISOString();
+      const donationRecord = {
         userId,
         category: donationData.category,
         title: donationData.title,
         amount: amount,
-        timestamp: serverTimestamp(),
+        timestamp: timestamp,
+      };
+
+      // Update user balance and transactions
+      await update(userRef, {
+        balance: currentBalance - amount,
+        transactions: [...(userData.transactions || []), {
+          type: 'donation',
+          ...donationRecord
+        }]
       });
+
+      // Add donation record
+      await push(ref(db, 'donations/'), donationRecord);
+
       Alert.alert('Salamat!', `Your donation of ₱${amount} was successful!`);
       setScreen('home');
       setAmount(100);
@@ -107,255 +108,331 @@ export default function DonationScreen({ route }) {
     }
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      {screen === 'home' && (
-        <ScrollView style={{ flex: 1 }}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity>
-              <Ionicons name="menu" size={28} color="#222" />
-            </TouchableOpacity>
-            <View style={{ flex: 1 }} />
-            <Image
-              source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }}
-              style={styles.avatar}
-            />
-          </View>
-          {/* Title */}
-          <Text style={styles.title}>Find the{"\n"}needy</Text>
-          {/* Search */}
-          <View style={styles.searchRow}>
-            <TextInput
-              placeholder="Search.."
-              style={styles.searchInput}
-              placeholderTextColor="#aaa"
-            />
-            <TouchableOpacity style={styles.filterBtn}>
-              <MaterialIcons name="tune" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          {/* Categories */}
-          <View style={styles.categories}>
-            {categories.map((cat, i) => (
-              <TouchableOpacity
-                key={cat}
-                style={[styles.catBtn, selectedCategory === cat && styles.catBtnActive]}
-                onPress={() => {
-                  setSelectedCategory(cat);
-                  setSelectedIndex(0); // Always reset to 0 on category change
-                }}
-              >
-                <Text style={[styles.catText, selectedCategory === cat && styles.catTextActive]}>{cat}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {/* Donation Cards */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 16 }}>
-            {filteredOptions.map((option, idx) => (
-              <TouchableOpacity
-                key={option.category}
-                style={[styles.card, { width: 280, marginRight: 16, borderWidth: safeIndex === idx ? 2 : 0, borderColor: '#1abc9c' }]}
-                onPress={() => { setSelectedIndex(idx); }}
-                onLongPress={() => { setSelectedIndex(idx); setScreen('details'); }}
-              >
-                <Image source={{ uri: option.image }} style={styles.cardImg} />
-                <View style={{ padding: 12 }}>
-                  <Text style={styles.cardCat}>{option.category}</Text>
-                  <Text style={styles.cardTitle}>{option.title}</Text>
-                  <View style={styles.progressBarBg}>
-                    <View style={[styles.progressBar, { width: `${Math.round((option.raised / option.target) * 100)}%` }]} />
-                  </View>
-                  <View style={styles.cardFooter}>
-                    <Text style={styles.raised}>Donation raised{"\n"}<Text style={{ fontWeight: 'bold' }}>${option.raised.toLocaleString()}</Text></Text>
-                    <TouchableOpacity style={styles.donatingBtn} onPress={() => { setSelectedIndex(idx); setScreen('details'); }}>
-                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>Donate</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </ScrollView>
-      )}
-
-      {screen === 'details' && (
-        <ScrollView style={{ flex: 1 }}>
-          <TouchableOpacity style={{ margin: 16 }} onPress={() => setScreen('home')}>
-            <Ionicons name="arrow-back" size={28} color="#222" />
-          </TouchableOpacity>
-          <Image source={{ uri: donationData.image }} style={styles.detailImg} />
-          <View style={{ padding: 20 }}>
-            <Text style={styles.cardCat}>{donationData.category}</Text>
-            <Text style={styles.cardTitle}>{donationData.title}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 8 }}>
-              <Ionicons name="people" size={18} color="#1abc9c" />
-              <Text style={{ marginLeft: 6, color: '#555' }}>{donationData.donors}+ people donating</Text>
-            </View>
-            <Text style={{ color: '#888', marginBottom: 12 }}>{donationData.description}</Text>
-            <View style={styles.detailRow}>
-              <View>
-                <Text style={styles.raised}>Donation raised</Text>
-                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>${donationData.raised.toLocaleString()}</Text>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={styles.raised}>Target</Text>
-                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>${donationData.target.toLocaleString()}</Text>
-              </View>
-            </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBar, { width: `${percent}%` }]} />
-            </View>
-            <Text style={{ color: '#888', marginTop: 8 }}>{donationData.hoursLeft} Hours Left</Text>
-            <TouchableOpacity style={styles.donatingBtnBig} onPress={() => setScreen('donate')}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Donate</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      )}
-
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => setScreen(screen === 'home' ? 'home' : 'details')}>
+        <Ionicons name={screen === 'home' ? "menu" : "arrow-back"} size={28} color="#222" />
+      </TouchableOpacity>
       {screen === 'donate' && (
-        <View style={{ flex: 1, backgroundColor: '#fff' }}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => setScreen('details')}>
-              <Ionicons name="arrow-back" size={28} color="#222" />
-            </TouchableOpacity>
-            <Text style={{ fontWeight: 'bold', fontSize: 20, flex: 1, textAlign: 'center' }}>Donate</Text>
-            <View style={{ width: 28 }} />
-          </View>
-          <View style={{ padding: 20 }}>
-            <View style={styles.donateCard}>
-              <Image source={{ uri: donationData.image }} style={styles.donateImg} />
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.cardCat}>{donationData.category}</Text>
-                <Text style={styles.cardTitleSmall}>{donationData.title}</Text>
+        <Text style={styles.headerTitle}>Donate</Text>
+      )}
+      <View style={{ flex: 1 }} />
+      {screen === 'home' && (
+        <Image
+          source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }}
+          style={styles.avatar}
+        />
+      )}
+    </View>
+  );
+
+  const renderHomeScreen = () => (
+    <ScrollView style={{ flex: 1 }}>
+      {renderHeader()}
+      <Text style={styles.title}>Find the{"\n"}needy</Text>
+      
+      <View style={styles.categories}>
+        {categories.map((cat) => (
+          <TouchableOpacity
+            key={cat}
+            style={[styles.catBtn, selectedCategory === cat && styles.catBtnActive]}
+            onPress={() => {
+              setSelectedCategory(cat);
+              setSelectedIndex(0);
+            }}
+          >
+            <Text style={[styles.catText, selectedCategory === cat && styles.catTextActive]}>{cat}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 16 }}>
+        {filteredOptions.map((option, idx) => (
+          <TouchableOpacity
+            key={option.category}
+            style={[styles.card, { 
+              width: 280, 
+              marginRight: 16, 
+              borderWidth: selectedIndex === idx ? 2 : 0, 
+              borderColor: '#1abc9c' 
+            }]}
+            onPress={() => setSelectedIndex(idx)}
+            onLongPress={() => {
+              setSelectedIndex(idx);
+              setScreen('details');
+            }}
+          >
+            <Image source={{ uri: option.image }} style={styles.cardImg} />
+            <View style={{ padding: 12 }}>
+              <Text style={styles.cardCat}>{option.category}</Text>
+              <Text style={styles.cardTitle}>{option.title}</Text>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBar, { width: `${Math.round((option.raised / option.target) * 100)}%` }]} />
+              </View>
+              <View style={styles.cardFooter}>
+                <Text style={styles.raised}>Donation raised{"\n"}<Text style={{ fontWeight: 'bold' }}>${option.raised.toLocaleString()}</Text></Text>
+                <TouchableOpacity 
+                  style={styles.donatingBtn} 
+                  onPress={() => {
+                    setSelectedIndex(idx);
+                    setScreen('details');
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: 'bold' }}>Donate</Text>
+                </TouchableOpacity>
               </View>
             </View>
-            <Text style={{ fontWeight: 'bold', fontSize: 16, marginVertical: 16 }}>Select Amount</Text>
-            <View style={{ flexDirection: 'row', marginBottom: 16 }}>
-              {[100, 1000].map(val => (
-                <TouchableOpacity
-                  key={val}
-                  style={[styles.amountBtn, amount === val && styles.amountBtnActive]}
-                  onPress={() => { setAmount(val); setManual(''); }}
-                >
-                  <Text style={[styles.amountText, amount === val && styles.amountTextActive]}>${val.toLocaleString()}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text style={{ textAlign: 'center', color: '#888', marginBottom: 8 }}>Or</Text>
-            <TextInput
-              placeholder="Enter Manually"
-              style={styles.manualInput}
-              keyboardType="numeric"
-              value={manual}
-              onChangeText={txt => {
-                setManual(txt);
-                setAmount(Number(txt) || 0);
-              }}
-            />
-            <TouchableOpacity style={styles.donatingBtnBig} onPress={handleDonate}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Donate ₱{amount}</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </ScrollView>
+  );
+
+  const renderDetailsScreen = () => (
+    <ScrollView style={{ flex: 1 }}>
+      {renderHeader()}
+      <Image source={{ uri: donationData.image }} style={styles.detailImg} />
+      <View style={{ padding: 20 }}>
+        <Text style={styles.cardCat}>{donationData.category}</Text>
+        <Text style={styles.cardTitle}>{donationData.title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 8 }}>
+          <Ionicons name="people" size={18} color="#1abc9c" />
+          <Text style={{ marginLeft: 6, color: '#555' }}>{donationData.donors}+ people donating</Text>
+        </View>
+        <Text style={{ color: '#888', marginBottom: 12 }}>{donationData.description}</Text>
+        <View style={styles.detailRow}>
+          <View>
+            <Text style={styles.raised}>Donation raised</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>${donationData.raised.toLocaleString()}</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={styles.raised}>Target</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>${donationData.target.toLocaleString()}</Text>
           </View>
         </View>
-      )}
+        <View style={styles.progressBarBg}>
+          <View style={[styles.progressBar, { width: `${percent}%` }]} />
+        </View>
+        <Text style={{ color: '#888', marginTop: 8 }}>{donationData.hoursLeft} Hours Left</Text>
+        <TouchableOpacity style={styles.donatingBtnBig} onPress={() => setScreen('donate')}>
+          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Donate</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+
+  const renderDonateScreen = () => (
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {renderHeader()}
+      <View style={{ padding: 20 }}>
+        <View style={styles.donateCard}>
+          <Image source={{ uri: donationData.image }} style={styles.donateImg} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={styles.cardCat}>{donationData.category}</Text>
+            <Text style={styles.cardTitleSmall}>{donationData.title}</Text>
+          </View>
+        </View>
+        <Text style={{ fontWeight: 'bold', fontSize: 16, marginVertical: 16 }}>Select Amount</Text>
+        <View style={{ flexDirection: 'row', marginBottom: 16 }}>
+          {[100, 1000].map(val => (
+            <TouchableOpacity
+              key={val}
+              style={[styles.amountBtn, amount === val && styles.amountBtnActive]}
+              onPress={() => { setAmount(val); setManual(''); }}
+            >
+              <Text style={[styles.amountText, amount === val && styles.amountTextActive]}>${val.toLocaleString()}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={{ textAlign: 'center', color: '#888', marginBottom: 8 }}>Or</Text>
+        <TextInput
+          placeholder="Enter Manually"
+          style={styles.manualInput}
+          keyboardType="numeric"
+          value={manual}
+          onChangeText={txt => {
+            setManual(txt);
+            setAmount(Number(txt) || 0);
+          }}
+        />
+        <TouchableOpacity style={styles.donatingBtnBig} onPress={handleDonate}>
+          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Donate ₱{amount}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      {screen === 'home' && renderHomeScreen()}
+      {screen === 'details' && renderDetailsScreen()}
+      {screen === 'donate' && renderDonateScreen()}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    paddingBottom: 0,
+  },
+  headerTitle: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    flex: 1,
+    textAlign: 'center',
   },
   avatar: {
-    width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: '#1abc9c',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#1abc9c',
   },
   title: {
-    fontSize: 32, fontWeight: 'bold', marginLeft: 16, marginTop: 8, marginBottom: 16,
-  },
-  searchRow: {
-    flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 12,
-  },
-  searchInput: {
-    flex: 1, backgroundColor: '#f2f2f2', borderRadius: 12, padding: 12, fontSize: 16,
-  },
-  filterBtn: {
-    backgroundColor: '#ffa726', marginLeft: 10, borderRadius: 12, padding: 10,
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginLeft: 16,
+    marginTop: 8,
+    marginBottom: 16,
   },
   categories: {
-    flexDirection: 'row', marginHorizontal: 16, marginBottom: 16,
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
   catBtn: {
-    paddingVertical: 6, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#f2f2f2', marginRight: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#f2f2f2',
+    marginRight: 10,
   },
   catBtnActive: {
     backgroundColor: '#222',
   },
   catText: {
-    color: '#888', fontWeight: 'bold',
+    color: '#888',
+    fontWeight: 'bold',
   },
   catTextActive: {
     color: '#fff',
   },
   card: {
-    backgroundColor: '#fff', borderRadius: 16, margin: 16, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    margin: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardImg: {
-    width: '100%', height: 120, borderTopLeftRadius: 16, borderTopRightRadius: 16,
+    width: '100%',
+    height: 120,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   cardCat: {
-    color: '#ffa726', fontWeight: 'bold', fontSize: 13, marginBottom: 4,
+    color: '#ffa726',
+    fontWeight: 'bold',
+    fontSize: 13,
+    marginBottom: 4,
   },
   cardTitle: {
-    fontWeight: 'bold', fontSize: 16, marginBottom: 8,
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 8,
   },
   progressBarBg: {
-    height: 8, backgroundColor: '#eee', borderRadius: 4, marginVertical: 8, width: '100%',
+    height: 8,
+    backgroundColor: '#eee',
+    borderRadius: 4,
+    marginVertical: 8,
+    width: '100%',
   },
   progressBar: {
-    height: 8, backgroundColor: '#ffa726', borderRadius: 4,
+    height: 8,
+    backgroundColor: '#ffa726',
+    borderRadius: 4,
   },
   cardFooter: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
   },
   raised: {
-    color: '#888', fontSize: 12,
+    color: '#888',
+    fontSize: 12,
   },
   donatingBtn: {
-    backgroundColor: '#1abc9c', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 18,
+    backgroundColor: '#1abc9c',
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 18,
   },
   detailImg: {
-    width: '100%', height: 180,
+    width: '100%',
+    height: 180,
   },
   detailRow: {
-    flexDirection: 'row', justifyContent: 'space-between', marginVertical: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 8,
   },
   donatingBtnBig: {
-    backgroundColor: '#1abc9c', borderRadius: 24, paddingVertical: 14, alignItems: 'center', marginTop: 24,
+    backgroundColor: '#1abc9c',
+    borderRadius: 24,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 24,
   },
   donateCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#f2f2f2', borderRadius: 12, padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f2f2f2',
+    borderRadius: 12,
+    padding: 10,
   },
   donateImg: {
-    width: 48, height: 48, borderRadius: 8,
+    width: 48,
+    height: 48,
+    borderRadius: 8,
   },
   cardTitleSmall: {
-    fontWeight: 'bold', fontSize: 14,
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   amountBtn: {
-    flex: 1, borderWidth: 1, borderColor: '#1abc9c', borderRadius: 16, padding: 16, marginRight: 10, alignItems: 'center',
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#1abc9c',
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 10,
+    alignItems: 'center',
   },
   amountBtnActive: {
     backgroundColor: '#1abc9c',
   },
   amountText: {
-    color: '#1abc9c', fontWeight: 'bold', fontSize: 16,
+    color: '#1abc9c',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   amountTextActive: {
     color: '#fff',
   },
   manualInput: {
-    borderWidth: 1, borderColor: '#eee', borderRadius: 12, padding: 12, fontSize: 16, marginBottom: 24, textAlign: 'center',
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 24,
+    textAlign: 'center',
   },
 }); 

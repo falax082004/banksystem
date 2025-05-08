@@ -349,7 +349,7 @@ const InvestmentScreen = ({ route }) => {
       // Add transaction record
       await push(ref(db, 'transactions/'), {
         userId: userId,
-        type: 'investment',
+        type: 'Investment',
         amount: amount,
         investmentType: option.name,
         date: currentDate,
