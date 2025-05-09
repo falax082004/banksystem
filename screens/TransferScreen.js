@@ -4,6 +4,7 @@ import {
   ImageBackground, Modal, Pressable
 } from 'react-native';
 import { db, ref, get, update, serverTimestamp } from '../firebaseConfig';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const TransferScreen = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -13,6 +14,8 @@ const TransferScreen = ({ navigation, route }) => {
   const [modalMessage, setModalMessage] = useState('');
   const [lockStatus, setLockStatus] = useState(false);  // Lock status
   const [showConfirmation, setShowConfirmation] = useState(false);  // Confirmation modal status
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
 
   useEffect(() => {
     fetchLockStatus();
@@ -73,9 +76,20 @@ const TransferScreen = ({ navigation, route }) => {
     }
   };
 
+  const generateRefNo = () => {
+    return (
+      Math.floor(1000 + Math.random() * 9000) + ' ' +
+      Math.floor(1000 + Math.random() * 9000) + ' ' +
+      Math.floor(1000 + Math.random() * 9000)
+    );
+  };
+
   const confirmTransfer = async () => {
     const transferAmount = parseFloat(amount);
     const recipientId = recipient;
+    const refNo = generateRefNo();
+    const paidAt = new Date();
+    const fee = 5.00; // mock fee
 
     const userRef = ref(db, 'users/' + userId);
     const recipientRef = ref(db, 'users/' + recipientId);
@@ -121,8 +135,15 @@ const TransferScreen = ({ navigation, route }) => {
         }],
       });
 
-      setModalMessage(`Successfully transferred ₱${amount} to user ${recipientId}`);
-      setModalVisible(true);
+      setReceiptData({
+        sender: userId,
+        recipient: recipientId,
+        amount: parseFloat(amount),
+        fee,
+        refNo,
+        paidAt,
+      });
+      setShowReceipt(true);
       setShowConfirmation(false);  // Close confirmation modal
     } catch (error) {
       console.error("Error during transfer:", error);
@@ -192,6 +213,43 @@ const TransferScreen = ({ navigation, route }) => {
               <Pressable style={styles.modalButton} onPress={() => setShowConfirmation(false)}>
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </Pressable>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Pantheon Receipt Modal (copied from BillScreen) */}
+        <Modal
+          transparent={true}
+          visible={showReceipt}
+          animationType="fade"
+          onRequestClose={() => setShowReceipt(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.receiptCardBW}>
+              {/* Top circle with sender initial */}
+              <View style={styles.receiptCircleBW}>
+                <Text style={styles.receiptCircleTextBW}>
+                  {receiptData ? (receiptData.sender[0] || '?').toUpperCase() : '?'}
+                </Text>
+              </View>
+              <Text style={styles.receiptBillerBW}>Transfer to {receiptData ? receiptData.recipient : ''}</Text>
+              <Text style={styles.receiptReceivedBW}>Transfer Successful</Text>
+              <Text style={styles.receiptAmountLabelBW}>the amount of</Text>
+              <Text style={styles.receiptAmountBW}>₱{receiptData ? receiptData.amount : ''}</Text>
+              <Text style={styles.receiptViaBW}>Pantheon Bank</Text>
+              <View style={styles.receiptDividerBW} />
+              <Text style={styles.receiptRefBW}>Ref. No. {receiptData ? receiptData.refNo : ''}</Text>
+              <Text style={styles.receiptDateBW}>{receiptData ? receiptData.paidAt.toLocaleString() : ''}</Text>
+              <View style={styles.receiptDividerBW} />
+              <Text style={styles.receiptDetailsTitleBW}>Details</Text>
+              <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Amount</Text><Text style={styles.receiptDetailsValueBW}>₱{receiptData ? (receiptData.amount - receiptData.fee).toFixed(2) : ''}</Text></View>
+              <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Fee</Text><Text style={styles.receiptDetailsValueBW}>₱{receiptData ? receiptData.fee.toFixed(2) : ''}</Text></View>
+              <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Sender</Text><Text style={styles.receiptDetailsValueBW}>{receiptData ? receiptData.sender : ''}</Text></View>
+              <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Recipient</Text><Text style={styles.receiptDetailsValueBW}>{receiptData ? receiptData.recipient : ''}</Text></View>
+              <Text style={styles.receiptProcessedBW}>This transfer has been processed and will reflect shortly.</Text>
+              <TouchableOpacity style={styles.receiptDoneBtnBW} onPress={() => { setShowReceipt(false); navigation.navigate('Home', { userId }); }}>
+                <Text style={styles.receiptDoneTextBW}>DONE</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>
@@ -322,6 +380,125 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  receiptCardBW: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 24,
+    width: '90%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  receiptCircleBW: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#111',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  receiptCircleTextBW: {
+    color: '#111',
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  receiptBillerBW: {
+    color: '#111',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  receiptReceivedBW: {
+    color: '#111',
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  receiptAmountLabelBW: {
+    color: '#111',
+    fontSize: 14,
+    marginTop: 8,
+  },
+  receiptAmountBW: {
+    color: '#111',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  receiptViaBW: {
+    color: '#111',
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  receiptDividerBW: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 10,
+  },
+  receiptRefBW: {
+    color: '#111',
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  receiptDateBW: {
+    color: '#555',
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  receiptDetailsTitleBW: {
+    color: '#111',
+    fontWeight: 'bold',
+    fontSize: 15,
+    marginBottom: 6,
+    alignSelf: 'flex-start',
+  },
+  receiptDetailsRowBW: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 2,
+  },
+  receiptDetailsLabelBW: {
+    color: '#555',
+    fontSize: 13,
+  },
+  receiptDetailsValueBW: {
+    color: '#111',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  receiptProcessedBW: {
+    color: '#555',
+    fontSize: 12,
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  receiptDoneBtnBW: {
+    backgroundColor: '#111',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    marginTop: 10,
+  },
+  receiptDoneTextBW: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 1,
   },
 });
 

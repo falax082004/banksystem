@@ -8,6 +8,7 @@ import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 import DepositScreen from './screens/DepositScreen';
 import TransferScreen from './screens/TransferScreen';
+import BillScreen from './screens/BillScreen';
 import BottomTabs from './screens/BottomTabs';
 
 // Profile Destination Screens
@@ -21,12 +22,19 @@ import ReferFriendsScreen from './screens/ReferFriendsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import ProfileEdit from './screens/ProfileEdit';
 import HelpScreen from './screens/HelpScreen';
+import TermsScreen from './screens/TermsScreen';
 import CardScreen from './screens/CardScreen';
 import LockCardScreen from './screens/LockCardScreen';
-// Inbox Screen (new screen)
-import InboxScreen from './screens/InboxScreen'; // Ensure this is imported correctly
+import InboxScreen from './screens/InboxScreen';
 
 const Stack = createStackNavigator();
+
+// Common screen options
+const commonScreenOptions = {
+  headerStyle: { backgroundColor: '#333' },
+  headerTitleStyle: { color: '#fff' },
+  headerShown: true,
+};
 
 export default function App() {
   return (
@@ -39,129 +47,86 @@ export default function App() {
         <Stack.Screen name="Home" component={BottomTabs} />
         <Stack.Screen name="Deposit" component={DepositScreen} />
         <Stack.Screen name="Transfer" component={TransferScreen} />
+        <Stack.Screen name="PayBills" component={BillScreen} />
 
         {/* Profile Destination Screens */}
         <Stack.Screen
           name="My Linked Accounts"
           component={MyLinkedAccountsScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
         <Stack.Screen
           name="MyQRCode"
           component={MyQRCodeScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
         <Stack.Screen
           name="ProfileLimits"
           component={ProfileLimitsScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
         <Stack.Screen
           name="ManageCards"
           component={ManageCardsScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
         <Stack.Screen
           name="Investment"
           component={InvestmentScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
-          <Stack.Screen
+        <Stack.Screen
           name="Charity"
           component={CharityScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
         <Stack.Screen
           name="ReferFriends"
           component={ReferFriendsScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
-          />
+          options={commonScreenOptions}
+        />
+        <Stack.Screen
+          name="Terms"
+          component={TermsScreen}
+          options={commonScreenOptions}
+        />
         <Stack.Screen
           name="ProfileEdit"
           component={ProfileEdit}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
         <Stack.Screen
           name="Help"
           component={HelpScreen}
-          options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-          }}
+          options={commonScreenOptions}
         />
-
-        {/* Inbox Screen */}
         <Stack.Screen
           name="Inbox"
-          component={InboxScreen} // This is the Inbox screen
+          component={InboxScreen}
           options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
+            ...commonScreenOptions,
             title: 'Inbox',
-            
           }}
-          />
-          <Stack.Screen
+        />
+        <Stack.Screen
           name="CardScreen"
-          component={CardScreen} // This is the Inbox screen
+          component={CardScreen}
           options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-            title: 'CardScreen',
+            ...commonScreenOptions,
+            title: 'Card',
           }}
-          />
-          <Stack.Screen
+        />
+        <Stack.Screen
           name="LockCardScreen"
-          component={LockCardScreen} // This is the Inbox screen
+          component={LockCardScreen}
           options={{
-            headerStyle: { backgroundColor: '#333' },
-            headerTitleStyle: { color: '#fff' },
-            headerShown: true,
-            title: 'LockCardScreen',
+            ...commonScreenOptions,
+            title: 'Lock Card',
           }}
         />
       </Stack.Navigator>

@@ -15,7 +15,7 @@ import { db, ref, get } from '../firebaseConfig';
 const ProfileScreen = ({ navigation, route }) => {
   const { userId } = route.params;
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const ProfileScreen = ({ navigation, route }) => {
         if (snapshot.exists()) {
           const userData = snapshot.val();
           setName(userData.name || 'User');
-          setPhone(userData.phone || 'Unknown');
+          setPhoneNumber(userData.phoneNumber || 'No phone number');
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -65,7 +65,7 @@ const ProfileScreen = ({ navigation, route }) => {
           <Image source={require('../assets/apollo.png')} style={styles.avatar} />
           <View style={styles.userInfo}>
             <Text style={styles.name}>{name}</Text>
-            <Text style={styles.phone}>{phone}</Text>
+            <Text style={styles.phone}>{phoneNumber}</Text>
           </View>
           <Icon name="chevron-right" size={16} color="#888" />
         </TouchableOpacity>
@@ -89,6 +89,7 @@ const ProfileScreen = ({ navigation, route }) => {
                 <MenuItem icon="hands-helping" label="Charity and Donations" onPress={() => navigation.navigate('Charity',{ userId, fullName: name })} />
                 <MenuItem icon="user-friends" label="Refer Friends" onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })} />
                 <MenuItem icon="cog" label="Settings" onPress={() => navigation.navigate('Settings', { userId })} />
+                <MenuItem icon="file" label="Terms and Conditions" onPress={() => navigation.navigate('Terms')} />
                 <MenuItem icon="question-circle" label="Help" onPress={() => navigation.navigate('Help')} />
                 <MenuItem icon="sign-out-alt" label="Log out" onPress={handleLogout} />
               </View>

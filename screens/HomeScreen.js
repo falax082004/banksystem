@@ -8,9 +8,12 @@ import {
   ImageBackground,
   Modal,
   ScrollView,
+  FlatList,
 } from 'react-native';
 import { db, ref, get } from '../firebaseConfig';
 import { useFocusEffect } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Feather';
+import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const HomeScreen = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -18,24 +21,41 @@ const HomeScreen = ({ navigation, route }) => {
   const [transactions, setTransactions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [isBalanceVisible, setIsBalanceVisible] = useState(true); // State to control balance visibility
+  const [userName, setUserName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expirationDate, setExpirationDate] = useState('');
+  const [showCard, setShowCard] = useState(false);
+  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
 
-  // Move fetchUserData outside useEffect so it can be called after donation
+  const recentAvatars = [
+    require('../assets/apollo.png'),
+    require('../assets/apollo.png'),
+    require('../assets/apollo.png'),
+    require('../assets/apollo.png'),
+    require('../assets/apollo.png'),
+  ];
+
+  // Fetch user and card data
   const fetchUserData = async () => {
     const userRef = ref(db, 'users/' + userId);
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
       const userData = snapshot.val();
       setBalance(userData.balance || 0);
+      setUserName(userData.name || userId);
       const txn = userData.transactions ? Object.values(userData.transactions).reverse() : [];
       setTransactions(txn);
+      if (userData.card) {
+        setCardNumber(userData.card.cardNumber || '');
+        setExpirationDate(userData.card.expirationDate || '');
+      }
     } else {
       setBalance(0);
       setTransactions([]);
+      setUserName(userId);
     }
   };
 
-  // Use useFocusEffect to always refresh data when HomeScreen is focused
   useFocusEffect(
     React.useCallback(() => {
       fetchUserData();
@@ -52,110 +72,78 @@ const HomeScreen = ({ navigation, route }) => {
     setSelectedTransaction(null);
   };
 
-  const toggleBalanceVisibility = () => {
-    setIsBalanceVisible(!isBalanceVisible);
-  };
+  // Card JSX (Pantheon card, with balance and label above balance, styled as in reference)
+  const renderCard = () => (
+    <View style={styles.customCard}>
+      <View style={styles.cardTopRow}>
+        <Image source={require('../assets/cardicon.png')} style={styles.enlargedCardIcon} />
+      </View>
+      <View style={styles.circleRed} />
+      <View style={styles.circleOrange} />
+      <View style={styles.cardBalanceLabelRow}>
+        <Text style={styles.balanceLabel}>My Balance</Text>
+        <TouchableOpacity onPress={() => setIsBalanceVisible(v => !v)}>
+          <Icon name={isBalanceVisible ? 'eye' : 'eye-off'} size={15} color="#fff" style={{ marginLeft: 10 }} />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.cardBalanceRow}>
+        <Text style={styles.cardCurrency}>₱</Text>
+        <Text style={styles.cardBalance}>
+          {isBalanceVisible ? parseFloat(balance).toLocaleString() : '••••••'}
+        </Text>
+      </View>
+    </View>
+  );
 
   return (
-    <ImageBackground
-      source={require('../assets/bgapp3.jpg')}
-      style={styles.container}
-      resizeMode="cover"
-    >
-      <View style={styles.contentWrapper}>
-        {/* Header */}
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.welcomeText}>Hi, welcome</Text>
-            <Text style={styles.username}>{userId}</Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile', { userId })}>
-            <Image source={require('../assets/apolloo.png')} style={styles.profileImage} />
-          </TouchableOpacity>
+    <View style={styles.jpContainer}>
+      {/* Header */}
+      <View style={styles.jpHeaderRow}>
+        <Text style={styles.jpDate}>{new Date().toISOString().slice(0, 10).replace(/-/g, '.')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Icon name="bell" size={22} color="#222" style={{ marginRight: 16 }} />
+          <Icon name="user" size={22} color="#222" />
         </View>
+      </View>
+      <Text style={styles.jpWelcome}>Hi, {userName || 'User'}!</Text>
+      <Text style={styles.jpHomeTitle}>HOME</Text>
 
-        {/* Balance Card */}
-        <View style={styles.balanceCard}>
-          <View style={styles.balanceWrapper}>
-            <View style={styles.balanceTextWrapper}>
-              <Text style={styles.balanceLabel}>My Balance</Text>
-              {isBalanceVisible ? (
-                <Text style={styles.balanceValue}>₱{parseFloat(balance).toFixed(2)}</Text>
-              ) : (
-                <Text style={styles.balanceValue}>₱••••••</Text> // Hidden balance
-              )}
-              <Text style={styles.currency}>PHP ⌄</Text>
-            </View>
-
-            <Image
-              source={require('../assets/cardicon.png')} // Make sure to use the correct path
-              style={styles.pantheonImage} // Custom style for the image
-            />
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation.navigate('Transfer', { userId })}
-            >
-              <Text style={styles.actionText}>Transfer</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation.navigate('Deposit', { userId })}
-            >
-              <Text style={styles.actionText}>Deposit</Text>
-            
-            </TouchableOpacity>
-          </View>
-
-          {/* Balance Visibility Toggle */}
-          <TouchableOpacity
-            style={styles.hideBalanceButton}
-            onPress={toggleBalanceVisibility}
-          >
-            <Text style={styles.hideBalanceText}>{isBalanceVisible ? 'Hide' : 'Show'} Balance</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Transactions */}
-        <Text style={styles.historyTitle}>Transactions</Text>
-        <ScrollView style={styles.historyScroll} contentContainerStyle={{ paddingBottom: 80 }}>
-          {transactions.length === 0 ? (
-            <Text style={styles.noTxnText}>No transactions yet</Text>
-          ) : (
-            transactions.map((txn, index) => {
-              const amountColor =
-                txn.type === 'deposit' || txn.type === 'received' ? '#00c853' : '#d50000';
-              const sign = txn.type === 'deposit' || txn.type === 'received' ? '+' : '-';
-
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.transactionItem}
-                  onPress={() => openTransactionModal(txn)}
-                >
-                  <Text style={styles.txnLabel}>
-                    {txn.type === 'deposit'
-                      ? 'Deposit'
-                      : txn.type === 'received'
-                      ? 'Received'
-                      : txn.type === 'donation'
-                      ? 'Donation'
-                      : 'Transfer'}
-                  </Text>
-                  <Text style={[styles.txnAmount, { color: amountColor }]}>{sign}₱{txn.amount}</Text>
-                  <Text style={styles.txnDate}>
-                    {new Date(txn.timestamp).toLocaleDateString()} | Completed
-                  </Text>
-                </TouchableOpacity>
-              );
-            })
-          )}
-        </ScrollView>
+      {/* Card */}
+      <View style={{ alignItems: 'center', marginTop: 2 }}>
+        {renderCard()}
       </View>
 
-      {/* Modal */}
+      {/* Main Actions */}
+      <View style={styles.jpActionsRow}>
+        <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('Transfer', { userId })}>
+          <Icon name="arrow-up" size={28} color="#FFF" />
+          <Text style={styles.jpActionLabel}>Transfer</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('Deposit', { userId })}>
+          <Icon name="arrow-down" size={28} color="#FFF" />
+          <Text style={styles.jpActionLabel}>Deposit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('PayBills', { userId })}>
+          <MaterialIcons name="file-document-outline" size={28} color="#FFF" />
+          <Text style={styles.jpActionLabel}>Pay Bills</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Transactions */}
+      <Text style={styles.jpTxnTitle}>Recent Transactions</Text>
+      <View style={styles.jpTxnList}>
+        {transactions.length === 0 ? (
+          <Text style={styles.noTxnText}>No transactions yet</Text>
+        ) : (
+          transactions.slice(0, 5).map((txn, index) => (
+            <View key={index} style={styles.jpTxnItem}>
+              <Text style={styles.jpTxnLabel}>{txn.label || txn.type || 'Transaction'}</Text>
+              <Text style={[styles.jpTxnAmount, { color: txn.type === 'deposit' || txn.type === 'received' ? '#00c853' : '#d50000' }]}>₱{txn.amount}</Text>
+            </View>
+          ))
+        )}
+      </View>
+      {/* Transaction Modal (unchanged) */}
       {selectedTransaction && (
         <Modal transparent={true} animationType="slide" visible={modalVisible}>
           <View style={styles.modalOverlay}>
@@ -175,51 +163,26 @@ const HomeScreen = ({ navigation, route }) => {
           </View>
         </Modal>
       )}
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  contentWrapper: { marginTop: 60 },
-  headerRow: {
+  jpContainer: { flex: 1, padding: 20 },
+  jpHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  welcomeText: { fontSize: 26, color: '#1c1c1e' },
-  username: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  profileImage: { width: 52, height: 52, borderRadius: 21 },
-
-  balanceCard: {
-    backgroundColor: '#1c1c1e',
-    borderRadius: 20,
-    padding: 24,
-    marginTop: 20,
-  },
-  balanceWrapper: {
-    flexDirection: 'row', // Align the balance text and image horizontally
-    justifyContent: 'space-between', // Spread out the items
-    alignItems: 'center',
-  },
-  balanceTextWrapper: {
-    flex: 1, // Allow the text to take up available space
-  },
-  pantheonImage: {
-    width: 100, // Set appropriate width
-    height: 100, // Set appropriate height
-    marginLeft: 20, // Add space between the text and the image
-  },
-  balanceLabel: { color: '#aaa', fontSize: 14, marginBottom: 5 },
-  balanceValue: { fontSize: 46, fontWeight: 'bold', color: '#fff' },
-  currency: { color: '#bbb', marginTop: 5 },
-
-  buttonContainer: {
+  jpDate: { fontSize: 14, color: '#222' },
+  jpWelcome: { fontSize: 26, color: '#1c1c1e', marginTop: 10 },
+  jpHomeTitle: { fontSize: 18, fontWeight: 'bold', color: '#2e2e2e' },
+  jpActionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
   },
-  actionButton: {
+  jpActionBtn: {
     flex: 1,
     backgroundColor: '#2e2e2e',
     paddingVertical: 12,
@@ -227,21 +190,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  actionText: { color: '#fff', fontWeight: '600' },
-
-  historyTitle: { marginTop: 30, fontSize: 18, fontWeight: 'bold', color: '#2e2e2e' },
-  historyScroll: { marginTop: 10 },
+  jpActionLabel: { color: '#fff', fontWeight: '600' },
+  jpTxnTitle: { marginTop: 30, fontSize: 18, fontWeight: 'bold', color: '#2e2e2e' },
+  jpTxnList: { marginTop: 10 },
   noTxnText: { textAlign: 'center', color: '#888', marginTop: 20 },
-  transactionItem: {
+  jpTxnItem: {
     backgroundColor: '#fff',
     padding: 15,
     borderRadius: 12,
     marginBottom: 10,
   },
-  txnLabel: { fontSize: 14, color: '#333', fontWeight: 'bold' },
-  txnAmount: { fontSize: 18, fontWeight: '600' },
-  txnDate: { fontSize: 12, color: '#888', marginTop: 5 },
-
+  jpTxnLabel: { fontSize: 14, color: '#333', fontWeight: 'bold' },
+  jpTxnAmount: { fontSize: 18, fontWeight: '600' },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -265,17 +225,91 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   modalButtonText: { color: 'white', fontWeight: 'bold' },
-
-  hideBalanceButton: {
+  customCard: {
+    width: '100%',
+    maxWidth: 360,
+    height: 210,
+    backgroundColor: '#1e1e1e',
+    borderRadius: 16,
+    padding: 20,
+    overflow: 'hidden',
+    justifyContent: 'space-between',
     marginTop: 10,
-    alignItems: 'center',
-    backgroundColor: '#555',
-    paddingVertical: 8,
-    borderRadius: 12,
+    alignSelf: 'center',
+    shadowColor: '#C4A35A',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 10,
+    elevation: 10,
   },
-  hideBalanceText: {
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  enlargedCardIcon: {
+    width: 100,
+    height: 75,
+    resizeMode: 'contain',
+  },
+  circleRed: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#c62828',
+    position: 'absolute',
+    top: -30,
+    right: -30,
+    opacity: 0.5,
+    zIndex: -1,
+  },
+  circleOrange: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ff9800',
+    position: 'absolute',
+    bottom: -20,
+    left: -20,
+    opacity: 0.5,
+    zIndex: -1,
+  },
+  cardBalanceLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'absolute',
+    left: 12,
+    bottom: 58,
+    zIndex: 2,
+    backgroundColor: 'rgba(30,30,30,0.95)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  balanceLabel: {
+    fontSize: 12,
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: 'normal',
+  },
+  cardBalanceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    position: 'absolute',
+    left: 24,
+    bottom: 24,
+    zIndex: 2,
+  },
+  cardCurrency: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginRight: 4,
+  },
+  cardBalance: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
 });
 

@@ -8,7 +8,7 @@ const donationOptions = [
     category: 'FOOD',
     title: 'Help disaster victims meet their food needs',
     description: 'Lake Moraine is a glacial lake in Banff National Park, 14 kilometers outside.',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+    image: 'http://sdwordsandpictures.com/wp-content/uploads/2020/07/IMG_7601-1024x684.jpg',
     raised: 98000,
     target: 140000,
     donors: 1200,
@@ -18,7 +18,7 @@ const donationOptions = [
     category: 'EDUCATION',
     title: 'Support children to get quality education',
     description: 'Help provide books and tuition for underprivileged children.',
-    image: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
+    image: 'https://files01.pna.gov.ph/ograph/2023/07/07/tacloban---book-donation.jpg',
     raised: 45000,
     target: 100000,
     donors: 800,
@@ -28,7 +28,7 @@ const donationOptions = [
     category: 'HUMANITY',
     title: 'Aid refugees with basic necessities',
     description: 'Your donation helps provide shelter and healthcare for refugees.',
-    image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80',
+    image: 'https://compote.slate.com/images/40e24264-228f-429c-9b0a-d321b5417bfc.jpg?crop=590%2C421%2Cx0%2Cy0&width=480',
     raised: 67000,
     target: 120000,
     donors: 950,
@@ -36,7 +36,7 @@ const donationOptions = [
   },
 ];
 
-const categories = ['All', 'Education', 'Food', 'Humanity'];
+const categories = ['All', 'EDUCATION', 'FOOD', 'HUMANITY'];
 
 export default function DonationScreen({ route }) {
   const { userId } = route.params;
@@ -49,7 +49,8 @@ export default function DonationScreen({ route }) {
   // Filter donation options based on selected category
   const filteredOptions = selectedCategory === 'All'
     ? donationOptions
-    : donationOptions.filter(opt => opt.category.toLowerCase() === selectedCategory.toLowerCase());
+    : donationOptions.filter(opt => opt.category === selectedCategory);
+
   // Always use a safe index
   const safeIndex = Math.min(selectedIndex, filteredOptions.length - 1);
   const donationData = filteredOptions[safeIndex] || filteredOptions[0];
@@ -110,7 +111,13 @@ export default function DonationScreen({ route }) {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => setScreen(screen === 'home' ? 'home' : 'details')}>
+      <TouchableOpacity onPress={() => {
+        if (screen === 'details') {
+          setScreen('home');
+        } else if (screen === 'donate') {
+          setScreen('details');
+        }
+      }}>
         <Ionicons name={screen === 'home' ? "menu" : "arrow-back"} size={28} color="#222" />
       </TouchableOpacity>
       {screen === 'donate' && (
@@ -119,7 +126,7 @@ export default function DonationScreen({ route }) {
       <View style={{ flex: 1 }} />
       {screen === 'home' && (
         <Image
-          source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }}
+          source={{ uri: 'https://img.freepik.com/premium-vector/pantheon-logo-illustration_848918-17712.jpg' }}
           style={styles.avatar}
         />
       )}
@@ -170,7 +177,7 @@ export default function DonationScreen({ route }) {
                 <View style={[styles.progressBar, { width: `${Math.round((option.raised / option.target) * 100)}%` }]} />
               </View>
               <View style={styles.cardFooter}>
-                <Text style={styles.raised}>Donation raised{"\n"}<Text style={{ fontWeight: 'bold' }}>${option.raised.toLocaleString()}</Text></Text>
+                <Text style={styles.raised}>Donation raised{"\n"}<Text style={{ fontWeight: 'bold' }}>₱{option.raised.toLocaleString()}</Text></Text>
                 <TouchableOpacity 
                   style={styles.donatingBtn} 
                   onPress={() => {
@@ -203,11 +210,11 @@ export default function DonationScreen({ route }) {
         <View style={styles.detailRow}>
           <View>
             <Text style={styles.raised}>Donation raised</Text>
-            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>${donationData.raised.toLocaleString()}</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>₱{donationData.raised.toLocaleString()}</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={styles.raised}>Target</Text>
-            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>${donationData.target.toLocaleString()}</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>₱{donationData.target.toLocaleString()}</Text>
           </View>
         </View>
         <View style={styles.progressBarBg}>
@@ -240,7 +247,7 @@ export default function DonationScreen({ route }) {
               style={[styles.amountBtn, amount === val && styles.amountBtnActive]}
               onPress={() => { setAmount(val); setManual(''); }}
             >
-              <Text style={[styles.amountText, amount === val && styles.amountTextActive]}>${val.toLocaleString()}</Text>
+              <Text style={[styles.amountText, amount === val && styles.amountTextActive]}>₱{val.toLocaleString()}</Text>
             </TouchableOpacity>
           ))}
         </View>

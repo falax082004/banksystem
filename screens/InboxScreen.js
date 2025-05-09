@@ -9,6 +9,7 @@ import {
   ImageBackground,
   Modal,
   TouchableWithoutFeedback,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { db, ref, get, update } from '../firebaseConfig';
@@ -67,7 +68,7 @@ const InboxScreen = ({ route }) => {
       return ['deposit', 'transfer'].includes(transaction.type?.toLowerCase());
     }
     if (activeTab === 'Others') {
-      return ['donation', 'investment'].includes(transaction.type?.toLowerCase());
+      return ['donation', 'investment', 'bill'].includes(transaction.type?.toLowerCase());
     }
     return false;
   });
@@ -75,15 +76,17 @@ const InboxScreen = ({ route }) => {
   const getNotificationIcon = type => {
     switch (type.toLowerCase()) {
       case 'deposit':
-        return 'add-circle-outline';
+        return 'add-circle';
       case 'transfer':
-        return 'swap-horizontal-outline';
+        return 'swap-horizontal';
       case 'investment':
-        return 'trending-up-outline';
+        return 'trending-up';
       case 'donation':
-        return 'heart-outline';
+        return 'heart';
+      case 'bill':
+        return 'file-tray-full';
       default:
-        return 'mail-outline';
+        return 'mail';
     }
   };
 
@@ -97,6 +100,8 @@ const InboxScreen = ({ route }) => {
         return '#FF9800';
       case 'donation':
         return '#E91E63';
+      case 'bill':
+        return '#3F51B5';
       default:
         return '#fff';
     }
@@ -112,6 +117,8 @@ const InboxScreen = ({ route }) => {
         return `You have invested ₱${item.amount} in ${item.investmentType || 'investment'}`;
       case 'donation':
         return `You have donated ₱${item.amount}`;
+      case 'bill':
+        return `You have paid a bill of ₱${item.amount}`;
       default:
         return `Transaction of ₱${item.amount}`;
     }
@@ -136,7 +143,7 @@ const InboxScreen = ({ route }) => {
       }}
     >
       <View style={[styles.iconContainer, { backgroundColor: getNotificationColor(item.type) }]}>
-        <Ionicons name={getNotificationIcon(item.type)} size={24} color="#fff" />
+        <Ionicons name={getNotificationIcon(item.type)} size={28} color="#fff" />
       </View>
       <View style={styles.itemText}>
         <Text style={styles.itemTitle}>{item.type} Notification</Text>
@@ -181,45 +188,45 @@ const InboxScreen = ({ route }) => {
       <Modal visible={modalVisible} animationType="fade" transparent onRequestClose={closeModal}>
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              {selectedTransaction && (
-                <>
-                  <View
-                    style={[
-                      styles.modalHeader,
-                      { backgroundColor: getNotificationColor(selectedTransaction.type) },
-                    ]}
-                  >
-                    <Ionicons
-                      name={getNotificationIcon(selectedTransaction.type)}
-                      size={32}
-                      color="#fff"
-                    />
-                    <Text style={styles.modalTitle}>{selectedTransaction.type} Details</Text>
-                  </View>
-                  <View style={styles.modalBody}>
-                    <Text style={styles.modalText}>Amount: ₱{selectedTransaction.amount}</Text>
-                    {selectedTransaction.type === 'Transfer' && (
-                      <Text style={styles.modalText}>To: {selectedTransaction.to}</Text>
-                    )}
-                    {selectedTransaction.type === 'Investment' && (
-                      <Text style={styles.modalText}>
-                        Investment Type: {selectedTransaction.investmentType}
-                      </Text>
-                    )}
-                    <Text style={styles.modalText}>
-                      Date:{' '}
-                      {new Date(
-                        selectedTransaction.timestamp || selectedTransaction.date
-                      ).toLocaleString()}
-                    </Text>
-                    <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                      <Text style={styles.closeButtonText}>Close</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </View>
+            {selectedTransaction && (
+              <View style={styles.receiptCardBW}>
+                {/* Top circle with initial */}
+                <View style={styles.receiptCircleBW}>
+                  <Text style={styles.receiptCircleTextBW}>
+                    {selectedTransaction.type ? selectedTransaction.type[0].toUpperCase() : '?'}
+                  </Text>
+                </View>
+                <Text style={styles.receiptBillerBW}>{selectedTransaction.type} Notification</Text>
+                <Text style={styles.receiptReceivedBW}>Transaction Details</Text>
+                <Text style={styles.receiptAmountLabelBW}>the amount of</Text>
+                <Text style={styles.receiptAmountBW}>₱{selectedTransaction.amount}</Text>
+                <Text style={styles.receiptViaBW}>Pantheon Bank</Text>
+                <View style={styles.receiptDividerBW} />
+                <Text style={styles.receiptRefBW}>Date: {new Date(selectedTransaction.timestamp || selectedTransaction.date).toLocaleString()}</Text>
+                <View style={styles.receiptDividerBW} />
+                <Text style={styles.receiptDetailsTitleBW}>Details</Text>
+                <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Type</Text><Text style={styles.receiptDetailsValueBW}>{selectedTransaction.type}</Text></View>
+                <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Amount</Text><Text style={styles.receiptDetailsValueBW}>₱{selectedTransaction.amount}</Text></View>
+                {selectedTransaction.to && (
+                  <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>To</Text><Text style={styles.receiptDetailsValueBW}>{selectedTransaction.to}</Text></View>
+                )}
+                {selectedTransaction.from && (
+                  <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>From</Text><Text style={styles.receiptDetailsValueBW}>{selectedTransaction.from}</Text></View>
+                )}
+                {selectedTransaction.investmentType && (
+                  <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Investment Type</Text><Text style={styles.receiptDetailsValueBW}>{selectedTransaction.investmentType}</Text></View>
+                )}
+                <Text style={styles.receiptProcessedBW}>This transaction has been processed and will reflect shortly.</Text>
+                <Image
+                  source={require('../assets/pantheon.png')}
+                  style={{ width: 90, height: 30, marginVertical: 10 }}
+                  resizeMode="contain"
+                />
+                <TouchableOpacity style={styles.receiptDoneBtnBW} onPress={closeModal}>
+                  <Text style={styles.receiptDoneTextBW}>DONE</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </TouchableWithoutFeedback>
       </Modal>
@@ -285,12 +292,16 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 2,
   },
   itemText: {
     flex: 1,
@@ -330,40 +341,118 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalContent: {
-    backgroundColor: '#222',
-    width: '85%',
-    borderRadius: 15,
-    overflow: 'hidden',
-  },
-  modalHeader: {
-    flexDirection: 'row',
+  receiptCardBW: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 24,
+    width: '90%',
     alignItems: 'center',
-    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 10,
   },
-  modalTitle: {
-    color: '#fff',
-    fontSize: 20,
-    marginLeft: 15,
-  },
-  modalBody: {
-    padding: 20,
-  },
-  modalText: {
-    color: '#fff',
-    fontSize: 16,
+  receiptCircleBW: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#111',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 10,
   },
-  closeButton: {
-    backgroundColor: '#444',
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 20,
+  receiptCircleTextBW: {
+    color: '#111',
+    fontSize: 28,
+    fontWeight: 'bold',
   },
-  closeButtonText: {
-    color: '#fff',
+  receiptBillerBW: {
+    color: '#111',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  receiptReceivedBW: {
+    color: '#111',
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  receiptAmountLabelBW: {
+    color: '#111',
+    fontSize: 14,
+    marginTop: 8,
+  },
+  receiptAmountBW: {
+    color: '#111',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  receiptViaBW: {
+    color: '#111',
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  receiptDividerBW: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 10,
+  },
+  receiptRefBW: {
+    color: '#111',
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  receiptDateBW: {
+    color: '#555',
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  receiptDetailsTitleBW: {
+    color: '#111',
+    fontWeight: 'bold',
+    fontSize: 15,
+    marginBottom: 6,
+    alignSelf: 'flex-start',
+  },
+  receiptDetailsRowBW: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 2,
+  },
+  receiptDetailsLabelBW: {
+    color: '#555',
+    fontSize: 13,
+  },
+  receiptDetailsValueBW: {
+    color: '#111',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  receiptProcessedBW: {
+    color: '#555',
+    fontSize: 12,
+    marginTop: 10,
+    marginBottom: 10,
     textAlign: 'center',
+  },
+  receiptDoneBtnBW: {
+    backgroundColor: '#111',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    marginTop: 10,
+  },
+  receiptDoneTextBW: {
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
+    letterSpacing: 1,
   },
 });
 

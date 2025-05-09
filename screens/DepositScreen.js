@@ -12,6 +12,22 @@ const DepositScreen = ({ navigation, route }) => {
   const [modalMessage, setModalMessage] = useState('');
   const [lockStatus, setLockStatus] = useState(false);  // Lock status
 
+  // Helper to generate a random reference number
+  const generateRefNo = () => {
+    return (
+      Math.floor(1000 + Math.random() * 9000) + ' ' +
+      Math.floor(1000 + Math.random() * 9000) + ' ' +
+      Math.floor(1000 + Math.random() * 9000)
+    );
+  };
+
+  // Add these to state
+  const [refNo, setRefNo] = useState(generateRefNo());
+  const [paidAt, setPaidAt] = useState(new Date());
+
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptAmount, setReceiptAmount] = useState('');
+
   useEffect(() => {
     fetchLockStatus();
   }, []);
@@ -66,8 +82,11 @@ const DepositScreen = ({ navigation, route }) => {
         }],
       });
 
-      setModalMessage(`Successfully deposited ₱${depositAmount}`);
-      setModalVisible(true);
+      setReceiptAmount(depositAmount);
+      setRefNo(generateRefNo());
+      setPaidAt(new Date());
+      setShowReceipt(true);
+      setAmount('');
 
     } catch (error) {
       console.error("Error during deposit:", error);
@@ -109,6 +128,42 @@ const DepositScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
+        {/* Black and White Receipt Modal */}
+        <Modal
+          transparent={true}
+          visible={showReceipt}
+          animationType="fade"
+          onRequestClose={() => setShowReceipt(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.receiptCardBW}>
+              {/* Top circle with initial */}
+              <View style={styles.receiptCircleBW}>
+                <Text style={styles.receiptCircleTextBW}>
+                  {userId ? userId[0].toUpperCase() : '?'}
+                </Text>
+              </View>
+              <Text style={styles.receiptBillerBW}>Deposit</Text>
+              <Text style={styles.receiptReceivedBW}>Deposit Successful</Text>
+              <Text style={styles.receiptAmountLabelBW}>the amount of</Text>
+              <Text style={styles.receiptAmountBW}>₱{receiptAmount}</Text>
+              <Text style={styles.receiptViaBW}>Pantheon Bank</Text>
+              <View style={styles.receiptDividerBW} />
+              <Text style={styles.receiptRefBW}>Ref. No. {refNo}</Text>
+              <Text style={styles.receiptDateBW}>{paidAt.toLocaleString()}</Text>
+              <View style={styles.receiptDividerBW} />
+              <Text style={styles.receiptDetailsTitleBW}>Details</Text>
+              <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Amount</Text><Text style={styles.receiptDetailsValueBW}>₱{receiptAmount}</Text></View>
+              <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Account</Text><Text style={styles.receiptDetailsValueBW}>{userId}</Text></View>
+              <Text style={styles.receiptProcessedBW}>This deposit has been processed and will reflect shortly.</Text>
+              <TouchableOpacity style={styles.receiptDoneBtnBW} onPress={() => { setShowReceipt(false); navigation.navigate('Home', { userId }); }}>
+                <Text style={styles.receiptDoneTextBW}>DONE</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Old error modal for errors only */}
         <Modal
           transparent={true}
           visible={modalVisible}
@@ -233,6 +288,125 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  receiptCardBW: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 24,
+    width: '90%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  receiptCircleBW: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#111',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  receiptCircleTextBW: {
+    color: '#111',
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  receiptBillerBW: {
+    color: '#111',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  receiptReceivedBW: {
+    color: '#111',
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  receiptAmountLabelBW: {
+    color: '#111',
+    fontSize: 14,
+    marginTop: 8,
+  },
+  receiptAmountBW: {
+    color: '#111',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  receiptViaBW: {
+    color: '#111',
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  receiptDividerBW: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 10,
+  },
+  receiptRefBW: {
+    color: '#111',
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  receiptDateBW: {
+    color: '#555',
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  receiptDetailsTitleBW: {
+    color: '#111',
+    fontWeight: 'bold',
+    fontSize: 15,
+    marginBottom: 6,
+    alignSelf: 'flex-start',
+  },
+  receiptDetailsRowBW: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 2,
+  },
+  receiptDetailsLabelBW: {
+    color: '#555',
+    fontSize: 13,
+  },
+  receiptDetailsValueBW: {
+    color: '#111',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  receiptProcessedBW: {
+    color: '#555',
+    fontSize: 12,
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  receiptDoneBtnBW: {
+    backgroundColor: '#111',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    marginTop: 10,
+  },
+  receiptDoneTextBW: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

@@ -21,15 +21,18 @@ const ProfileEdit = ({ navigation, route }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [address, setAddress] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isPasswordEditing, setIsPasswordEditing] = useState(false);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [originalName, setOriginalName] = useState('');
   const [originalEmail, setOriginalEmail] = useState('');
   const [originalPassword, setOriginalPassword] = useState('');
   const [originalAddress, setOriginalAddress] = useState('');
+  const [originalPhone, setOriginalPhone] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -41,16 +44,19 @@ const ProfileEdit = ({ navigation, route }) => {
           setName(userData.name);
           setEmail(userData.email);
           setPassword(userData.password);
-          setAddress(userData.address || ''); // Default to empty string if no address
+          setAddress(userData.address || '');
+          setPhoneNumber(userData.phoneNumber || '');
           setOriginalName(userData.name);
           setOriginalEmail(userData.email);
           setOriginalPassword(userData.password);
           setOriginalAddress(userData.address || '');
+          setOriginalPhone(userData.phoneNumber || '');
         } else {
           setName('Unknown');
           setEmail('Unknown');
           setPassword('Unknown');
           setAddress('Unknown');
+          setPhoneNumber('Unknown');
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -58,6 +64,7 @@ const ProfileEdit = ({ navigation, route }) => {
         setEmail('Error');
         setPassword('Error');
         setAddress('Error');
+        setPhoneNumber('Error');
       } finally {
         setLoading(false);
       }
@@ -70,6 +77,7 @@ const ProfileEdit = ({ navigation, route }) => {
   const handleEditEmail = () => setIsEditingEmail(true);
   const handlePasswordEdit = () => setIsPasswordEditing(true);
   const handleEditAddress = () => setIsEditingAddress(true);
+  const handleEditPhone = () => setIsEditingPhone(true);
 
   const handleSaveName = async () => {
     if (name.trim() === '') {
@@ -119,6 +127,23 @@ const ProfileEdit = ({ navigation, route }) => {
     } catch (error) {
       console.error('Error updating address:', error);
       alert('Failed to update address');
+    }
+  };
+
+  const handleSavePhone = async () => {
+    if (phoneNumber.trim() === '') {
+      alert('Phone number cannot be empty');
+      return;
+    }
+
+    try {
+      const userRef = ref(db, 'users/' + userId);
+      await update(userRef, { phoneNumber });
+      setOriginalPhone(phoneNumber);
+      setIsEditingPhone(false);
+    } catch (error) {
+      console.error('Error updating phone number:', error);
+      alert('Failed to update phone number');
     }
   };
 
@@ -250,6 +275,39 @@ const ProfileEdit = ({ navigation, route }) => {
                 <View style={styles.infoRow}>
                   <Text style={styles.infoText}>{address || 'No address provided'}</Text>
                   <TouchableOpacity style={styles.iconButton} onPress={handleEditAddress}>
+                    <Icon name="pencil" size={16} color="#000" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            {/* Phone Number */}
+            <View style={styles.userInfoRow}>
+              <Text style={styles.label}>Phone Number:</Text>
+              {isEditingPhone ? (
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    keyboardType="phone-pad"
+                  />
+                  <View style={styles.editButtonsContainer}>
+                    <TouchableOpacity style={styles.iconButton} onPress={handleSavePhone}>
+                      <Icon name="check" size={20} color="#4CAF50" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.iconButton} onPress={() => {
+                      setPhoneNumber(originalPhone);
+                      setIsEditingPhone(false);
+                    }}>
+                      <Icon name="times" size={20} color="#f44336" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoText}>{phoneNumber || 'No phone number provided'}</Text>
+                  <TouchableOpacity style={styles.iconButton} onPress={handleEditPhone}>
                     <Icon name="pencil" size={16} color="#000" />
                   </TouchableOpacity>
                 </View>
