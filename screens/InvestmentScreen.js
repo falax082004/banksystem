@@ -1,6 +1,6 @@
 // screens/VoucherScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { db, ref, get, update, push, serverTimestamp, set, remove } from '../firebaseConfig';
 
@@ -252,7 +252,7 @@ const InvestmentScreen = ({ route }) => {
       id: 1, 
       name: 'Stocks', 
       icon: 'trending-up', 
-      color: '#4CAF50',
+      color: '#FFFFFF',
       description: 'Invest in company shares',
       minAmount: 5000
     },
@@ -260,7 +260,7 @@ const InvestmentScreen = ({ route }) => {
       id: 2, 
       name: 'Bonds', 
       icon: 'shield-checkmark', 
-      color: '#2196F3',
+      color: '#FFFFFF',
       description: 'Government and corporate bonds',
       minAmount: 10000
     },
@@ -268,7 +268,7 @@ const InvestmentScreen = ({ route }) => {
       id: 3, 
       name: 'Mutual Funds', 
       icon: 'pie-chart', 
-      color: '#FF9800',
+      color: '#FFFFFF',
       description: 'Diversified investment funds',
       minAmount: 5000
     },
@@ -276,7 +276,7 @@ const InvestmentScreen = ({ route }) => {
       id: 4, 
       name: 'Crypto', 
       icon: 'logo-bitcoin', 
-      color: '#9C27B0',
+      color: '#FFFFFF',
       description: 'Digital currency investments',
       minAmount: 1000
     },
@@ -428,75 +428,78 @@ const InvestmentScreen = ({ route }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
-      </View>
+      <ImageBackground source={require('../assets/bgapp3.jpg')} style={{ flex: 1 }}>
+        <View style={styles.overlay} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      </ImageBackground>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Portfolio Summary Card */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>Portfolio Value</Text>
-        <Text style={styles.summaryAmount}>{formatCurrency(portfolioValue)}</Text>
-        <View style={styles.changeContainer}>
-          <Ionicons 
-            name={dailyChange >= 0 ? 'arrow-up' : 'arrow-down'} 
-            size={16} 
-            color={dailyChange >= 0 ? '#4CAF50' : '#F44336'} 
-          />
-          <Text style={[
-            styles.changeText, 
-            { color: dailyChange >= 0 ? '#4CAF50' : '#F44336' }
-          ]}>
-            {dailyChange >= 0 ? '+' : ''}{dailyChange}%
-          </Text>
-        </View>
-        <Text style={styles.balanceText}>Available Balance: {formatCurrency(userBalance)}</Text>
-      </View>
-
-      {/* Investment Options */}
-      <Text style={styles.sectionTitle}>Investment Options</Text>
-      <View style={styles.optionsContainer}>
-        {investmentOptions.map((option) => (
-          <TouchableOpacity 
-            key={option.id} 
-            style={[
-              styles.optionCard,
-              selectedOption?.id === option.id && styles.selectedOptionCard
-            ]}
-            onPress={() => handleInvestmentOption(option)}
-          >
-            <View style={[styles.iconContainer, { backgroundColor: option.color }]}>
-              <Ionicons name={option.icon} size={24} color="white" />
-            </View>
-            <Text style={styles.optionName}>{option.name}</Text>
-            <Text style={styles.optionDescription}>{option.description}</Text>
-            <Text style={styles.minAmount}>Min: {formatCurrency(option.minAmount)}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Recent Transactions */}
-      <Text style={styles.sectionTitle}>Recent Transactions</Text>
-      <View style={styles.transactionsContainer}>
-        {investments.slice(0, 5).map((investment, index) => (
-          <View key={index} style={styles.transactionItem}>
-            <View style={styles.transactionLeft}>
-              <Text style={styles.transactionType}>Investment</Text>
-              <Text style={styles.transactionAsset}>{investment.type}</Text>
-            </View>
-            <View style={styles.transactionRight}>
-              <Text style={styles.transactionAmount}>{formatCurrency(investment.amount)}</Text>
-              <Text style={styles.transactionDate}>
-                {formatDate(investment.date)}
-              </Text>
-            </View>
+    <ImageBackground source={require('../assets/bgapp3.jpg')} style={{ flex: 1 }}>
+      <View style={styles.overlay} />
+      <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }} contentContainerStyle={{ backgroundColor: 'transparent', paddingBottom: 32 }}>
+        {/* Portfolio Summary Card */}
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>Portfolio Value</Text>
+          <Text style={styles.summaryAmount}>{formatCurrency(portfolioValue)}</Text>
+          <View style={styles.changeContainer}>
+            <Ionicons 
+              name={dailyChange >= 0 ? 'arrow-up' : 'arrow-down'} 
+              size={16} 
+              color="#FFFFFF" 
+            />
+            <Text style={styles.changeText}>
+              {dailyChange >= 0 ? '+' : ''}{dailyChange}%
+            </Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+          <Text style={styles.balanceText}>Available Balance: {formatCurrency(userBalance)}</Text>
+        </View>
+
+        {/* Investment Options */}
+        <Text style={styles.sectionTitle}>Investment Options</Text>
+        <View style={styles.optionsContainer}>
+          {investmentOptions.map((option) => (
+            <TouchableOpacity 
+              key={option.id} 
+              style={[
+                styles.optionCard,
+                selectedOption?.id === option.id && styles.selectedOptionCard
+              ]}
+              onPress={() => handleInvestmentOption(option)}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#1A1A1A' }]}>
+                <Ionicons name={option.icon} size={24} color="#FFFFFF" />
+              </View>
+              <Text style={styles.optionName}>{option.name}</Text>
+              <Text style={styles.optionDescription}>{option.description}</Text>
+              <Text style={styles.minAmount}>Min: {formatCurrency(option.minAmount)}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Recent Transactions */}
+        <Text style={styles.sectionTitle}>Recent Transactions</Text>
+        <View style={styles.transactionsContainer}>
+          {investments.slice(0, 5).map((investment, index) => (
+            <View key={index} style={styles.transactionItem}>
+              <View style={styles.transactionLeft}>
+                <Text style={styles.transactionType}>Investment</Text>
+                <Text style={styles.transactionAsset}>{investment.type}</Text>
+              </View>
+              <View style={styles.transactionRight}>
+                <Text style={styles.transactionAmount}>{formatCurrency(investment.amount)}</Text>
+                <Text style={styles.transactionDate}>
+                  {formatDate(investment.date)}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
@@ -505,38 +508,39 @@ export default InvestmentScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#000000',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000000',
   },
   summaryCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     margin: 16,
     padding: 20,
     borderRadius: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   summaryTitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#CCCCCC',
     marginBottom: 8,
   },
   summaryAmount: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   balanceText: {
     fontSize: 14,
-    color: '#666',
+    color: '#CCCCCC',
     marginTop: 8,
   },
   changeContainer: {
@@ -547,6 +551,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 14,
     fontWeight: '500',
+    color: '#FFFFFF',
   },
   sectionTitle: {
     fontSize: 18,
@@ -554,7 +559,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 24,
     marginBottom: 16,
-    color: '#333',
+    color: '#FFFFFF',
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -564,19 +569,19 @@ const styles = StyleSheet.create({
   },
   optionCard: {
     width: '48%',
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   selectedOptionCard: {
     borderWidth: 2,
-    borderColor: '#2196F3',
+    borderColor: '#FFFFFF',
   },
   iconContainer: {
     width: 48,
@@ -589,17 +594,17 @@ const styles = StyleSheet.create({
   optionName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   optionDescription: {
     fontSize: 12,
-    color: '#666',
+    color: '#CCCCCC',
     marginBottom: 8,
   },
   minAmount: {
     fontSize: 12,
-    color: '#2196F3',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   transactionsContainer: {
@@ -609,12 +614,12 @@ const styles = StyleSheet.create({
   transactionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -628,21 +633,25 @@ const styles = StyleSheet.create({
   transactionType: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: '#FFFFFF',
   },
   transactionAsset: {
     fontSize: 14,
-    color: '#666',
+    color: '#CCCCCC',
     marginTop: 4,
   },
   transactionAmount: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: '#FFFFFF',
   },
   transactionDate: {
     fontSize: 14,
-    color: '#666',
+    color: '#CCCCCC',
     marginTop: 4,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
   },
 });

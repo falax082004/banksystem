@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground } from 'react-native';
 import { db, ref, get } from '../firebaseConfig';
 import cardImage from '../assets/card.png';
 
@@ -28,47 +28,57 @@ const ManageCardsScreen = ({ navigation, route }) => {
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.sectionTitle}>Debit Card</Text>
-
-      <TouchableOpacity
-        style={styles.cardContainer}
-        onPress={() => navigation.navigate('LockCardScreen', { userId })}
-      >
-        <Image source={cardImage} style={styles.cardImage} />
-        <View style={styles.cardTextContainer}>
-          <Text style={styles.cardTitle}>MY SAVINGS</Text>
-          <Text style={styles.cardNumber}>{cardNumber}</Text>
-        </View>
-      </TouchableOpacity>
-    </ScrollView>
+    <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
+      <View style={styles.overlay} />
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.sectionTitle}>Debit Card</Text>
+        <TouchableOpacity
+          style={styles.cardContainer}
+          onPress={() => navigation.navigate('LockCardScreen', { userId })}
+        >
+          <Image source={cardImage} style={styles.cardImage} />
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardTitle}>MY SAVINGS</Text>
+            <Text style={styles.cardNumber}>{cardNumber}</Text>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
 export default ManageCardsScreen;
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
   container: {
-    backgroundColor: '#e6f0ff',
+    backgroundColor: 'transparent',
     padding: 16,
     flexGrow: 1,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: '#FFFFFF',
     marginBottom: 16,
     textAlign: 'center',
   },
   cardContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
     elevation: 5,
@@ -83,13 +93,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    fontSize: 18, // enlarged
+    fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   cardNumber: {
-    fontSize: 16, // enlarged
-    color: '#555',
+    fontSize: 16,
+    color: '#CCCCCC',
   },
 });

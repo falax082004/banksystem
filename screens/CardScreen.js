@@ -95,49 +95,55 @@ const CardScreen = ({ route }) => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <Text style={{ color: '#fff' }}>Loading...</Text>
-      </View>
+      <ImageBackground source={bgapp3} style={styles.container} resizeMode="cover">
+        <View style={styles.overlay} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+          <Text style={{ color: '#FFFFFF' }}>Loading...</Text>
+        </View>
+      </ImageBackground>
     );
   }
 
   return (
     <ImageBackground source={bgapp3} style={styles.container} resizeMode="cover">
-      <View style={styles.customCard}>
-        <View style={styles.cardTopRow}>
-          <Image source={cardIcon} style={styles.enlargedCardIcon} />
-          <Text style={styles.cardLabel}>Digital Bank Card</Text>
-        </View>
-
-        <View style={styles.cardNumberRow}>
-          <View style={styles.cardNumberGroup}>
-            {(showCard ? cardNumber : '•••• •••• •••• ••••').split(' ').map((segment, index) => (
-              <Text key={index} style={styles.cardNumberSegment}>
-                {segment}
-              </Text>
-            ))}
+      <View style={styles.overlay} />
+      <View style={styles.innerContainer}>
+        <View style={styles.customCard}>
+          <View style={styles.cardTopRow}>
+            <Image source={cardIcon} style={styles.enlargedCardIcon} />
+            <Text style={styles.cardLabel}>Digital Bank Card</Text>
           </View>
-          <TouchableOpacity onPress={() => setShowCard(!showCard)} style={styles.eyeIcon}>
-            <Icon name={showCard ? 'eye' : 'eye-off'} size={22} color="#fff" />
+
+          <View style={styles.cardNumberRow}>
+            <View style={styles.cardNumberGroup}>
+              {(showCard ? cardNumber : '•••• •••• •••• ••••').split(' ').map((segment, index) => (
+                <Text key={index} style={styles.cardNumberSegment}>
+                  {segment}
+                </Text>
+              ))}
+            </View>
+            <TouchableOpacity onPress={() => setShowCard(!showCard)} style={styles.eyeIcon}>
+              <Icon name={showCard ? 'eye' : 'eye-off'} size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.cardFooter}>
+            <Text style={styles.cardName}>{userName || 'Cardholder'}</Text>
+            <Text style={styles.cardExpiry}>Exp: {expirationDate || 'MM/YY'}</Text>
+          </View>
+
+          <View style={styles.circleDark} />
+          <View style={styles.circleLight} />
+        </View>
+
+        {!cardGenerated ? (
+          <TouchableOpacity style={styles.generateButton} onPress={generateCard}>
+            <Text style={styles.generateButtonText}>Generate Card</Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.cardFooter}>
-          <Text style={styles.cardName}>{userName || 'Cardholder'}</Text>
-          <Text style={styles.cardExpiry}>Exp: {expirationDate || 'MM/YY'}</Text>
-        </View>
-
-        <View style={styles.circleRed} />
-        <View style={styles.circleOrange} />
+        ) : (
+          <Text style={styles.successMessage}>✔ Card generated and saved!</Text>
+        )}
       </View>
-
-      {!cardGenerated ? (
-        <TouchableOpacity style={styles.generateButton} onPress={generateCard}>
-          <Text style={styles.generateButtonText}>Generate Card</Text>
-        </TouchableOpacity>
-      ) : (
-        <Text style={styles.successMessage}>✔ Card generated and saved!</Text>
-      )}
     </ImageBackground>
   );
 };
@@ -148,20 +154,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#000',
+    width: '100%',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    zIndex: 0,
+  },
+  innerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    zIndex: 1,
   },
   customCard: {
     width: '100%',
     maxWidth: 360,
     height: 210,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#1A1A1A',
     borderRadius: 16,
     padding: 20,
     overflow: 'hidden',
     justifyContent: 'space-between',
     marginTop: 40,
-    shadowColor: '#C4A35A',
-    shadowOpacity: 0.3,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 10,
     elevation: 10,
@@ -177,7 +195,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   cardLabel: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -192,7 +210,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cardNumberSegment: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
     letterSpacing: 1,
@@ -207,52 +225,52 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cardName: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   cardExpiry: {
-    color: '#ccc',
+    color: '#CCCCCC',
     fontSize: 14,
     fontWeight: '600',
   },
-  circleRed: {
+  circleDark: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#c62828',
+    backgroundColor: '#333333',
     position: 'absolute',
     top: -30,
     right: -30,
-    opacity: 0.5,
+    opacity: 0.3,
     zIndex: -1,
   },
-  circleOrange: {
+  circleLight: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#ff9800',
+    backgroundColor: '#333333',
     position: 'absolute',
     bottom: -20,
     left: -20,
-    opacity: 0.5,
+    opacity: 0.3,
     zIndex: -1,
   },
   generateButton: {
     marginTop: 30,
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 8,
   },
   generateButtonText: {
-    color: '#1e1e1e',
+    color: '#000000',
     fontSize: 16,
     fontWeight: '700',
   },
   successMessage: {
     marginTop: 20,
-    color: '#4CAF50',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

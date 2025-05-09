@@ -99,9 +99,9 @@ const SettingsScreen = ({ route }) => {
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>SECURITY</Text>
         <TouchableOpacity style={styles.row} onPress={() => setShowMpinModal(true)}>
-          <Ionicons name="key-outline" size={22} color="#1976d2" style={styles.icon} />
+          <Ionicons name="key-outline" size={22} color="#FFFFFF" style={styles.icon} />
           <Text style={styles.rowText}>Change MPIN</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          <Ionicons name="chevron-forward" size={20} color="#CCCCCC" style={styles.chevron} />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.row, alreadySet && { opacity: 0.5 }]}
@@ -110,18 +110,18 @@ const SettingsScreen = ({ route }) => {
           }}
           disabled={alreadySet}
         >
-          <MaterialIcons name="security" size={22} color="#1976d2" style={styles.icon} />
+          <MaterialIcons name="security" size={22} color="#FFFFFF" style={styles.icon} />
           <Text style={styles.rowText}>Account Recovery</Text>
           <Text style={styles.setNow}>{alreadySet ? 'Set' : 'Set Now'}</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          <Ionicons name="chevron-forward" size={20} color="#CCCCCC" style={styles.chevron} />
         </TouchableOpacity>
         <View style={[styles.row, { opacity: 0.5 }]}> 
-          <Ionicons name="finger-print-outline" size={22} color="#1976d2" style={styles.icon} />
+          <Ionicons name="finger-print-outline" size={22} color="#FFFFFF" style={styles.icon} />
           <Text style={styles.rowText}>Biometrics Login</Text>
           <Text style={styles.disabled}>Disabled</Text>
         </View>
         {alreadySet && (
-          <Text style={{ color: '#888', fontSize: 13, marginLeft: 32, marginTop: -8 }}>
+          <Text style={{ color: '#CCCCCC', fontSize: 13, marginLeft: 32, marginTop: -8 }}>
             Security questions already set and cannot be changed.
           </Text>
         )}
@@ -129,10 +129,10 @@ const SettingsScreen = ({ route }) => {
 
       {/* MPIN Modal */}
       <Modal visible={showMpinModal} animationType="slide" transparent={false}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }}>
           <View style={styles.sqHeader}>
             <TouchableOpacity onPress={resetMpinModal}>
-              <Ionicons name="arrow-back" size={24} color="#222" />
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.sqTitle}>Set your MPIN</Text>
           </View>
@@ -148,9 +148,10 @@ const SettingsScreen = ({ route }) => {
                   maxLength={6}
                   secureTextEntry
                   placeholder="Enter 4 or 6 digit MPIN"
+                  placeholderTextColor="#666666"
                 />
                 <TouchableOpacity
-                  style={[styles.confirmBtn, (mpin.length !== 4 && mpin.length !== 6) && { backgroundColor: '#ccc' }]}
+                  style={[styles.confirmBtn, (mpin.length !== 4 && mpin.length !== 6) && { backgroundColor: '#333333' }]}
                   disabled={mpin.length !== 4 && mpin.length !== 6}
                   onPress={() => setMpinStep(2)}
                 >
@@ -168,12 +169,13 @@ const SettingsScreen = ({ route }) => {
                   maxLength={6}
                   secureTextEntry
                   placeholder="Re-enter MPIN"
+                  placeholderTextColor="#666666"
                 />
                 {mpinConfirm.length > 0 && mpinConfirm !== mpin && (
                   <Text style={styles.error}>MPINs do not match</Text>
                 )}
                 <TouchableOpacity
-                  style={[styles.confirmBtn, (mpinConfirm !== mpin || mpinConfirm.length !== mpin.length) && { backgroundColor: '#ccc' }]}
+                  style={[styles.confirmBtn, (mpinConfirm !== mpin || mpinConfirm.length !== mpin.length) && { backgroundColor: '#333333' }]}
                   disabled={mpinConfirm !== mpin || mpinConfirm.length !== mpin.length}
                   onPress={async () => {
                     try {
@@ -195,10 +197,10 @@ const SettingsScreen = ({ route }) => {
 
       {/* Security Questions Modal */}
       <Modal visible={showSecurityModal} animationType="slide">
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }}>
           <View style={styles.sqHeader}>
             <TouchableOpacity onPress={() => setShowSecurityModal(false)}>
-              <Ionicons name="arrow-back" size={24} color="#222" />
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.sqTitle}>Set up your security questions</Text>
           </View>
@@ -208,13 +210,14 @@ const SettingsScreen = ({ route }) => {
                 <TouchableOpacity style={styles.qSelect} onPress={() => handleSelectQuestion(idx)}>
                   <Text style={styles.qText}>{q ? q : `Choose Question ${idx + 1}`}</Text>
                   <Text style={styles.redDot}>•</Text>
-                  <Ionicons name="chevron-forward" size={18} color="#1976d2" />
+                  <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
                 </TouchableOpacity>
                 {q && (
                   <>
                     <TextInput
                       style={styles.input}
                       placeholder="Enter the answer"
+                      placeholderTextColor="#666666"
                       value={answers[idx]}
                       onChangeText={text => handleAnswerChange(text, idx)}
                     />
@@ -229,7 +232,7 @@ const SettingsScreen = ({ route }) => {
               Security questions cannot be reset once submitted
             </Text>
             <TouchableOpacity
-              style={[styles.confirmBtn, !isValid && { backgroundColor: '#ccc' }]}
+              style={[styles.confirmBtn, !isValid && { backgroundColor: '#333333' }]}
               disabled={!isValid}
               onPress={handleConfirm}
             >
@@ -253,7 +256,7 @@ const SettingsScreen = ({ route }) => {
                 />
                 <View style={styles.modalActions}>
                   <TouchableOpacity onPress={() => setModalVisible(false)}>
-                    <Text style={{ color: '#1976d2', fontWeight: 'bold' }}>Cancel</Text>
+                    <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -274,23 +277,23 @@ const SettingsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#000000',
   },
   
   section: {
     marginTop: 24,
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     paddingHorizontal: 0,
     paddingVertical: 8,
     borderRadius: 8,
     marginHorizontal: 16,
     elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   sectionLabel: {
-    color: '#888',
+    color: '#CCCCCC',
     fontSize: 13,
     fontWeight: 'bold',
     marginLeft: 16,
@@ -303,8 +306,8 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    backgroundColor: '#fff',
+    borderBottomColor: '#333333',
+    backgroundColor: '#1A1A1A',
   },
   icon: {
     marginRight: 16,
@@ -312,16 +315,16 @@ const styles = StyleSheet.create({
   rowText: {
     flex: 1,
     fontSize: 16,
-    color: '#222',
+    color: '#FFFFFF',
   },
   setNow: {
-    color: '#1976d2',
+    color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 14,
     marginRight: 8,
   },
   disabled: {
-    color: '#888',
+    color: '#CCCCCC',
     fontSize: 14,
     fontWeight: 'bold',
     marginRight: 8,
@@ -340,7 +343,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   version: {
-    color: '#888',
+    color: '#CCCCCC',
     fontSize: 13,
   },
   // Security Questions Styles
@@ -349,12 +352,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#333333',
   },
   sqTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 16,
+    color: '#FFFFFF',
   },
   sqBody: {
     flex: 1,
@@ -371,55 +375,58 @@ const styles = StyleSheet.create({
   qText: {
     fontSize: 16,
     flex: 1,
+    color: '#FFFFFF',
   },
   redDot: {
-    color: 'red',
+    color: '#FFFFFF',
     marginLeft: 6,
     marginRight: 6,
     fontSize: 18,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#333333',
     borderRadius: 8,
     padding: 10,
     marginBottom: 4,
     fontSize: 18,
     letterSpacing: 8,
     textAlign: 'center',
+    backgroundColor: '#1A1A1A',
+    color: '#FFFFFF',
   },
   error: {
-    color: 'red',
+    color: '#FFFFFF',
     fontSize: 12,
     marginBottom: 4,
     textAlign: 'center',
   },
   note: {
-    color: '#888',
+    color: '#CCCCCC',
     fontSize: 13,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 16,
   },
   confirmBtn: {
-    backgroundColor: '#1976d2',
+    backgroundColor: '#FFFFFF',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 8,
   },
   confirmText: {
-    color: '#fff',
+    color: '#000000',
     fontWeight: 'bold',
     fontSize: 16,
   },
   modalBg: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 16,
@@ -428,10 +435,11 @@ const styles = StyleSheet.create({
   modalItem: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#333333',
   },
   modalText: {
     fontSize: 16,
+    color: '#FFFFFF',
   },
   modalActions: {
     flexDirection: 'row',
@@ -443,6 +451,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
     textAlign: 'center',
+    color: '#FFFFFF',
   },
 });
 

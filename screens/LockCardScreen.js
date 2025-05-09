@@ -114,8 +114,8 @@ const LockCardScreen = ({ route }) => {
           </View>
 
           {/* Background circles */}
-          <View style={styles.circleRed} />
-          <View style={styles.circleOrange} />
+          <View style={styles.circleDark} />
+          <View style={styles.circleLight} />
 
           {/* Locked overlay */}
           {lockStatus && (
@@ -141,9 +141,9 @@ const LockCardScreen = ({ route }) => {
           <Text style={styles.lockSubtitle}>Block transactions made with this card</Text>
         </View>
         <Switch
-          trackColor={{ false: '#ccc', true: '#007bff' }}
-          thumbColor="#fff"
-          ios_backgroundColor="#ccc"
+          trackColor={{ false: '#333333', true: '#FFFFFF' }}
+          thumbColor="#000000"
+          ios_backgroundColor="#333333"
           onValueChange={toggleLockStatus}
           value={lockStatus}
         />
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#000',
+    backgroundColor: '#000000',
   },
   cardWrapper: {
     width: '100%',
@@ -171,13 +171,13 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     height: 210,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#1A1A1A',
     borderRadius: 16,
     padding: 20,
     overflow: 'hidden',
     justifyContent: 'space-between',
-    shadowColor: '#C4A35A',
-    shadowOpacity: 0.3,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 10,
     elevation: 10,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   cardLabel: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cardNumberSegment: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
     letterSpacing: 1,
@@ -218,48 +218,48 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cardName: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   cardExpiry: {
-    color: '#ccc',
+    color: '#CCCCCC',
     fontSize: 14,
     fontWeight: '600',
   },
-  circleRed: {
+  circleDark: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#c62828',
+    backgroundColor: '#000000',
     position: 'absolute',
     top: -30,
     right: -30,
-    opacity: 0.5,
+    opacity: 0.3,
     zIndex: -1,
   },
-  circleOrange: {
+  circleLight: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#ff9800',
+    backgroundColor: '#333333',
     position: 'absolute',
     bottom: -20,
     left: -20,
-    opacity: 0.5,
+    opacity: 0.3,
     zIndex: -1,
   },
   lockOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 16,
   },
   lockedLabel: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontWeight: 'bold',
-    backgroundColor: '#c62828',
+    backgroundColor: '#000000',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 8,
@@ -267,8 +267,8 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     width: '100%',
-    backgroundColor: '#e0f2ff',
-    borderColor: '#90caf9',
+    backgroundColor: '#1A1A1A',
+    borderColor: '#333333',
     borderWidth: 1,
     borderRadius: 12,
     padding: 16,
@@ -278,15 +278,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     marginBottom: 6,
-    color: '#0d47a1',
+    color: '#FFFFFF',
   },
   infoText: {
     fontSize: 14,
-    color: '#333',
+    color: '#CCCCCC',
   },
   lockPanel: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -305,10 +305,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#000',
+    color: '#FFFFFF',
   },
   lockSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: '#CCCCCC',
   },
 });

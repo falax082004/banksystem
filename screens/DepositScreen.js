@@ -104,6 +104,7 @@ const DepositScreen = ({ navigation, route }) => {
 
   return (
     <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
+      <View style={styles.overlay} />
       <View style={styles.container}>
         {/* Close button */}
         <TouchableOpacity style={styles.closeButton} onPress={() => navigation.navigate('Home', { userId })}>
@@ -190,6 +191,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
   },
   container: {
     flex: 1,

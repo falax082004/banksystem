@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, StatusBar, ActivityIndicator, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Make sure you have @expo/vector-icons installed
 import * as Progress from 'react-native-progress';
 import { db, ref, get } from '../firebaseConfig'; // adjust path if needed
@@ -30,7 +30,7 @@ const ProfileLimitsScreen = ({ route, navigation }) => {
       ),
       headerTitle: 'Profile Limits',
       headerStyle: {
-        backgroundColor: '#333',
+        backgroundColor: '#000000',
       },
       headerTitleStyle: {
         color: 'white',
@@ -61,24 +61,26 @@ const ProfileLimitsScreen = ({ route, navigation }) => {
   }, [userId, navigation]);
 
   return (
-    <View style={styles.screen}>
-      <StatusBar backgroundColor="#1A1A1A" barStyle="light-content" />
-      {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#00B5E2" />
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.banner}>
-            <Text style={styles.bannerText}>YOUR ACCOUNT IS FULLY VERIFIED</Text>
+    <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
+      <View style={styles.overlay} />
+      <View style={styles.screen}>
+        <StatusBar backgroundColor="#000000" barStyle="light-content" />
+        {loading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#FFFFFF" />
           </View>
-
-          <LimitCard title="WALLET LIMIT" used={walletBalance} limit={WALLET_LIMIT} />
-          <LimitCard title="DAILY OUTGOING LIMIT" used={dailyOutgoing} limit={DAILY_OUTGOING_LIMIT} />
-          <LimitCard title="MONTHLY INCOMING LIMIT" used={monthlyIncoming} limit={MONTHLY_INCOMING_LIMIT} />
-        </ScrollView>
-      )}
-    </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.banner}>
+              <Text style={styles.bannerText}>YOUR ACCOUNT IS FULLY VERIFIED</Text>
+            </View>
+            <LimitCard title="WALLET LIMIT" used={walletBalance} limit={WALLET_LIMIT} />
+            <LimitCard title="DAILY OUTGOING LIMIT" used={dailyOutgoing} limit={DAILY_OUTGOING_LIMIT} />
+            <LimitCard title="MONTHLY INCOMING LIMIT" used={monthlyIncoming} limit={MONTHLY_INCOMING_LIMIT} />
+          </ScrollView>
+        )}
+      </View>
+    </ImageBackground>
   );
 };
 
@@ -97,7 +99,7 @@ const LimitCard = ({ title, used, limit }) => {
         progress={progress}
         width={null}
         color="#FFFFFF"
-        unfilledColor="#333"
+        unfilledColor="#333333"
         borderColor="transparent"
         height={8}
         borderRadius={6}
@@ -114,26 +116,34 @@ const LimitCard = ({ title, used, limit }) => {
 export default ProfileLimitsScreen;
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
   screen: {
     flex: 1,
-    backgroundColor: '#121212', // dark background
+    backgroundColor: 'transparent',
   },
   content: {
     padding: 16,
   },
   banner: {
-    backgroundColor: '#333', // dark background for banner
+    backgroundColor: '#1A1A1A',
     padding: 10,
     borderRadius: 8,
     marginBottom: 16,
     alignItems: 'center',
   },
   bannerText: {
-    color: '#ffffff', // white text
+    color: '#FFFFFF',
     fontWeight: 'bold',
   },
   card: {
-    backgroundColor: '#222', // dark card background
+    backgroundColor: '#1A1A1A',
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
@@ -147,26 +157,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#ffffff', // white title
+    color: '#FFFFFF',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   used: {
-    color: '#ff3b30', // red for used balance
+    color: '#FFFFFF',
   },
   limit: {
-    color: '#4cd964', // green for limit
+    color: '#CCCCCC',
   },
   leftText: {
     marginTop: 6,
     fontWeight: '500',
-    color: '#ffffff', // white text for remaining balance
+    color: '#FFFFFF',
   },
   note: {
     marginTop: 8,
     fontSize: 12,
-    color: '#888', // gray for note text
+    color: '#999999',
   },
 });

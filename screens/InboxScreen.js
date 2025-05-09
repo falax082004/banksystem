@@ -145,6 +145,7 @@ const InboxScreen = ({ route }) => {
 
   return (
     <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.container}>
+      <View style={styles.overlay} />
       <StatusBar barStyle="light-content" />
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
@@ -242,6 +243,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     resizeMode: 'cover',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
   },
   header: {
     backgroundColor: '#111',

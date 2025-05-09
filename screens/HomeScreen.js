@@ -97,15 +97,18 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
+      <View style={styles.overlay} />
       <View style={styles.jpContainer}>
         {/* Header */}
         <View style={styles.jpHeaderRow}>
           <Text style={styles.jpDate}>{new Date().toISOString().slice(0, 10).replace(/-/g, '.')}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="bell" size={22} color="#222" style={{ marginRight: 16 }} />
+            <Icon name="user" size={22} color="#222" />
           </View>
         </View>
         <Text style={styles.jpWelcome}>Hi, {userName || 'User'}!</Text>
-        <Text style={styles.jpHomeTitle}>HOME</Text>
+
 
         {/* Card */}
         <View style={{ alignItems: 'center', marginTop: 2 }}>
@@ -172,7 +175,12 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'cover',
   },
-  jpContainer: { flex: 1, padding: 20 },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    zIndex: 1,
+  },
+  jpContainer: { flex: 1, padding: 20, zIndex: 2 },
   jpHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -188,7 +196,7 @@ const styles = StyleSheet.create({
   },
   jpActionBtn: {
     flex: 1,
-    backgroundColor: '#222',
+    backgroundColor: 'rgba(34,34,34,0.96)',
     paddingVertical: 12,
     marginHorizontal: 5,
     borderRadius: 12,
@@ -199,7 +207,7 @@ const styles = StyleSheet.create({
   jpTxnList: { marginTop: 10 },
   noTxnText: { textAlign: 'center', color: '#888', marginTop: 20 },
   jpTxnItem: {
-    backgroundColor: '#222',
+    backgroundColor: 'rgba(34,34,34,0.96)',
     padding: 15,
     borderRadius: 12,
     marginBottom: 10,
@@ -233,7 +241,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     height: 210,
-    backgroundColor: '#111',
+    backgroundColor: 'rgba(17,17,17,0.96)',
     borderRadius: 16,
     padding: 20,
     overflow: 'hidden',

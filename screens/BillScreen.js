@@ -136,7 +136,7 @@ const BillScreen = ({ navigation, route }) => {
   const renderCategory = ({ item }) => (
     <View style={styles.categoryContainer}>
       <View style={styles.categoryHeader}>
-        <Icon name={item.icon} size={28} color="#222" />
+        <Icon name={item.icon} size={28} color="#fff" />
         <Text style={styles.categoryTitle}>{item.name}</Text>
       </View>
       <View style={styles.billerGrid}>
@@ -179,7 +179,8 @@ const BillScreen = ({ navigation, route }) => {
 
   return (
     <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
-      <View style={styles.container}>
+      <View style={styles.overlay} />
+      <View style={[styles.container, { backgroundColor: 'transparent' }]}>
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => navigation.goBack()}
@@ -267,9 +268,14 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: 'transparent',
   },
   categoriesContainer: {
     flex: 1,
@@ -301,7 +307,7 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#222',
+    color: '#fff',
     marginLeft: 12,
   },
   billerGrid: {

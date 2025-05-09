@@ -1,40 +1,47 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, ImageBackground } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 const ReferFriendsScreen = ({ route }) => {
   const { userId, fullName } = route.params; // Retrieve fullName from route params
 
   return (
-    <View style={styles.container}>
-      <Image source={require('../assets/apollo.png')} style={styles.avatar} />
+    <ImageBackground source={require('../assets/bgapp3.jpg')} style={{ flex: 1 }}>
+      <View style={styles.overlay} />
+      <View style={styles.container}>
+        <Image source={require('../assets/apollo.png')} style={styles.avatar} />
 
-      {/* Display Full Name */}
-      <Text style={styles.name}>{fullName}</Text>
+        {/* Display Full Name */}
+        <Text style={styles.name}>{fullName}</Text>
 
-      {/* Invitation Text */}
-      <Text style={styles.inviteText}>is inviting you to join Pantheon Bank.</Text>
+        {/* Invitation Text */}
+        <Text style={styles.inviteText}>is inviting you to join Pantheon Bank.</Text>
 
-      {/* QR Code */}
-      <View style={styles.qrContainer}>
-        <QRCode
-          value={`https://pantheonbank.app/your-referral-link?userId=${userId}`} // Replace with your own referral URL
-          size={180}
-        />
+        {/* QR Code */}
+        <View style={styles.qrContainer}>
+          <QRCode
+            value={`https://pantheonbank.app/your-referral-link?userId=${userId}`} // Replace with your own referral URL
+            size={180}
+          />
+        </View>
+
+        {/* Footer Text */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Scan the QR Code to get started!</Text>
+        </View>
       </View>
-
-      {/* Footer Text */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Scan the QR Code to get started!</Text>
-      </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -48,11 +55,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#111827',
+    color: '#fff',
   },
   inviteText: {
     fontSize: 16,
-    color: '#4b5563',
+    color: '#fff',
     marginBottom: 30,
   },
   qrContainer: {
@@ -71,7 +78,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#fff',
   },
 });
 
