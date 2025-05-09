@@ -16,9 +16,13 @@ const TransferScreen = ({ navigation, route }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);  // Confirmation modal status
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
+  const [showMpinModal, setShowMpinModal] = useState(false);
+  const [mpin, setMpin] = useState('');
+  const [hasMpin, setHasMpin] = useState(false);
 
   useEffect(() => {
     fetchLockStatus();
+    checkMpin();
   }, []);
 
   const fetchLockStatus = async () => {
@@ -30,6 +34,19 @@ const TransferScreen = ({ navigation, route }) => {
       }
     } catch (error) {
       console.error('Error fetching lock status:', error);
+    }
+  };
+
+  const checkMpin = async () => {
+    try {
+      const userRef = ref(db, `users/${userId}`);
+      const snapshot = await get(userRef);
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        setHasMpin(!!userData.mpin);
+      }
+    } catch (error) {
+      console.error('Error checking MPIN:', error);
     }
   };
 
@@ -67,12 +84,40 @@ const TransferScreen = ({ navigation, route }) => {
         return;
       }
 
-      setShowConfirmation(true);  // Show confirmation modal
+      if (hasMpin) {
+        setShowMpinModal(true);
+      } else {
+        setShowConfirmation(true);
+      }
 
     } catch (error) {
       console.error("Error during transfer:", error);
       setModalMessage('Something went wrong. Please try again.');
       setModalVisible(true);
+    }
+  };
+
+  const verifyMpin = async () => {
+    try {
+      const userRef = ref(db, `users/${userId}`);
+      const snapshot = await get(userRef);
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        if (userData.mpin === mpin) {
+          setShowMpinModal(false);
+          setMpin('');
+          setShowConfirmation(true);
+        } else {
+          setModalMessage('Invalid MPIN');
+          setModalVisible(true);
+          setShowMpinModal(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error verifying MPIN:', error);
+      setModalMessage('Error verifying MPIN');
+      setModalVisible(true);
+      setShowMpinModal(false);
     }
   };
 
@@ -214,6 +259,45 @@ const TransferScreen = ({ navigation, route }) => {
               <Pressable style={styles.modalButton} onPress={() => setShowConfirmation(false)}>
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </Pressable>
+            </View>
+          </View>
+        </Modal>
+
+        {/* MPIN Modal */}
+        <Modal
+          transparent={true}
+          visible={showMpinModal}
+          animationType="fade"
+          onRequestClose={() => setShowMpinModal(false)}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>Enter MPIN</Text>
+              <Text style={styles.modalSubtitle}>Please enter your MPIN to continue</Text>
+              <TextInput
+                style={styles.mpinInput}
+                value={mpin}
+                onChangeText={text => setMpin(text.replace(/[^0-9]/g, ''))}
+                keyboardType="numeric"
+                maxLength={6}
+                secureTextEntry
+                placeholder="Enter MPIN"
+                placeholderTextColor="#888"
+              />
+              <View style={styles.modalButtonContainer}>
+                <Pressable style={styles.modalButton} onPress={verifyMpin}>
+                  <Text style={styles.modalButtonText}>Verify</Text>
+                </Pressable>
+                <Pressable 
+                  style={[styles.modalButton, { backgroundColor: '#666' }]} 
+                  onPress={() => {
+                    setShowMpinModal(false);
+                    setMpin('');
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         </Modal>
@@ -507,6 +591,36 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     letterSpacing: 1,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  mpinInput: {
+    height: 50,
+    width: '100%',
+    backgroundColor: '#f4f4f4',
+    borderRadius: 10,
+    paddingLeft: 15,
+    fontSize: 18,
+    marginBottom: 20,
+    color: '#222',
+    textAlign: 'center',
+    letterSpacing: 8,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
 });
 

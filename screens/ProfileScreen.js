@@ -7,7 +7,11 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
-  SafeAreaView
+  SafeAreaView,
+  Modal,
+  TextInput,
+  Pressable,
+  Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5'; // Updated to FontAwesome5
 import { db, ref, get } from '../firebaseConfig';
@@ -17,6 +21,10 @@ const ProfileScreen = ({ navigation, route }) => {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(true);
+  const [hasMpin, setHasMpin] = useState(false);
+  const [showMpinModal, setShowMpinModal] = useState(false);
+  const [mpin, setMpin] = useState('');
+  const [pendingNavigation, setPendingNavigation] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -27,6 +35,7 @@ const ProfileScreen = ({ navigation, route }) => {
           const userData = snapshot.val();
           setName(userData.name || 'User');
           setPhoneNumber(userData.phoneNumber || 'No phone number');
+          setHasMpin(!!userData.mpin);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -41,20 +50,52 @@ const ProfileScreen = ({ navigation, route }) => {
     navigation.navigate('Login');
   };
 
-  const MenuItem = ({ icon, label, onPress }) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+  const verifyMpin = async () => {
+    try {
+      const userRef = ref(db, `users/${userId}`);
+      const snapshot = await get(userRef);
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        if (userData.mpin === mpin) {
+          setShowMpinModal(false);
+          setMpin('');
+          if (pendingNavigation) {
+            navigation.navigate(pendingNavigation.screen, pendingNavigation.params);
+            setPendingNavigation(null);
+          }
+        } else {
+          Alert.alert('Error', 'Invalid MPIN');
+        }
+      }
+    } catch (error) {
+      console.error('Error verifying MPIN:', error);
+      Alert.alert('Error', 'Failed to verify MPIN');
+    }
+  };
+
+  const handleProtectedNavigation = (screen, params = {}) => {
+    if (hasMpin) {
+      setPendingNavigation({ screen, params });
+      setShowMpinModal(true);
+    } else {
+      navigation.navigate(screen, params);
+    }
+  };
+
+  const MenuItem = ({ icon, label, onPress, requiresMpin = false }) => (
+    <TouchableOpacity 
+      style={styles.menuItem} 
+      onPress={() => requiresMpin ? handleProtectedNavigation(label, { userId, fullName: name }) : onPress()}
+    >
       <View style={styles.menuItemContent}>
         <Icon name={icon} size={18} color="#FFF" solid />
         <Text style={styles.menuLabel}>{label}</Text>
-        
       </View>
       <Icon name="chevron-right" size={16} color="#888" />
     </TouchableOpacity>
   );
 
   const handleProfileImagePress = () => {
-    
-    // Navigate to a screen for profile editing or another relevant screen
     navigation.navigate('ProfileEdit', { userId });
   };
 
@@ -81,21 +122,105 @@ const ProfileScreen = ({ navigation, route }) => {
               <ActivityIndicator size="large" color="#76FF03" />
             ) : (
               <View style={styles.menuContainer}>
-                <MenuItem icon="link" label="My Linked Accounts" onPress={() => navigation.navigate('My Linked Accounts', { userId })} />
-                <MenuItem icon="qrcode" label="My QR Codes" onPress={() => navigation.navigate('MyQRCode', { userId, fullName: name })} />
-                <MenuItem icon="wallet" label="Profile Limits" onPress={() => navigation.navigate('ProfileLimits', { userId })} />
-                <MenuItem icon="credit-card" label="Manage Cards" onPress={() => navigation.navigate('ManageCards', { userId })} />
-                <MenuItem icon="chart-line" label="Investment Hub" onPress={() => navigation.navigate('Investment',{ userId, fullName: name })} />
-                <MenuItem icon="hands-helping" label="Charity and Donations" onPress={() => navigation.navigate('Charity',{ userId, fullName: name })} />
-                <MenuItem icon="user-friends" label="Refer Friends" onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })} />
-                <MenuItem icon="cog" label="Settings" onPress={() => navigation.navigate('Settings', { userId })} />
-                <MenuItem icon="file" label="Terms and Conditions" onPress={() => navigation.navigate('Terms')} />
-                <MenuItem icon="question-circle" label="Help" onPress={() => navigation.navigate('Help')} />
-                <MenuItem icon="sign-out-alt" label="Log out" onPress={handleLogout} />
+                <MenuItem 
+                  icon="link" 
+                  label="My Linked Accounts" 
+                  requiresMpin={true}
+                />
+                <MenuItem 
+                  icon="qrcode" 
+                  label="MyQRCode" 
+                  requiresMpin={true}
+                />
+                <MenuItem 
+                  icon="wallet" 
+                  label="ProfileLimits" 
+                  onPress={() => navigation.navigate('ProfileLimits', { userId })}
+                />
+                <MenuItem 
+                  icon="credit-card" 
+                  label="ManageCards" 
+                  requiresMpin={true}
+                />
+                <MenuItem 
+                  icon="chart-line" 
+                  label="Investment" 
+                  requiresMpin={true}
+                />
+                <MenuItem 
+                  icon="hands-helping" 
+                  label="Charity" 
+                  requiresMpin={true}
+                />
+                <MenuItem 
+                  icon="user-friends" 
+                  label="ReferFriends" 
+                  onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })}
+                />
+                <MenuItem 
+                  icon="cog" 
+                  label="Settings" 
+                  requiresMpin={true}
+                />
+                <MenuItem 
+                  icon="file" 
+                  label="Terms" 
+                  onPress={() => navigation.navigate('Terms')}
+                />
+                <MenuItem 
+                  icon="question-circle" 
+                  label="Help" 
+                  onPress={() => navigation.navigate('Help')}
+                />
+                <MenuItem 
+                  icon="sign-out-alt" 
+                  label="Log out" 
+                  onPress={handleLogout}
+                />
               </View>
             )}
           </ScrollView>
         </View>
+
+        {/* MPIN Modal */}
+        <Modal
+          transparent={true}
+          visible={showMpinModal}
+          animationType="fade"
+          onRequestClose={() => setShowMpinModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>Enter MPIN</Text>
+              <Text style={styles.modalSubtitle}>Please enter your MPIN to continue</Text>
+              <TextInput
+                style={styles.mpinInput}
+                value={mpin}
+                onChangeText={text => setMpin(text.replace(/[^0-9]/g, ''))}
+                keyboardType="numeric"
+                maxLength={6}
+                secureTextEntry
+                placeholder="Enter MPIN"
+                placeholderTextColor="#888"
+              />
+              <View style={styles.modalButtonContainer}>
+                <Pressable style={styles.modalButton} onPress={verifyMpin}>
+                  <Text style={styles.modalButtonText}>Verify</Text>
+                </Pressable>
+                <Pressable 
+                  style={[styles.modalButton, { backgroundColor: '#666' }]} 
+                  onPress={() => {
+                    setShowMpinModal(false);
+                    setMpin('');
+                    setPendingNavigation(null);
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -194,6 +319,63 @@ const styles = StyleSheet.create({
   },
   stretchArea: {
     flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCard: {
+    backgroundColor: '#222',
+    borderRadius: 15,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#888',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  mpinInput: {
+    height: 50,
+    width: '100%',
+    backgroundColor: '#333',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    fontSize: 18,
+    marginBottom: 20,
+    color: '#fff',
+    textAlign: 'center',
+    letterSpacing: 8,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    backgroundColor: '#444',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 
