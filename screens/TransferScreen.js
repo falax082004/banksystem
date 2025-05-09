@@ -235,14 +235,14 @@ const TransferScreen = ({ navigation, route }) => {
               <Text style={styles.receiptBillerBW}>Transfer to {receiptData ? receiptData.recipient : ''}</Text>
               <Text style={styles.receiptReceivedBW}>Transfer Successful</Text>
               <Text style={styles.receiptAmountLabelBW}>the amount of</Text>
-              <Text style={styles.receiptAmountBW}>₱{receiptData ? receiptData.amount : ''}</Text>
+              <Text style={styles.receiptAmountBW}>₱{receiptData ? Math.abs(receiptData.amount) : ''}</Text>
               <Text style={styles.receiptViaBW}>Pantheon Bank</Text>
               <View style={styles.receiptDividerBW} />
               <Text style={styles.receiptRefBW}>Ref. No. {receiptData ? receiptData.refNo : ''}</Text>
               <Text style={styles.receiptDateBW}>{receiptData ? receiptData.paidAt.toLocaleString() : ''}</Text>
               <View style={styles.receiptDividerBW} />
               <Text style={styles.receiptDetailsTitleBW}>Details</Text>
-              <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Amount</Text><Text style={styles.receiptDetailsValueBW}>₱{receiptData ? (receiptData.amount - receiptData.fee).toFixed(2) : ''}</Text></View>
+              <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Amount</Text><Text style={styles.receiptDetailsValueBW}>₱{receiptData ? Math.abs(receiptData.amount - receiptData.fee).toFixed(2) : ''}</Text></View>
               <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Fee</Text><Text style={styles.receiptDetailsValueBW}>₱{receiptData ? receiptData.fee.toFixed(2) : ''}</Text></View>
               <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Sender</Text><Text style={styles.receiptDetailsValueBW}>{receiptData ? receiptData.sender : ''}</Text></View>
               <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Recipient</Text><Text style={styles.receiptDetailsValueBW}>{receiptData ? receiptData.recipient : ''}</Text></View>
@@ -290,20 +290,23 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 40,
     right: 20,
-    backgroundColor: '#fff',
-    borderRadius: 50,
-    padding: 10,
+    top: 20,
     zIndex: 1,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   closeButtonText: {
     fontSize: 24,
-    color: '#333',
+    color: '#fff',
     fontWeight: 'bold',
   },
   card: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: '#111',
     borderRadius: 16,
     padding: 30,
     width: '90%',
@@ -311,10 +314,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 20,
+    marginBottom: 25,
   },
   label: {
     fontSize: 16,
@@ -325,15 +328,15 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#f4f4f4',
     borderRadius: 10,
     paddingLeft: 15,
     fontSize: 18,
     marginBottom: 20,
-    color: '#333',
+    color: '#222',
   },
   button: {
-    backgroundColor: '#D8D8D8',
+    backgroundColor: '#222',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 30,
@@ -347,7 +350,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   buttonText: {
-    color: '#333',
+    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -358,7 +361,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCard: {
-    backgroundColor: '#f4f4f4',
+    backgroundColor: '#fff',
     padding: 30,
     borderRadius: 20,
     alignItems: 'center',
@@ -371,7 +374,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalButton: {
-    backgroundColor: '#333',
+    backgroundColor: '#111',
     paddingVertical: 10,
     paddingHorizontal: 25,
     borderRadius: 10,

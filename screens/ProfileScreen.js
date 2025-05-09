@@ -104,13 +104,13 @@ const ProfileScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#333',
+    backgroundColor: '#111',
   },
   container: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 10,
-    backgroundColor: '#333',
+    backgroundColor: '#111',
   },
   scroll: {
     flexGrow: 1,
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#444',
+    backgroundColor: '#222',
     padding: 16,
     borderRadius: 16,
     shadowColor: '#000',
@@ -134,24 +134,24 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     marginRight: 15,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#333',
   },
   userInfo: {
     flex: 1,
   },
   name: {
     fontSize: 18,
-    color: '#FFF',
+    color: '#fff',
     fontWeight: '600',
   },
   phone: {
     fontSize: 14,
-    color: '#AAA',
+    color: '#888',
   },
   verificationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#555',
+    backgroundColor: '#222',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 12,
@@ -161,11 +161,11 @@ const styles = StyleSheet.create({
   verificationText: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#76FF03',
+    color: '#fff',
     fontWeight: '500',
   },
   menuContainer: {
-    backgroundColor: '#444',
+    backgroundColor: '#222',
     borderRadius: 16,
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#555',
+    borderBottomColor: '#333',
   },
   menuItemContent: {
     flexDirection: 'row',
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   menuLabel: {
     marginLeft: 15,
     fontSize: 16,
-    color: '#FFF',
+    color: '#fff',
   },
   stretchArea: {
     flex: 1,

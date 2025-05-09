@@ -96,87 +96,91 @@ const HomeScreen = ({ navigation, route }) => {
   );
 
   return (
-    <View style={styles.jpContainer}>
-      {/* Header */}
-      <View style={styles.jpHeaderRow}>
-        <Text style={styles.jpDate}>{new Date().toISOString().slice(0, 10).replace(/-/g, '.')}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Icon name="bell" size={22} color="#222" style={{ marginRight: 16 }} />
-          <Icon name="user" size={22} color="#222" />
+    <ImageBackground source={require('../assets/bgapp3.jpg')} style={styles.background}>
+      <View style={styles.jpContainer}>
+        {/* Header */}
+        <View style={styles.jpHeaderRow}>
+          <Text style={styles.jpDate}>{new Date().toISOString().slice(0, 10).replace(/-/g, '.')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          </View>
         </View>
-      </View>
-      <Text style={styles.jpWelcome}>Hi, {userName || 'User'}!</Text>
-      <Text style={styles.jpHomeTitle}>HOME</Text>
+        <Text style={styles.jpWelcome}>Hi, {userName || 'User'}!</Text>
+        <Text style={styles.jpHomeTitle}>HOME</Text>
 
-      {/* Card */}
-      <View style={{ alignItems: 'center', marginTop: 2 }}>
-        {renderCard()}
-      </View>
+        {/* Card */}
+        <View style={{ alignItems: 'center', marginTop: 2 }}>
+          {renderCard()}
+        </View>
 
-      {/* Main Actions */}
-      <View style={styles.jpActionsRow}>
-        <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('Transfer', { userId })}>
-          <Icon name="arrow-up" size={28} color="#FFF" />
-          <Text style={styles.jpActionLabel}>Transfer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('Deposit', { userId })}>
-          <Icon name="arrow-down" size={28} color="#FFF" />
-          <Text style={styles.jpActionLabel}>Deposit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('PayBills', { userId })}>
-          <MaterialIcons name="file-document-outline" size={28} color="#FFF" />
-          <Text style={styles.jpActionLabel}>Pay Bills</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Main Actions */}
+        <View style={styles.jpActionsRow}>
+          <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('Transfer', { userId })}>
+            <Icon name="arrow-up" size={28} color="#FFF" />
+            <Text style={styles.jpActionLabel}>Transfer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('Deposit', { userId })}>
+            <Icon name="arrow-down" size={28} color="#FFF" />
+            <Text style={styles.jpActionLabel}>Deposit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.jpActionBtn} onPress={() => navigation.navigate('PayBills', { userId })}>
+            <MaterialIcons name="file-document-outline" size={28} color="#FFF" />
+            <Text style={styles.jpActionLabel}>Pay Bills</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Transactions */}
-      <Text style={styles.jpTxnTitle}>Recent Transactions</Text>
-      <View style={styles.jpTxnList}>
-        {transactions.length === 0 ? (
-          <Text style={styles.noTxnText}>No transactions yet</Text>
-        ) : (
-          transactions.slice(0, 5).map((txn, index) => (
-            <View key={index} style={styles.jpTxnItem}>
-              <Text style={styles.jpTxnLabel}>{txn.label || txn.type || 'Transaction'}</Text>
-              <Text style={[styles.jpTxnAmount, { color: txn.type === 'deposit' || txn.type === 'received' ? '#00c853' : '#d50000' }]}>₱{txn.amount}</Text>
+        {/* Transactions */}
+        <Text style={styles.jpTxnTitle}>Recent Transactions</Text>
+        <View style={styles.jpTxnList}>
+          {transactions.length === 0 ? (
+            <Text style={styles.noTxnText}>No transactions yet</Text>
+          ) : (
+            transactions.slice(0, 5).map((txn, index) => (
+              <View key={index} style={styles.jpTxnItem}>
+                <Text style={styles.jpTxnLabel}>{txn.label || txn.type || 'Transaction'}</Text>
+                <Text style={[styles.jpTxnAmount, { color: txn.type === 'deposit' || txn.type === 'received' ? '#00c853' : '#d50000' }]}>₱{txn.amount}</Text>
+              </View>
+            ))
+          )}
+        </View>
+        {/* Transaction Modal (unchanged) */}
+        {selectedTransaction && (
+          <Modal transparent={true} animationType="slide" visible={modalVisible}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <Text style={styles.modalTitle}>Transaction Details</Text>
+                <Text style={styles.modalText}>Type: {selectedTransaction.type}</Text>
+                <Text style={styles.modalText}>Amount: ₱{selectedTransaction.amount}</Text>
+                {selectedTransaction.to && <Text style={styles.modalText}>To: {selectedTransaction.to}</Text>}
+                {selectedTransaction.from && <Text style={styles.modalText}>From: {selectedTransaction.from}</Text>}
+                <Text style={styles.modalText}>
+                  Date: {new Date(selectedTransaction.timestamp).toLocaleDateString()}
+                </Text>
+                <TouchableOpacity style={styles.modalButton} onPress={closeModal}>
+                  <Text style={styles.modalButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          ))
+          </Modal>
         )}
       </View>
-      {/* Transaction Modal (unchanged) */}
-      {selectedTransaction && (
-        <Modal transparent={true} animationType="slide" visible={modalVisible}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>Transaction Details</Text>
-              <Text style={styles.modalText}>Type: {selectedTransaction.type}</Text>
-              <Text style={styles.modalText}>Amount: ₱{selectedTransaction.amount}</Text>
-              {selectedTransaction.to && <Text style={styles.modalText}>To: {selectedTransaction.to}</Text>}
-              {selectedTransaction.from && <Text style={styles.modalText}>From: {selectedTransaction.from}</Text>}
-              <Text style={styles.modalText}>
-                Date: {new Date(selectedTransaction.timestamp).toLocaleDateString()}
-              </Text>
-              <TouchableOpacity style={styles.modalButton} onPress={closeModal}>
-                <Text style={styles.modalButtonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   jpContainer: { flex: 1, padding: 20 },
   jpHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  jpDate: { fontSize: 14, color: '#222' },
-  jpWelcome: { fontSize: 26, color: '#1c1c1e', marginTop: 10 },
-  jpHomeTitle: { fontSize: 18, fontWeight: 'bold', color: '#2e2e2e' },
+  jpDate: { fontSize: 14, color: '#fff' },
+  jpWelcome: { fontSize: 26, color: '#fff', marginTop: 10 },
+  jpHomeTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
   jpActionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -184,59 +188,59 @@ const styles = StyleSheet.create({
   },
   jpActionBtn: {
     flex: 1,
-    backgroundColor: '#2e2e2e',
+    backgroundColor: '#222',
     paddingVertical: 12,
     marginHorizontal: 5,
     borderRadius: 12,
     alignItems: 'center',
   },
   jpActionLabel: { color: '#fff', fontWeight: '600' },
-  jpTxnTitle: { marginTop: 30, fontSize: 18, fontWeight: 'bold', color: '#2e2e2e' },
+  jpTxnTitle: { marginTop: 30, fontSize: 18, fontWeight: 'bold', color: '#fff' },
   jpTxnList: { marginTop: 10 },
   noTxnText: { textAlign: 'center', color: '#888', marginTop: 20 },
   jpTxnItem: {
-    backgroundColor: '#fff',
+    backgroundColor: '#222',
     padding: 15,
     borderRadius: 12,
     marginBottom: 10,
   },
-  jpTxnLabel: { fontSize: 14, color: '#333', fontWeight: 'bold' },
+  jpTxnLabel: { fontSize: 14, color: '#fff', fontWeight: 'bold' },
   jpTxnAmount: { fontSize: 18, fontWeight: '600' },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
   modalContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     padding: 20,
     borderRadius: 10,
     width: 300,
     alignItems: 'center',
   },
-  modalTitle: { fontSize: 18, fontWeight: 'bold' },
-  modalText: { fontSize: 16, marginTop: 10 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#111' },
+  modalText: { fontSize: 16, marginTop: 10, color: '#111' },
   modalButton: {
-    backgroundColor: 'black',
+    backgroundColor: '#111',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
     marginTop: 20,
   },
-  modalButtonText: { color: 'white', fontWeight: 'bold' },
+  modalButtonText: { color: '#fff', fontWeight: 'bold' },
   customCard: {
     width: '100%',
     maxWidth: 360,
     height: 210,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#111',
     borderRadius: 16,
     padding: 20,
     overflow: 'hidden',
     justifyContent: 'space-between',
     marginTop: 10,
     alignSelf: 'center',
-    shadowColor: '#C4A35A',
+    shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 10,
@@ -256,7 +260,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#c62828',
+    backgroundColor: '#222',
     position: 'absolute',
     top: -30,
     right: -30,
@@ -267,7 +271,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#ff9800',
+    backgroundColor: '#333',
     position: 'absolute',
     bottom: -20,
     left: -20,
@@ -281,7 +285,7 @@ const styles = StyleSheet.create({
     left: 12,
     bottom: 58,
     zIndex: 2,
-    backgroundColor: 'rgba(30,30,30,0.95)',
+    backgroundColor: 'rgba(17,17,17,0.95)',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 4,

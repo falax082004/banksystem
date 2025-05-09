@@ -127,7 +127,7 @@ const BillScreen = ({ navigation, route }) => {
       onPress={() => setSelectedBiller(item)}
     >
       <View style={styles.billerIconContainer}>
-        <Icon name={item.icon} size={32} color="#333" />
+        <Icon name={item.icon} size={32} color="#222" />
       </View>
       <Text style={styles.billerName}>{item.name}</Text>
     </TouchableOpacity>
@@ -136,7 +136,7 @@ const BillScreen = ({ navigation, route }) => {
   const renderCategory = ({ item }) => (
     <View style={styles.categoryContainer}>
       <View style={styles.categoryHeader}>
-        <Icon name={item.icon} size={28} color="#fff" />
+        <Icon name={item.icon} size={28} color="#222" />
         <Text style={styles.categoryTitle}>{item.name}</Text>
       </View>
       <View style={styles.billerGrid}>
@@ -147,7 +147,7 @@ const BillScreen = ({ navigation, route }) => {
             onPress={() => setSelectedBiller(biller)}
           >
             <View style={styles.billerIconContainer}>
-              <Icon name={biller.icon} size={32} color="#333" />
+              <Icon name={biller.icon} size={32} color="#222" />
             </View>
             <Text style={styles.billerName}>{biller.name}</Text>
           </TouchableOpacity>
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   card: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: '#111',
     borderRadius: 16,
     padding: 30,
     width: '100%',
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#222',
     marginLeft: 12,
   },
   billerGrid: {
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   billerItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: '#fff',
     borderRadius: 16,
     marginBottom: 15,
     width: '48%',
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: '#f4f4f4',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   billerName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#222',
     textAlign: 'center',
   },
   backButton: {
@@ -360,15 +360,15 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#f4f4f4',
     borderRadius: 10,
     paddingLeft: 15,
     fontSize: 18,
     marginBottom: 20,
-    color: '#333',
+    color: '#222',
   },
   button: {
-    backgroundColor: '#D8D8D8',
+    backgroundColor: '#222',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 30,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   buttonText: {
-    color: '#333',
+    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },

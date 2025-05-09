@@ -90,37 +90,22 @@ const InboxScreen = ({ route }) => {
     }
   };
 
-  const getNotificationColor = type => {
-    switch (type.toLowerCase()) {
-      case 'deposit':
-        return '#4CAF50';
-      case 'transfer':
-        return '#2196F3';
-      case 'investment':
-        return '#FF9800';
-      case 'donation':
-        return '#E91E63';
-      case 'bill':
-        return '#3F51B5';
-      default:
-        return '#fff';
-    }
-  };
+  const getNotificationColor = type => '#222';
 
   const getNotificationMessage = item => {
     switch (item.type.toLowerCase()) {
       case 'deposit':
-        return `You have deposited ₱${item.amount}`;
+        return `You have deposited ₱${Math.abs(item.amount)}`;
       case 'transfer':
-        return `You have transferred ₱${item.amount} to ${item.to || 'recipient'}`;
+        return `You have transferred ₱${Math.abs(item.amount)} to ${item.to || 'recipient'}`;
       case 'investment':
-        return `You have invested ₱${item.amount} in ${item.investmentType || 'investment'}`;
+        return `You have invested ₱${Math.abs(item.amount)} in ${item.investmentType || 'investment'}`;
       case 'donation':
-        return `You have donated ₱${item.amount}`;
+        return `You have donated ₱${Math.abs(item.amount)}`;
       case 'bill':
-        return `You have paid a bill of ₱${item.amount}`;
+        return `You have paid a bill of ₱${Math.abs(item.amount)}`;
       default:
-        return `Transaction of ₱${item.amount}`;
+        return `Transaction of ₱${Math.abs(item.amount)}`;
     }
   };
 
@@ -128,7 +113,7 @@ const InboxScreen = ({ route }) => {
     <TouchableOpacity
       style={[
         styles.item,
-        { borderLeftWidth: 4, borderLeftColor: getNotificationColor(item.type) },
+        { borderLeftWidth: 4, borderLeftColor: '#888' },
       ]}
       onPress={() => {
         setSelectedTransaction(item);
@@ -142,8 +127,8 @@ const InboxScreen = ({ route }) => {
         }
       }}
     >
-      <View style={[styles.iconContainer, { backgroundColor: getNotificationColor(item.type) }]}>
-        <Ionicons name={getNotificationIcon(item.type)} size={28} color="#fff" />
+      <View style={[styles.iconContainer, { backgroundColor: '#f4f4f4' }]}>
+        <Ionicons name={getNotificationIcon(item.type)} size={28} color="#222" />
       </View>
       <View style={styles.itemText}>
         <Text style={styles.itemTitle}>{item.type} Notification</Text>
@@ -170,9 +155,17 @@ const InboxScreen = ({ route }) => {
         </View>
         <View style={styles.tabContainer}>
           {['All', 'Transactions', 'Others'].map(tab => (
-            <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
-              <Text style={[styles.tabText, activeTab === tab && styles.tabActive]}>{tab}</Text>
-            </TouchableOpacity>
+            <View
+              key={tab}
+              style={[
+                styles.tabWrap,
+                activeTab === tab && styles.tabActiveWrap
+              ]}
+            >
+              <TouchableOpacity onPress={() => setActiveTab(tab)}>
+                <Text style={[styles.tabText, activeTab === tab && styles.tabActive]}>{tab}</Text>
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
       </View>
@@ -199,14 +192,14 @@ const InboxScreen = ({ route }) => {
                 <Text style={styles.receiptBillerBW}>{selectedTransaction.type} Notification</Text>
                 <Text style={styles.receiptReceivedBW}>Transaction Details</Text>
                 <Text style={styles.receiptAmountLabelBW}>the amount of</Text>
-                <Text style={styles.receiptAmountBW}>₱{selectedTransaction.amount}</Text>
+                <Text style={styles.receiptAmountBW}>₱{Math.abs(selectedTransaction.amount)}</Text>
                 <Text style={styles.receiptViaBW}>Pantheon Bank</Text>
                 <View style={styles.receiptDividerBW} />
                 <Text style={styles.receiptRefBW}>Date: {new Date(selectedTransaction.timestamp || selectedTransaction.date).toLocaleString()}</Text>
                 <View style={styles.receiptDividerBW} />
                 <Text style={styles.receiptDetailsTitleBW}>Details</Text>
                 <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Type</Text><Text style={styles.receiptDetailsValueBW}>{selectedTransaction.type}</Text></View>
-                <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Amount</Text><Text style={styles.receiptDetailsValueBW}>₱{selectedTransaction.amount}</Text></View>
+                <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>Amount</Text><Text style={styles.receiptDetailsValueBW}>₱{Math.abs(selectedTransaction.amount)}</Text></View>
                 {selectedTransaction.to && (
                   <View style={styles.receiptDetailsRowBW}><Text style={styles.receiptDetailsLabelBW}>To</Text><Text style={styles.receiptDetailsValueBW}>{selectedTransaction.to}</Text></View>
                 )}
@@ -251,7 +244,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   header: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: '#111',
     paddingTop: 60,
     paddingBottom: 25,
     paddingHorizontal: 20,
@@ -271,14 +264,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginTop: 10,
   },
+  tabWrap: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+    marginHorizontal: 4,
+  },
+  tabActiveWrap: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 2,
+  },
   tabText: {
-    color: '#aaa',
+    color: '#888',
     fontSize: 18,
   },
   tabActive: {
-    color: '#fff',
+    color: '#111',
     fontWeight: 'bold',
-    textDecorationLine: 'underline',
+    textDecorationLine: 'none',
   },
   list: {
     padding: 20,
@@ -286,7 +293,7 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111',
+    backgroundColor: '#fff',
     padding: 20,
     borderRadius: 12,
     marginBottom: 15,
@@ -307,30 +314,30 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
-    color: '#fff',
+    color: '#111',
     fontSize: 18,
     fontWeight: '600',
   },
   itemSubtitle: {
-    color: '#aaa',
+    color: '#555',
     fontSize: 16,
   },
   rightContainer: {
     alignItems: 'flex-end',
   },
   timeText: {
-    color: '#aaa',
+    color: '#888',
     fontSize: 14,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#E91E63',
+    backgroundColor: '#111',
     marginTop: 4,
   },
   emptyText: {
-    color: '#aaa',
+    color: '#888',
     fontSize: 16,
     textAlign: 'center',
     marginTop: 50,
