@@ -103,7 +103,7 @@ const ProfileScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <TouchableOpacity style={styles.profileCard} onPress={handleProfileImagePress}>
-          <Image source={require('../assets/apollo.png')} style={styles.avatar} />
+          <Image source={require('../assets/apoll.png')} style={styles.avatar} />
           <View style={styles.userInfo}>
             <Text style={styles.name}>{name}</Text>
             <Text style={styles.phone}>{phoneNumber}</Text>

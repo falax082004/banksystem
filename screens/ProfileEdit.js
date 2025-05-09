@@ -178,7 +178,7 @@ const ProfileEdit = ({ navigation, route }) => {
       resizeMode="cover"
     >
       <View style={styles.container}>
-        <Image source={require('../assets/apollo.png')} style={styles.profileIcon} />
+        <Image source={require('../assets/apoll.png')} style={styles.profileIcon} />
         <Text style={styles.headerText}>Profile</Text>
 
         {loading ? (
