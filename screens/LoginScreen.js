@@ -16,6 +16,7 @@ const LoginScreen = ({ navigation }) => {
   const [supportModal, setSupportModal] = useState(false);
   const [supportMessage, setSupportMessage] = useState('');
   const [supportEmail, setSupportEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -288,38 +289,48 @@ const LoginScreen = ({ navigation }) => {
           autoCapitalize="none"
         />
 
-        {/* Password input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-          autoCapitalize="none"
-        />
+        {/* Password input with eye icon */}
+        <View style={styles.passwordInputContainer}>
+          <TextInput
+            style={[styles.input, { flex: 1, marginBottom: 0 }]}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+          />
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword((prev) => !prev)}
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+          >
+            <Icon name={showPassword ? 'eye' : 'eye-off'} size={22} color="#888" />
+          </TouchableOpacity>
+        </View>
 
         {/* Login button */}
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 
-        {/* Forgot Password button */}
-        <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPasswordContainer}>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
+        {/* Grouped bottom actions */}
+        <View style={styles.bottomActionsContainer}>
+          <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPasswordContainer}>
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
 
-        {/* Register link */}
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Doesn't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.registerLink}>Register</Text>
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerText}>Doesn't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.registerLink}>Register</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.supportButton} onPress={handleSupport}>
+            <Icon name="help-circle" size={24} color="#000" />
+            <Text style={styles.supportButtonText}>Need Help?</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.supportButton} onPress={handleSupport}>
-          <Icon name="help-circle" size={24} color="#000" />
-          <Text style={styles.supportButtonText}>Need Help?</Text>
-        </TouchableOpacity>
       </View>
 
       <Modal
@@ -544,7 +555,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 85,
+    marginTop: 90,
     padding: 10,
   },
   supportButtonText: {
@@ -561,6 +572,24 @@ const styles = StyleSheet.create({
     height: 120,
     paddingTop: 15,
     textAlignVertical: 'top',
+  },
+  bottomActionsContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 15,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 15,
+    padding: 8,
+    zIndex: 2,
   },
 });
 
