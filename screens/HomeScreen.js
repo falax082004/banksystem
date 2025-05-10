@@ -133,18 +133,18 @@ const HomeScreen = ({ navigation, route }) => {
 
         {/* Transactions */}
         <Text style={styles.jpTxnTitle}>Recent Transactions</Text>
-        <ScrollView style={styles.jpTxnList} contentContainerStyle={styles.jpTxnListContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.jpTxnList}>
           {transactions.length === 0 ? (
             <Text style={styles.noTxnText}>No transactions yet</Text>
           ) : (
-            transactions.slice(0, 10).map((txn, index) => (
+            transactions.slice(0, 5).map((txn, index) => (
               <View key={index} style={styles.jpTxnItem}>
                 <Text style={styles.jpTxnLabel}>{txn.label || txn.type || 'Transaction'}</Text>
                 <Text style={[styles.jpTxnAmount, { color: txn.type === 'deposit' || txn.type === 'received' ? '#00c853' : '#d50000' }]}>₱{txn.amount}</Text>
               </View>
             ))
           )}
-        </ScrollView>
+        </View>
         {/* Transaction Modal (unchanged) */}
         {selectedTransaction && (
           <Modal transparent={true} animationType="slide" visible={modalVisible}>
@@ -204,8 +204,7 @@ const styles = StyleSheet.create({
   },
   jpActionLabel: { color: '#fff', fontWeight: '600' },
   jpTxnTitle: { marginTop: 30, fontSize: 18, fontWeight: 'bold', color: '#fff' },
-  jpTxnList: { marginTop: 10, maxHeight: 220 },
-  jpTxnListContent: { paddingBottom: 10 },
+  jpTxnList: { marginTop: 10 },
   noTxnText: { textAlign: 'center', color: '#888', marginTop: 20 },
   jpTxnItem: {
     backgroundColor: 'rgba(34,34,34,0.96)',
