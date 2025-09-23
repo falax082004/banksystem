@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
   ScrollView,
   ActivityIndicator,
   SafeAreaView,
@@ -13,13 +12,14 @@ import {
   Pressable,
   Alert
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5'; // Updated to FontAwesome5
-import { db, ref, get } from '../firebaseConfig';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { db, ref, get, update, set } from '../firebaseConfig';
 
 const ProfileScreen = ({ navigation, route }) => {
   const { userId } = route.params;
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [loading, setLoading] = useState(true);
   const [hasMpin, setHasMpin] = useState(false);
   const [showMpinModal, setShowMpinModal] = useState(false);
@@ -35,6 +35,7 @@ const ProfileScreen = ({ navigation, route }) => {
           const userData = snapshot.val();
           setName(userData.name || 'User');
           setPhoneNumber(userData.phoneNumber || 'No phone number');
+          setUserRole(userData.role || '');
           setHasMpin(!!userData.mpin);
         }
       } catch (error) {
@@ -47,7 +48,57 @@ const ProfileScreen = ({ navigation, route }) => {
   }, [userId]);
 
   const handleLogout = () => {
-    navigation.navigate('Login');
+    Alert.alert(
+      'Log out',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Log out', style: 'destructive', onPress: () => navigation.navigate('Login') }
+      ]
+    );
+  };
+
+  const handleRoleChange = () => {
+    navigation.navigate('RoleSelection', { userId });
+  };
+
+  const handleApplyPasabuyer = async () => {
+    try {
+      if (!userId) {
+        Alert.alert('Error', 'User not found. Please login again.');
+        return;
+      }
+      const userRef = ref(db, `users/${userId}`);
+      const snapshot = await get(userRef);
+      // If user record doesn't exist, create a minimal one
+      if (!snapshot.exists()) {
+        const nowIso = new Date().toISOString();
+        const payload = {
+          name: name || 'User',
+          phoneNumber: phoneNumber || '',
+          role: 'shopper',
+          createdAt: nowIso,
+          shopperStatus: 'approved',
+          shopperVerified: true,
+          pasabuyerEnabled: true,
+          pasabuyerApprovedAt: nowIso,
+        };
+        await set(userRef, payload);
+      } else {
+        // Prototype: instantly approve pasabuyer validation
+        await update(userRef, {
+          shopperStatus: 'approved',
+          shopperVerified: true,
+          pasabuyerEnabled: true,
+          pasabuyerApprovedAt: new Date().toISOString(),
+        });
+      }
+      Alert.alert('Pasabuyer Enabled', 'You can now accept pasabuy requests. (Prototype)');
+      // Refresh tabs and show Nearby immediately
+      navigation.navigate('Home', { userId, screen: 'Nearby' });
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Failed to enable pasabuyer');
+    }
   };
 
   const verifyMpin = async () => {
@@ -88,10 +139,10 @@ const ProfileScreen = ({ navigation, route }) => {
       onPress={() => requiresMpin ? handleProtectedNavigation(label, { userId, fullName: name }) : onPress()}
     >
       <View style={styles.menuItemContent}>
-        <Icon name={icon} size={18} color="#FFF" solid />
+        <Icon name={icon} size={18} color="#333" solid />
         <Text style={styles.menuLabel}>{label}</Text>
       </View>
-      <Icon name="chevron-right" size={16} color="#888" />
+      <Icon name="chevron-right" size={16} color="#666" />
     </TouchableOpacity>
   );
 
@@ -103,73 +154,82 @@ const ProfileScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <TouchableOpacity style={styles.profileCard} onPress={handleProfileImagePress}>
-          <Image source={require('../assets/apoll.png')} style={styles.avatar} />
+          <View style={styles.avatar}>
+            <Icon name="user" size={32} color="#333" />
+          </View>
           <View style={styles.userInfo}>
             <Text style={styles.name}>{name}</Text>
             <Text style={styles.phone}>{phoneNumber}</Text>
+            <Text style={styles.role}>
+              {userRole === 'rider' ? 'Delivery Rider' : userRole === 'shopper' ? 'Shopper/Pasabuyer' : 'No Role Selected'}
+            </Text>
           </View>
-          <Icon name="chevron-right" size={16} color="#888" />
+          <Icon name="chevron-right" size={16} color="#666" />
         </TouchableOpacity>
 
         <View style={styles.verificationCard}>
-          <Icon name="check-circle" size={16} color="#76FF03" solid />
-          <Text style={styles.verificationText}>Fully Verified</Text>
+          <Icon name="check-circle" size={16} color="#00c853" solid />
+          <Text style={styles.verificationText}>Verified User</Text>
         </View>
 
         <View style={styles.stretchArea}>
           <ScrollView contentContainerStyle={styles.scroll}>
             {loading ? (
-              <ActivityIndicator size="large" color="#76FF03" />
+              <ActivityIndicator size="large" color="#333" />
             ) : (
               <View style={styles.menuContainer}>
-                <MenuItem 
-                  icon="link" 
-                  label="My Linked Accounts" 
-                  requiresMpin={true}
-                />
-                <MenuItem 
-                  icon="qrcode" 
-                  label="MyQRCode" 
-                  requiresMpin={true}
-                />
-                <MenuItem 
-                  icon="wallet" 
-                  label="ProfileLimits" 
-                  onPress={() => navigation.navigate('ProfileLimits', { userId })}
-                />
-                <MenuItem 
-                  icon="credit-card" 
-                  label="ManageCards" 
-                  requiresMpin={true}
-                />
-                <MenuItem 
-                  icon="chart-line" 
-                  label="Investment" 
-                  requiresMpin={true}
-                />
-                <MenuItem 
-                  icon="hands-helping" 
-                  label="Charity" 
-                  requiresMpin={true}
-                />
-                <MenuItem 
-                  icon="user-friends" 
-                  label="ReferFriends" 
-                  onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })}
-                />
-                <MenuItem 
-                  icon="cog" 
-                  label="Settings" 
-                  requiresMpin={true}
-                />
+                {userRole === 'rider' ? (
+                  <>
+                    <MenuItem 
+                      icon="motorcycle" 
+                      label="My Deliveries" 
+                      onPress={() => navigation.navigate('Orders', { userId })}
+                    />
+                    <MenuItem 
+                      icon="wallet" 
+                      label="Earnings" 
+                      onPress={() => Alert.alert('Prototype', 'Earnings screen prototype')}
+                    />
+                    <MenuItem 
+                      icon="calendar-check" 
+                      label="Availability" 
+                      onPress={() => Alert.alert('Prototype', 'Availability screen prototype')}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <MenuItem 
+                      icon="exchange-alt" 
+                      label="Change Role" 
+                      onPress={handleRoleChange}
+                    />
+                    <MenuItem 
+                      icon="ticket-alt" 
+                      label="Vouchers" 
+                      onPress={() => navigation.navigate('Vouchers')}
+                    />
+                    <MenuItem 
+                      icon="shopping-bag" 
+                      label="Apply as Pasabuyer (Prototype)" 
+                      onPress={handleApplyPasabuyer}
+                    />
+                    <MenuItem 
+                      icon="user-friends" 
+                      label="Refer Friends" 
+                      onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })}
+                    />
+                  </>
+                )}
+
+                {/* Settings removed */}
                 <MenuItem 
                   icon="file" 
-                  label="Terms" 
+                  label="Terms & Conditions" 
                   onPress={() => navigation.navigate('Terms')}
                 />
                 <MenuItem 
                   icon="question-circle" 
-                  label="Help" 
+                  label="Help & Support" 
                   onPress={() => navigation.navigate('Help')}
                 />
                 <MenuItem 
@@ -229,13 +289,13 @@ const ProfileScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#f5f5f5',
   },
   container: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 10,
-    backgroundColor: '#111',
+    backgroundColor: '#f5f5f5',
   },
   scroll: {
     flexGrow: 1,
@@ -244,14 +304,11 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#222',
+    backgroundColor: '#fff',
     padding: 16,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#ddd',
     marginBottom: 10,
   },
   avatar: {
@@ -259,54 +316,63 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     marginRight: 15,
-    backgroundColor: '#333',
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   userInfo: {
     flex: 1,
   },
   name: {
     fontSize: 18,
-    color: '#fff',
+    color: '#333',
     fontWeight: '600',
   },
   phone: {
     fontSize: 14,
+    color: '#666',
+  },
+  role: {
+    fontSize: 12,
     color: '#888',
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   verificationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#222',
+    backgroundColor: '#fff',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: 8,
     alignSelf: 'flex-start',
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   verificationText: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#fff',
+    color: '#333',
     fontWeight: '500',
   },
   menuContainer: {
-    backgroundColor: '#222',
-    borderRadius: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    borderWidth: 2,
+    borderColor: '#ddd',
     marginBottom: 20,
   },
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 30,
+    paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#eee',
   },
   menuItemContent: {
     flexDirection: 'row',
@@ -315,7 +381,7 @@ const styles = StyleSheet.create({
   menuLabel: {
     marginLeft: 15,
     fontSize: 16,
-    color: '#fff',
+    color: '#333',
   },
   stretchArea: {
     flex: 1,
@@ -327,36 +393,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCard: {
-    backgroundColor: '#222',
-    borderRadius: 15,
+    backgroundColor: '#fff',
+    borderRadius: 8,
     padding: 20,
     width: '90%',
     maxWidth: 400,
+    borderWidth: 2,
+    borderColor: '#ddd',
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
     marginBottom: 10,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 16,
-    color: '#888',
+    color: '#666',
     marginBottom: 20,
     textAlign: 'center',
   },
   mpinInput: {
     height: 50,
     width: '100%',
-    backgroundColor: '#333',
-    borderRadius: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
     paddingHorizontal: 15,
     fontSize: 18,
     marginBottom: 20,
-    color: '#fff',
+    color: '#333',
     textAlign: 'center',
     letterSpacing: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   modalButtonContainer: {
     flexDirection: 'row',
@@ -364,7 +434,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modalButton: {
-    backgroundColor: '#444',
+    backgroundColor: '#333',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 8,

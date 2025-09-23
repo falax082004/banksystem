@@ -1,157 +1,120 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Image, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 
 const TermsScreen = () => {
   return (
-    <ImageBackground source={require('../assets/bgapp3.jpg')} style={{ flex: 1 }}>
-      <View style={styles.overlay} />
-      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}> 
-        <ScrollView style={[styles.scrollView, { backgroundColor: 'transparent' }]}> 
-          <View style={styles.header}>
-            <Image 
-              source={require('../assets/cardicon.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>Terms and Conditions</Text>
-          </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Pasabuy Terms and Conditions</Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
-            <Text style={styles.content}>
-              By accessing and using Pantheon Bank's services, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
+          <Text style={styles.content}>
+            By using the Pasabuy app, you agree to these Terms and Conditions. If you do not agree, do not use the app.
+          </Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>2. Account Registration and Security</Text>
-            <Text style={styles.content}>
-              2.1. You must be at least 18 years old to register for a Pantheon Bank account.{'\n\n'}
-              2.2. You are responsible for maintaining the confidentiality of your account credentials.{'\n\n'}
-              2.3. You must provide accurate and complete information during registration.{'\n\n'}
-              2.4. You are responsible for all activities that occur under your account.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>2. Accounts</Text>
+          <Text style={styles.content}>
+            You are responsible for the accuracy of your information and for maintaining the confidentiality of your account. Activities under your account are your responsibility.
+          </Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>3. Services and Features</Text>
-            <Text style={styles.content}>
-              3.1. Pantheon Bank provides digital banking services including but not limited to:{'\n\n'}
-              • Money transfers and remittances{'\n'}
-              • Bill payments{'\n'}
-              • Mobile top-up{'\n'}
-              • QR code payments{'\n'}
-              • Investment services{'\n'}
-              • Charity and donations{'\n\n'}
-              3.2. We reserve the right to modify, suspend, or discontinue any service at any time.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>3. Service Scope</Text>
+          <Text style={styles.content}>
+            Pasabuy connects shoppers/pasabuyers and riders to help purchase and deliver items from third-party stores. Pasabuy is not a seller of goods.
+          </Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>4. Transaction Limits and Fees</Text>
-            <Text style={styles.content}>
-              4.1. Transaction limits may apply based on your account type and verification level.{'\n\n'}
-              4.2. Fees may be charged for certain transactions and services.{'\n\n'}
-              4.3. All fees are non-refundable unless required by law.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>4. Orders and Fees</Text>
+          <Text style={styles.content}>
+            Orders are subject to store availability and rider acceptance. Service fees may apply and are shown before checkout. Prices may change due to store updates or substitutions.
+          </Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>5. Security and Privacy</Text>
-            <Text style={styles.content}>
-              5.1. We implement security measures to protect your information.{'\n\n'}
-              5.2. Your personal data is collected and processed in accordance with our Privacy Policy.{'\n\n'}
-              5.3. You must report any unauthorized transactions immediately.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>5. Cancellations and Refunds</Text>
+          <Text style={styles.content}>
+            Cancellation rules vary by order status. Some fees may be non‑refundable once a rider has started shopping or is en route.
+          </Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>6. Prohibited Activities</Text>
-            <Text style={styles.content}>
-              You agree not to:{'\n\n'}
-              • Use the service for illegal purposes{'\n'}
-              • Engage in fraudulent activities{'\n'}
-              • Violate any applicable laws or regulations{'\n'}
-              • Attempt to gain unauthorized access{'\n'}
-              • Interfere with the service's operation
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>6. User Conduct</Text>
+          <Text style={styles.content}>
+            Do not use the app for illegal activities, abuse other users, or attempt to interfere with the service. Accounts violating these rules may be suspended.
+          </Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>7. Liability and Disclaimers</Text>
-            <Text style={styles.content}>
-              7.1. We are not liable for any indirect, incidental, or consequential damages.{'\n\n'}
-              7.2. Our services are provided "as is" without warranties of any kind.{'\n\n'}
-              7.3. We are not responsible for third-party services or content.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>7. Privacy</Text>
+          <Text style={styles.content}>
+            We process your data according to our Privacy Policy. Location data may be used to improve deliveries and tracking.
+          </Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>8. Changes to Terms</Text>
-            <Text style={styles.content}>
-              8.1. We may modify these terms at any time.{'\n\n'}
-              8.2. Continued use of our services after changes constitutes acceptance of the new terms.{'\n\n'}
-              8.3. We will notify you of significant changes via email or in-app notification.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>8. Liability</Text>
+          <Text style={styles.content}>
+            The app is provided on an “as‑is” basis. Pasabuy is not liable for indirect or consequential damages. Third‑party store policies apply to items ordered.
+          </Text>
+        </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>9. Contact Information</Text>
-            <Text style={styles.content}>
-              For questions about these terms, please contact:{'\n\n'}
-              Email: support@pantheonbank.com{'\n'}
-              Phone: (02) 8-5612-8999{'\n'}
-              Address: Pantheon Bank Headquarters, Manila, Philippines
-            </Text>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </ImageBackground>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>9. Changes</Text>
+          <Text style={styles.content}>
+            We may update these terms from time to time. Continued use of the app means you accept the updated terms.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>10. Contact</Text>
+          <Text style={styles.content}>
+            Support: support@pasabuy.app
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: '#ffffff',
   },
   scrollView: {
     flex: 1,
     padding: 20,
-    backgroundColor: 'transparent',
+    backgroundColor: '#ffffff',
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logo: {
-    width: 150,
-    height: 120,
+    alignItems: 'flex-start',
     marginBottom: 16,
   },
   title: {
-    fontSize: 50,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    color: '#333333',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 18,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#F3F4F6',
-    marginBottom: 12,
+    color: '#333333',
+    marginBottom: 8,
   },
   content: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#E5E7EB',
+    color: '#555555',
   },
 });
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Alert, Image, Text, StyleSheet, ImageBackground, Modal, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Alert, Text, StyleSheet, Modal, ScrollView } from 'react-native';
 import { db, ref, get, update, set, serverTimestamp } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/Feather';
 
@@ -38,8 +38,12 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    // Successful login, navigate to home
-    navigation.navigate('Home', { userId: username });
+    // Check if user has selected a role
+    if (!userData.role) {
+      navigation.navigate('RoleSelection', { userId: username });
+    } else {
+      navigation.navigate('Home', { userId: username });
+    }
   };
 
   const handleForgotPassword = () => {
@@ -268,17 +272,11 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground
-      source={require('../assets/bgapp3.jpg')}  // Background image
-      style={styles.background}
-      resizeMode="cover"
-    >
-      {/* Adding a dark overlay for readability */}
-      <View style={styles.overlay} />
-
+    <View style={styles.background}>
       <View style={styles.container}>
-        {/* Removed Avatar Image */}
-        <Image source={require('../assets/pantheon.png')} style={styles.headerImage} />
+        {/* Low-fidelity header */}
+        <Text style={styles.headerText}>PASABUY</Text>
+        <Text style={styles.subtitleText}>Login to your account</Text>
 
         {/* Username input */}
         <TextInput
@@ -399,36 +397,38 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark overlay for better text visibility
+    backgroundColor: '#f5f5f5', // Simple light gray background
   },
   container: {
     flex: 1,
     padding: 20,
     justifyContent: 'center',
-    alignItems: 'center', // Center the content
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Slightly white translucent overlay
-    borderRadius: 15,
+    alignItems: 'center',
+    backgroundColor: '#fff', // Simple white container
     marginHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#ddd',
   },
-  headerImage: {
-    width: 300,
-    height: 280,
-    resizeMode: 'contain',
-    alignSelf: 'center',
+  headerText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    letterSpacing: 2,
+  },
+  subtitleText: {
+    fontSize: 16,
+    color: '#666',
     marginBottom: 40,
-    transform: [{ scale: 1.05 }],
+    textAlign: 'center',
   },
   input: {
     height: 50,

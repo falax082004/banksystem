@@ -6,8 +6,6 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
-  ImageBackground,
-  Image,
   Alert,
 } from 'react-native';
 import { db, ref, get, update } from '../firebaseConfig';
@@ -172,17 +170,15 @@ const ProfileEdit = ({ navigation, route }) => {
   };
 
   return (
-    <ImageBackground
-      source={require('../assets/bgapp3.jpg')}
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <View style={styles.background}>
       <View style={styles.container}>
-        <Image source={require('../assets/apoll.png')} style={styles.profileIcon} />
-        <Text style={styles.headerText}>Profile</Text>
+        <View style={styles.profileIcon}>
+          <Icon name="user" size={48} color="#333" />
+        </View>
+        <Text style={styles.headerText}>Edit Profile</Text>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#ffffff" />
+          <ActivityIndicator size="large" color="#333" />
         ) : (
           <View style={styles.userInfoContainer}>
             {/* Name */}
@@ -360,20 +356,18 @@ const ProfileEdit = ({ navigation, route }) => {
           </View>
         )}
       </View>
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width: '100%',
-    height: '100%',
+    backgroundColor: '#f5f5f5',
   },
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   profileIcon: {
     width: 120,
@@ -381,57 +375,72 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     alignSelf: 'center',
     marginBottom: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ddd',
   },
   headerText: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
     textAlign: 'center',
     marginBottom: 30,
   },
   userInfoContainer: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: '#fff',
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 8,
     marginBottom: 30,
+    borderWidth: 2,
+    borderColor: '#ddd',
   },
   userInfoRow: {
     marginBottom: 15,
   },
   label: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#555',
+    color: '#333',
+    marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   input: {
-    height: 40,
+    height: 50,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: 8,
     marginBottom: 10,
-    paddingLeft: 10,
+    paddingLeft: 15,
     flex: 1,
     backgroundColor: '#fff',
+    fontSize: 16,
   },
   editButtonsContainer: {
     flexDirection: 'row',
   },
   iconButton: {
     marginLeft: 10,
-    padding: 5,
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 8,
   },
   infoText: {
     fontSize: 16,
     color: '#333',
+    flex: 1,
   },
 });
 

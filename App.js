@@ -6,26 +6,22 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SplashScreen from './screens/SplashScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
-import DepositScreen from './screens/DepositScreen';
-import TransferScreen from './screens/TransferScreen';
-import BillScreen from './screens/BillScreen';
+import BrowseScreen from './screens/BrowseScreen';
+import CartScreen from './screens/CartScreen';
+import OrdersScreen from './screens/OrdersScreen';
+import TrackOrderScreen from './screens/TrackOrderScreen';
+import RoleSelectionScreen from './screens/RoleSelectionScreen';
 import BottomTabs from './screens/BottomTabs';
+import NearbyOrdersScreen from './screens/NearbyOrdersScreen';
+import ChatScreen from './screens/ChatScreen';
+import VoucherScreen from './screens/VoucherScreen';
 
 // Profile Destination Screens
-import MyLinkedAccountsScreen from './screens/MyLinkedAccountsScreen';
-import MyQRCodeScreen from './screens/MyQRCodeScreen';
-import ProfileLimitsScreen from './screens/ProfileLimitsScreen';
-import ManageCardsScreen from './screens/ManageCardsScreen';
-import InvestmentScreen from './screens/InvestmentScreen';
-import CharityScreen from './screens/CharityScreen';
 import ReferFriendsScreen from './screens/ReferFriendsScreen';
-import SettingsScreen from './screens/SettingsScreen';
+// Removed bank-related Settings screen
 import ProfileEdit from './screens/ProfileEdit';
 import HelpScreen from './screens/HelpScreen';
 import TermsScreen from './screens/TermsScreen';
-import CardScreen from './screens/CardScreen';
-import LockCardScreen from './screens/LockCardScreen';
-import InboxScreen from './screens/InboxScreen';
 
 const Stack = createStackNavigator();
 
@@ -45,51 +41,23 @@ export default function App() {
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Home" component={BottomTabs} />
-        <Stack.Screen name="Deposit" component={DepositScreen} />
-        <Stack.Screen name="Transfer" component={TransferScreen} />
-        <Stack.Screen name="PayBills" component={BillScreen} />
+        {/* Delivery screens */}
+        <Stack.Screen name="Browse" component={BrowseScreen} />
+        <Stack.Screen name="Cart" component={CartScreen} />
+        <Stack.Screen name="Orders" component={OrdersScreen} />
+        <Stack.Screen name="TrackOrder" component={TrackOrderScreen} />
+        <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
+        <Stack.Screen name="NearbyOrders" component={NearbyOrdersScreen} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen name="Vouchers" component={VoucherScreen} />
 
         {/* Profile Destination Screens */}
-        <Stack.Screen
-          name="My Linked Accounts"
-          component={MyLinkedAccountsScreen}
-          options={commonScreenOptions}
-        />
-        <Stack.Screen
-          name="MyQRCode"
-          component={MyQRCodeScreen}
-          options={commonScreenOptions}
-        />
-        <Stack.Screen
-          name="ProfileLimits"
-          component={ProfileLimitsScreen}
-          options={commonScreenOptions}
-        />
-        <Stack.Screen
-          name="ManageCards"
-          component={ManageCardsScreen}
-          options={commonScreenOptions}
-        />
-        <Stack.Screen
-          name="Investment"
-          component={InvestmentScreen}
-          options={commonScreenOptions}
-        />
-        <Stack.Screen
-          name="Charity"
-          component={CharityScreen}
-          options={commonScreenOptions}
-        />
         <Stack.Screen
           name="ReferFriends"
           component={ReferFriendsScreen}
           options={commonScreenOptions}
         />
-        <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={commonScreenOptions}
-        />
+        {/* Settings removed */}
         <Stack.Screen
           name="Terms"
           component={TermsScreen}
@@ -104,30 +72,6 @@ export default function App() {
           name="Help"
           component={HelpScreen}
           options={commonScreenOptions}
-        />
-        <Stack.Screen
-          name="Inbox"
-          component={InboxScreen}
-          options={{
-            ...commonScreenOptions,
-            title: 'Inbox',
-          }}
-        />
-        <Stack.Screen
-          name="CardScreen"
-          component={CardScreen}
-          options={{
-            ...commonScreenOptions,
-            title: 'Card',
-          }}
-        />
-        <Stack.Screen
-          name="LockCardScreen"
-          component={LockCardScreen}
-          options={{
-            ...commonScreenOptions,
-            title: 'Lock Card',
-          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { db, ref, set, get } from '../firebaseConfig';
 
 const RegisterScreen = ({ navigation }) => {
@@ -64,14 +64,11 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground
-      source={require('../assets/bgapp3.jpg')}
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <View style={styles.background}>
       <View style={styles.container}>
         <View style={styles.formContainer}>
-          <Text style={styles.headerText}>Register</Text>
+          <Text style={styles.headerText}>PASABUY</Text>
+          <Text style={styles.subtitleText}>Create your account</Text>
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
           {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
@@ -120,15 +117,14 @@ const RegisterScreen = ({ navigation }) => {
           </View>
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width: '100%',
-    height: '100%',
+    backgroundColor: '#f5f5f5',
   },
   container: {
     flex: 1,
@@ -139,23 +135,35 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderRadius: 8,
     width: '80%',
+    borderWidth: 2,
+    borderColor: '#ddd',
   },
   headerText: {
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
+    letterSpacing: 2,
+  },
+  subtitleText: {
+    fontSize: 16,
+    color: '#666',
     marginBottom: 20,
-    color: '#000',
+    textAlign: 'center',
   },
   input: {
-    height: 40,
+    height: 50,
     width: '100%',
     borderColor: '#ccc',
     borderWidth: 1,
-    paddingLeft: 10,
-    marginBottom: 20,
+    borderRadius: 8,
+    paddingLeft: 15,
+    marginBottom: 15,
+    fontSize: 16,
+    backgroundColor: '#fff',
   },
   errorText: {
     color: 'red',
@@ -166,12 +174,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   registerButton: {
-    backgroundColor: '#000000',
+    backgroundColor: '#333',
     padding: 15,
     borderRadius: 8,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 10,
   },
   registerButtonText: {
     color: '#fff',

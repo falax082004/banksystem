@@ -16,11 +16,11 @@ const SplashScreen = ({ navigation }) => {
       <Animatable.Image
         animation="fadeInDown"
         duration={1500}
-        source={require('../assets/pantheonnn.png')} // Replace with your actual logo
+        source={require('../assets/Pasabuy.png')} // Replace with your actual logo
         style={styles.logo}
       />
       <Animatable.Text animation="fadeInUp" delay={1000} style={styles.tagline}>
-        Securing Your Future
+      Shared Buys, Smarter Deliveries.
       </Animatable.Text>
     </View>
   );

@@ -1,84 +1,91 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 const ReferFriendsScreen = ({ route }) => {
-  const { userId, fullName } = route.params; // Retrieve fullName from route params
+  const { userId, fullName } = route.params || {};
+  const displayName = fullName || 'A friend';
+  const referralUrl = `https://pasabuy.app/ref?userId=${encodeURIComponent(userId || 'guest')}`;
 
   return (
-    <ImageBackground source={require('../assets/bgapp3.jpg')} style={{ flex: 1 }}>
-      <View style={styles.overlay} />
-      <View style={styles.container}>
-        <Image source={require('../assets/apollo.png')} style={styles.avatar} />
-
-        {/* Display Full Name */}
-        <Text style={styles.name}>{fullName}</Text>
-
-        {/* Invitation Text */}
-        <Text style={styles.inviteText}>is inviting you to join Pantheon Bank.</Text>
-
-        {/* QR Code */}
-        <View style={styles.qrContainer}>
-          <QRCode
-            value={`https://pantheonbank.app/your-referral-link?userId=${userId}`} // Replace with your own referral URL
-            size={180}
-          />
-        </View>
-
-        {/* Footer Text */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Scan the QR Code to get started!</Text>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}> 
+        <Text style={styles.title}>Invite a friend to Pasabuy</Text>
+        <Text style={styles.subtitle}>{displayName} is inviting you to join Pasabuy.</Text>
       </View>
-    </ImageBackground>
+
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>Your referral QR</Text>
+        <View style={styles.qrWrapper}>
+          <QRCode value={referralUrl} size={200} />
+        </View>
+        <Text style={styles.linkText} numberOfLines={1}>
+          {referralUrl}
+        </Text>
+      </View>
+
+      <View style={styles.noteBox}>
+        <Text style={styles.noteText}>Share this QR or link. New users can scan to get started quickly.</Text>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#ffffff',
     padding: 20,
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
+  header: {
+    marginBottom: 16,
   },
-  name: {
+  title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
+    marginBottom: 6,
   },
-  inviteText: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 30,
-  },
-  qrContainer: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    marginBottom: 40,
-  },
-  footer: {
-    marginTop: 20,
-  },
-  footerText: {
+  subtitle: {
     fontSize: 14,
-    color: '#fff',
+    color: '#666',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    padding: 20,
+    alignItems: 'center',
+  },
+  cardLabel: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 12,
+  },
+  qrWrapper: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#eee',
+    marginBottom: 12,
+  },
+  linkText: {
+    fontSize: 12,
+    color: '#007AFF',
+  },
+  noteBox: {
+    marginTop: 16,
+    backgroundColor: '#F7FAFF',
+    borderWidth: 1,
+    borderColor: '#E3F2FF',
+    borderRadius: 10,
+    padding: 12,
+  },
+  noteText: {
+    color: '#44607A',
+    fontSize: 12,
   },
 });
 
