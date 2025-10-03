@@ -1,4 +1,5 @@
 // Simple cart service to manage cart state across screens
+// New structure: cart contains store entries with item lines for accurate totals
 let cart = [];
 
 export const cartService = {
@@ -8,33 +9,54 @@ export const cartService = {
   },
   
   addToCart: (store) => {
-    console.log('Adding to cart:', store.name);
-    const existingItem = cart.find(item => item.storeId === store.id);
-    
-    if (existingItem) {
-      // If store already in cart, increase quantity
-      cart = cart.map(item => 
-        item.storeId === store.id 
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-      console.log('Updated existing item quantity');
+    // Back-compat: adding a store with quantity as a service fee-only entry
+    console.log('Adding to cart (legacy store add):', store.name);
+    const existing = cart.find(s => s.storeId === store.id);
+    if (existing) {
+      existing.serviceQuantity = (existing.serviceQuantity || 0) + 1;
     } else {
-      // Add new store to cart
-      const cartItem = {
-        id: Date.now() + Math.random(), // Better ID generation
+      cart.push({
+        id: Date.now() + Math.random(),
         storeId: store.id,
         storeName: store.name,
         storeAddress: store.address,
         storeCategory: store.category,
-        quantity: 1,
-        addedAt: new Date().toISOString()
-      };
-      cart = [...cart, cartItem];
-      console.log('Added new item to cart');
+        items: [],
+        serviceQuantity: 1,
+        addedAt: new Date().toISOString(),
+      });
     }
-    
-    console.log('Cart after add:', cart);
+    console.log('Cart after legacy add:', cart);
+    return cart;
+  },
+
+  addStoreItemsToCart: ({ storeId, storeName, storeAddress, storeCategory, items }) => {
+    console.log('Adding store items to cart:', storeName, items);
+    let storeEntry = cart.find(s => s.storeId === storeId);
+    if (!storeEntry) {
+      storeEntry = {
+        id: Date.now() + Math.random(),
+        storeId,
+        storeName,
+        storeAddress,
+        storeCategory,
+        items: [],
+        serviceQuantity: 1,
+        addedAt: new Date().toISOString(),
+      };
+      cart.push(storeEntry);
+    }
+    items.forEach(line => {
+      const existingLine = storeEntry.items.find(i => i.itemId === line.itemId);
+      if (existingLine) {
+        existingLine.quantity += line.quantity;
+        // keep the latest price for consistency
+        existingLine.itemPrice = line.itemPrice;
+      } else {
+        storeEntry.items.push({ ...line });
+      }
+    });
+    console.log('Cart after item add:', cart);
     return cart;
   },
   
@@ -46,17 +68,25 @@ export const cartService = {
   },
   
   updateQuantity: (itemId, newQuantity) => {
-    console.log('Updating quantity:', itemId, newQuantity);
+    // Update quantity for a store-level legacy entry
+    console.log('Updating legacy store quantity:', itemId, newQuantity);
     if (newQuantity <= 0) {
       return cartService.removeFromCart(itemId);
     }
-    
-    cart = cart.map(item => 
-      item.id === itemId 
-        ? { ...item, quantity: newQuantity }
-        : item
-    );
-    console.log('Cart after quantity update:', cart);
+    cart = cart.map(item => item.id === itemId ? { ...item, serviceQuantity: newQuantity } : item);
+    console.log('Cart after store quantity update:', cart);
+    return cart;
+  },
+
+  updateItemQuantity: ({ storeId, itemId, newQuantity }) => {
+    console.log('Updating item quantity:', storeId, itemId, newQuantity);
+    const storeEntry = cart.find(s => s.storeId === storeId);
+    if (!storeEntry) return cart;
+    if (newQuantity <= 0) {
+      storeEntry.items = storeEntry.items.filter(i => i.itemId !== itemId);
+    } else {
+      storeEntry.items = storeEntry.items.map(i => i.itemId === itemId ? { ...i, quantity: newQuantity } : i);
+    }
     return cart;
   },
   
@@ -67,15 +97,19 @@ export const cartService = {
   },
   
   getCartCount: () => {
-    const count = cart.length;
+    // Count total item lines across stores, fallback to stores count
+    const lines = cart.reduce((sum, s) => sum + (s.items?.length || 0), 0);
+    const count = lines > 0 ? lines : cart.length;
     console.log('Cart count:', count);
     return count;
   },
   
   getTotalAmount: () => {
-    // For demo purposes, each store visit costs ₱50
-    const total = cart.reduce((total, item) => total + (item.quantity * 50), 0);
-    console.log('Total amount:', total);
+    // Item subtotal + service fee per store (₱50)
+    const itemSubtotal = cart.reduce((sum, s) => sum + (s.items || []).reduce((t, i) => t + i.itemPrice * i.quantity, 0), 0);
+    const serviceFee = cart.reduce((sum, s) => sum + 50 * (s.serviceQuantity || 1), 0);
+    const total = itemSubtotal + serviceFee;
+    console.log('Totals -> items:', itemSubtotal, 'service:', serviceFee, 'total:', total);
     return total;
   },
 

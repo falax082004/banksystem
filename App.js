@@ -15,6 +15,8 @@ import BottomTabs from './screens/BottomTabs';
 import NearbyOrdersScreen from './screens/NearbyOrdersScreen';
 import ChatScreen from './screens/ChatScreen';
 import VoucherScreen from './screens/VoucherScreen';
+import StoreItemsScreen from './screens/StoreItemsScreen';
+import InboxScreen from './screens/InboxScreen';
 
 // Profile Destination Screens
 import ReferFriendsScreen from './screens/ReferFriendsScreen';
@@ -43,12 +45,14 @@ export default function App() {
         <Stack.Screen name="Home" component={BottomTabs} />
         {/* Delivery screens */}
         <Stack.Screen name="Browse" component={BrowseScreen} />
+        <Stack.Screen name="StoreItems" component={StoreItemsScreen} />
         <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Orders" component={OrdersScreen} />
         <Stack.Screen name="TrackOrder" component={TrackOrderScreen} />
         <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
         <Stack.Screen name="NearbyOrders" component={NearbyOrdersScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen name="Inbox" component={InboxScreen} />
         <Stack.Screen name="Vouchers" component={VoucherScreen} />
 
         {/* Profile Destination Screens */}

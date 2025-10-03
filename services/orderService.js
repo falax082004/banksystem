@@ -23,7 +23,19 @@ export const orderService = {
 
     const order = {
       userId: userId,
-      stores: cart,
+      stores: cart.map(s => ({
+        storeId: s.storeId,
+        storeName: s.storeName,
+        storeAddress: s.storeAddress,
+        storeCategory: s.storeCategory,
+        serviceQuantity: s.serviceQuantity || 1,
+        items: (s.items || []).map(i => ({
+          itemId: i.itemId,
+          itemName: i.itemName,
+          itemPrice: i.itemPrice,
+          quantity: i.quantity,
+        })),
+      })),
       totalAmount: cartService.getTotalAmount(),
       status: 'pending',
       createdAt: new Date().toISOString(),
@@ -52,11 +64,16 @@ export const orderService = {
         storeName: s.storeName,
         storeAddress: s.storeAddress,
         storeCategory: s.storeCategory,
-        quantity: s.quantity,
+        serviceQuantity: s.serviceQuantity,
+        items: (s.items || []).map(i => ({ itemName: i.itemName, quantity: i.quantity })),
       })),
     };
     const publicRef = ref(db, `availableOrders/${newOrderRef.key}`);
     await set(publicRef, publicOrder);
+
+    // Initialize chat participants for this order (shopper only at creation)
+    const chatMetaRef = ref(db, `chats/${newOrderRef.key}/participants`);
+    await set(chatMetaRef, { [userId]: true });
 
     // Clear cart after successful save
     cartService.clearCart();

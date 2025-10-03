@@ -397,12 +397,15 @@ const TrackOrderScreen = ({ navigation, route }) => {
                 <Icon name="comments" size={16} color="#007AFF" />
                 <Text style={styles.contactButtonText}>Contact Rider</Text>
               </TouchableOpacity>
-            ) : viewerRole === 'pasabuyer' ? (
-              <TouchableOpacity style={styles.contactButton} onPress={() => navigation.navigate('Chat', { orderId: (trackingOrder?.id || order?.id), userId, viewerRole })}>
+            ) : (viewerRole === 'pasabuyer' || viewerRole === 'rider') && (
+              // Rider can only contact shopper AFTER accepting (assigned) and from rider_assigned onward
+              (['rider_assigned','shopping','on_way'].includes((trackingOrder?.status || order?.status || 'pending')) && (userId && (order?.assignedTo === userId || trackingOrder?.assignedTo === userId))) ? (
+              <TouchableOpacity style={styles.contactButton} onPress={() => navigation.navigate('Chat', { orderId: (trackingOrder?.id || order?.id), userId, viewerRole, order: (trackingOrder || order), shopperId: (order?.ownerId || order?.userId), riderId: (order?.assignedTo || trackingOrder?.assignedTo) })}>
                 <Icon name="comments" size={16} color="#007AFF" />
                 <Text style={styles.contactButtonText}>Contact Shopper</Text>
               </TouchableOpacity>
-            ) : null}
+              ) : null
+            )}
           
           <TouchableOpacity style={styles.supportButton}>
             <Icon name="question-circle" size={16} color="#666" />
@@ -423,6 +426,15 @@ const TrackOrderScreen = ({ navigation, route }) => {
                     if (order?.id && userId) {
                       const riderRef = ref(db, `riderDeliveries/${userId}/${order.id}`);
                       await set(riderRef, { ...(trackingOrder || order), status: 'shopping', assignedTo: userId });
+                    }
+                    // Ensure both are chat participants
+                    if (order?.id && shopperId) {
+                      const shopperChatRef = ref(db, `chats/${order.id}/participants/${shopperId}`);
+                      await set(shopperChatRef, true);
+                    }
+                    if (order?.id && userId) {
+                      const riderChatRef = ref(db, `chats/${order.id}/participants/${userId}`);
+                      await set(riderChatRef, true);
                     }
                     setTrackingOrder(updated);
                     updateTrackingStatus(updated);
@@ -463,39 +475,49 @@ const TrackOrderScreen = ({ navigation, route }) => {
                 <Text style={[styles.contactButtonText, { color: '#D35400' }]}>Pickup Complete</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              style={[styles.contactButton, { backgroundColor: '#E8F5E8', borderColor: '#C8E6C9' }]}
-              onPress={async () => {
-                // Mark delivered (prototype). Update both pools if available
-                try {
-                  const delivered = { ...(trackingOrder || order), status: 'delivered' };
-                  if (order?.id && order?.userId) {
-                    const userOrderRef = ref(db, `orders/${order.userId}/${order.id}`);
-                    await set(userOrderRef, delivered);
-                  }
-                  if (order?.id) {
-                    const poolRef = ref(db, `availableOrders/${order.id}`);
-                    await set(poolRef, { ...(trackingOrder || order), status: 'delivered' });
-                  }
-                  // Record earning for rider/pasabuyer based on database
+            { (viewerRole === 'pasabuyer' || viewerRole === 'rider') && (trackingOrder?.status === 'on_way' || (trackingOrder?.status || order?.status) === 'on_way') && (
+              <TouchableOpacity
+                style={[styles.contactButton, { backgroundColor: '#E8F5E8', borderColor: '#C8E6C9' }]}
+                onPress={async () => {
+                  // Mark delivered (prototype). Update both pools if available
                   try {
-                    const riderId = userId;
-                    if (riderId) {
-                      await earningsService.recordDeliveryEarning(riderId, delivered);
+                    const delivered = { ...(trackingOrder || order), status: 'delivered' };
+                    const shopperId = order?.ownerId || order?.userId;
+                    // Reflect on shopper's order
+                    if (order?.id && shopperId) {
+                      const userOrderRef = ref(db, `orders/${shopperId}/${order.id}`);
+                      await set(userOrderRef, delivered);
                     }
+                    // Reflect on rider's deliveries bucket
+                    if (order?.id && userId) {
+                      const riderRef = ref(db, `riderDeliveries/${userId}/${order.id}`);
+                      await set(riderRef, { ...(trackingOrder || order), status: 'delivered', assignedTo: userId });
+                    }
+                    // Remove from available pool definitively
+                    if (order?.id) {
+                      const poolRef = ref(db, `availableOrders/${order.id}`);
+                      await set(poolRef, null);
+                    }
+                    // Record earning for rider/pasabuyer based on database
+                    try {
+                      const riderId = userId;
+                      if (riderId) {
+                        await earningsService.recordDeliveryEarning(riderId, delivered);
+                      }
+                    } catch (e) {
+                      // ignore earning errors in prototype flow
+                    }
+                    setTrackingOrder(delivered);
+                    updateTrackingStatus(delivered);
                   } catch (e) {
-                    // ignore earning errors in prototype flow
+                    // ignore prototype errors
                   }
-                  setTrackingOrder(delivered);
-                  updateTrackingStatus(delivered);
-                } catch (e) {
-                  // ignore prototype errors
-                }
-              }}
-            >
-              <Icon name="check" size={16} color="#2E7D32" />
-              <Text style={[styles.contactButtonText, { color: '#2E7D32' }]}>Mark Delivered</Text>
-            </TouchableOpacity>
+                }}
+              >
+                <Icon name="check" size={16} color="#2E7D32" />
+                <Text style={[styles.contactButtonText, { color: '#2E7D32' }]}>Mark Delivered</Text>
+              </TouchableOpacity>
+            )}
         </View>
       </ScrollView>
     </SafeAreaView>

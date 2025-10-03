@@ -78,36 +78,56 @@ const CartScreen = ({ navigation, route }) => {
     }
   };
 
-  const CartItem = ({ item }) => (
+  const CartItem = ({ store }) => (
     <View style={styles.cartItem}>
       <View style={styles.itemInfo}>
-        <Text style={styles.storeName}>{item.storeName}</Text>
-        <Text style={styles.storeCategory}>{item.storeCategory}</Text>
-        <Text style={styles.storeAddress}>{item.storeAddress}</Text>
+        <Text style={styles.storeName}>{store.storeName}</Text>
+        <Text style={styles.storeCategory}>{store.storeCategory}</Text>
+        <Text style={styles.storeAddress}>{store.storeAddress}</Text>
+        {(store.items || []).map(line => (
+          <View key={`${store.storeId}-${line.itemId}`} style={styles.lineRow}>
+            <Text style={styles.lineName}>{line.itemName}</Text>
+            <View style={styles.lineRight}>
+              <Text style={styles.linePrice}>₱{line.itemPrice}</Text>
+              <View style={styles.quantityControls}>
+                <TouchableOpacity 
+                  style={styles.quantityButton}
+                  onPress={() => { cartService.updateItemQuantity({ storeId: store.storeId, itemId: line.itemId, newQuantity: line.quantity - 1 }); setCart([...cart]); }}
+                >
+                  <Icon name="minus" size={12} color="#333" />
+                </TouchableOpacity>
+                <Text style={styles.quantityText}>{line.quantity}</Text>
+                <TouchableOpacity 
+                  style={styles.quantityButton}
+                  onPress={() => { cartService.updateItemQuantity({ storeId: store.storeId, itemId: line.itemId, newQuantity: line.quantity + 1 }); setCart([...cart]); }}
+                >
+                  <Icon name="plus" size={12} color="#333" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ))}
       </View>
-      
+
       <View style={styles.itemControls}>
         <View style={styles.quantityControls}>
           <TouchableOpacity 
             style={styles.quantityButton}
-            onPress={() => updateQuantity(item.id, item.quantity - 1)}
+            onPress={() => updateQuantity(store.id, (store.serviceQuantity || 1) - 1)}
           >
             <Icon name="minus" size={12} color="#333" />
           </TouchableOpacity>
-          
-          <Text style={styles.quantityText}>{item.quantity}</Text>
-          
+          <Text style={styles.quantityText}>{store.serviceQuantity || 1}</Text>
           <TouchableOpacity 
             style={styles.quantityButton}
-            onPress={() => updateQuantity(item.id, item.quantity + 1)}
+            onPress={() => updateQuantity(store.id, (store.serviceQuantity || 1) + 1)}
           >
             <Icon name="plus" size={12} color="#333" />
           </TouchableOpacity>
         </View>
-        
         <TouchableOpacity 
           style={styles.removeButton}
-          onPress={() => removeFromCart(item.id)}
+          onPress={() => removeFromCart(store.id)}
         >
           <Icon name="trash" size={16} color="#ff6b6b" />
         </TouchableOpacity>
@@ -157,8 +177,8 @@ const CartScreen = ({ navigation, route }) => {
       ) : (
         <>
           <ScrollView style={styles.cartItems} showsVerticalScrollIndicator={false}>
-            {cart.map(item => (
-              <CartItem key={item.id} item={item} />
+              {cart.map(store => (
+                <CartItem key={store.id} store={store} />
             ))}
           </ScrollView>
 

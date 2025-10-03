@@ -1,36 +1,66 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { db, ref, push, onValue, off } from '../firebaseConfig';
+import { db, ref, push, onValue, off, get } from '../firebaseConfig';
 
 const ChatScreen = ({ navigation, route }) => {
-  const { orderId, userId, viewerRole } = route.params || {};
+  const { orderId, userId, viewerRole, order, shopperId: propShopperId, riderId: propRiderId } = route.params || {};
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const listRef = useRef(null);
+  const shopperId = propShopperId || order?.ownerId || order?.userId || null;
+  const riderId = propRiderId || order?.assignedTo || null;
 
   useEffect(() => {
     if (!orderId) return;
-    const msgRef = ref(db, `chats/${orderId}/messages`);
-    const unsub = onValue(msgRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const val = snapshot.val();
-        const list = Object.keys(val)
-          .map(k => ({ id: k, ...val[k] }))
-          .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
-        setMessages(list);
-        setTimeout(() => listRef.current?.scrollToEnd?.({ animated: true }), 100);
-      } else {
-        setMessages([]);
+    let cleanup;
+    const init = async () => {
+      const pRef = ref(db, `chats/${orderId}/participants`);
+      const pSnap = await get(pRef);
+      const pVal = pSnap.exists() ? (pSnap.val() || {}) : {};
+      let canRead = !!pVal[userId];
+      // auto-enroll if current user is the shopper or assigned rider for this order
+      if (!canRead && (userId && (userId === shopperId || (riderId && userId === riderId)))) {
+        try {
+          const selfRef = ref(db, `chats/${orderId}/participants/${userId}`);
+          await set(selfRef, true);
+          canRead = true;
+        } catch {}
       }
-    });
-    return () => off(msgRef, 'value', unsub);
-  }, [orderId]);
+      if (!canRead) {
+        setMessages([]);
+        return;
+      }
+      const msgRef = ref(db, `chats/${orderId}/messages`);
+      const unsub = onValue(msgRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const val = snapshot.val();
+          const list = Object.keys(val)
+            .map(k => ({ id: k, ...val[k] }))
+            .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+          setMessages(list);
+          setTimeout(() => listRef.current?.scrollToEnd?.({ animated: true }), 100);
+        } else {
+          setMessages([]);
+        }
+      });
+      cleanup = () => off(msgRef, 'value', unsub);
+    };
+    init();
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [orderId, userId]);
 
   const send = async () => {
     const trimmed = text.trim();
     if (!trimmed) return;
     try {
+      // Verify participant before sending
+      const pRef = ref(db, `chats/${orderId}/participants`);
+      const pSnap = await get(pRef);
+      const canSend = pSnap.exists() && !!(pSnap.val() || {})[userId];
+      if (!canSend) return;
       const msgRef = ref(db, `chats/${orderId}/messages`);
       await push(msgRef, {
         text: trimmed,
@@ -58,6 +88,18 @@ const ChatScreen = ({ navigation, route }) => {
     );
   };
 
+  const [notAllowed, setNotAllowed] = useState(false);
+  useEffect(() => {
+    const check = async () => {
+      if (!orderId) return;
+      const pRef = ref(db, `chats/${orderId}/participants`);
+      const pSnap = await get(pRef);
+      const ok = pSnap.exists() && !!(pSnap.val() || {})[userId];
+      setNotAllowed(!ok);
+    };
+    check();
+  }, [orderId, userId]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -68,6 +110,12 @@ const ChatScreen = ({ navigation, route }) => {
         <View style={{ width: 32 }} />
       </View>
 
+      {notAllowed ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="lock" size={36} color="#bbb" />
+          <Text style={{ marginTop: 8, color: '#888' }}>You are not a participant of this chat.</Text>
+        </View>
+      ) : (
       <KeyboardAvoidingWidget>
         <FlatList
           ref={listRef}
@@ -89,6 +137,7 @@ const ChatScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingWidget>
+      )}
     </SafeAreaView>
   );
 };

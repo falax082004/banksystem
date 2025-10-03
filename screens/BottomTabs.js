@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ProfileScreen from './ProfileScreen';
 import BrowseScreen from './BrowseScreen';
 import OrdersScreen from './OrdersScreen';
+import InboxScreen from './InboxScreen';
 import { db, ref, get, onValue, off } from '../firebaseConfig';
 import EarningsScreen from './EarningsScreen';
 import NearbyOrdersScreen from './NearbyOrdersScreen';
@@ -130,6 +131,16 @@ const BottomTabs = ({ route }) => {
             options={{
               tabBarIcon: ({ focused, color, size }) => (
                 <Ionicons name={focused ? 'restaurant' : 'restaurant-outline'} size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Inbox"
+            component={InboxScreen}
+            initialParams={{ userId, viewerRole: 'shopper' }}
+            options={{
+              tabBarIcon: ({ focused, color, size }) => (
+                <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={color} />
               ),
             }}
           />

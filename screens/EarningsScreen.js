@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList } from 'react-native';
-import { onValue, off, ref } from '../firebaseConfig';
+import { onValue, off, ref, db } from '../firebaseConfig';
 
 const EarningsScreen = ({ route }) => {
   const { userId } = route?.params || {};
@@ -9,7 +9,7 @@ const EarningsScreen = ({ route }) => {
 
   useEffect(() => {
     if (!userId) return;
-    const r = ref(undefined, `earnings/riders/${userId}`);
+    const r = ref(db, `earnings/riders/${userId}`);
     const unsubscribe = onValue(r, (snap) => {
       if (!snap.exists()) {
         setEarnings([]);

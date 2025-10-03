@@ -129,6 +129,14 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
                 const shopperOrderRef = ref(db, `orders/${order.ownerId}/${order.id}`);
                 await set(shopperOrderRef, { ...(order.original || order), status: 'rider_assigned', assignedTo: userId, id: order.id, userId: order.ownerId });
               }
+              // Add rider to chat participants
+              const chatMetaRef = ref(db, `chats/${order.id}/participants/${userId}`);
+              await set(chatMetaRef, true);
+              // Add shopper as participant too
+              if (order.ownerId) {
+                const shopperChatRef = ref(db, `chats/${order.id}/participants/${order.ownerId}`);
+                await set(shopperChatRef, true);
+              }
               // Remove from available so others cannot see
               const assignmentRef = ref(db, `availableOrders/${order.id}`);
               await set(assignmentRef, null);

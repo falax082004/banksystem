@@ -8,9 +8,10 @@ import {
   ScrollView,
   Alert,
   SafeAreaView,
-  Dimensions
+  Dimensions,
+  Platform
 } from 'react-native';
-// import MapView, { Marker } from 'react-native-maps'; // Commented out for Expo compatibility
+import MapView, { Marker } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useFocusEffect } from '@react-navigation/native';
 import { cartService } from '../services/cartService';
@@ -115,9 +116,8 @@ const BrowseScreen = ({ navigation, route }) => {
   };
 
   const handleStoreSelect = (store) => {
-    console.log('Opening map for store:', store.name);
-    setSelectedStore(store);
-    setShowMap(true);
+    console.log('Opening items for store:', store.name);
+    navigation.navigate('StoreItems', { store, userId: userId || 'user123' });
   };
 
   const handleMapClose = () => {
@@ -177,14 +177,18 @@ const BrowseScreen = ({ navigation, route }) => {
       <View style={styles.storeActions}>
         <TouchableOpacity 
           style={styles.actionButton}
-          onPress={() => addToCart(store)}
+          onPress={() => navigation.navigate('StoreItems', { store, userId: userId || 'user123' })}
         >
-          <Icon name="shopping-cart" size={16} color="#333" />
-          <Text style={styles.actionText}>Add to Cart</Text>
+          <Icon name="list" size={16} color="#333" />
+          <Text style={styles.actionText}>Browse Items</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.actionButton}
-          onPress={() => handleStoreSelect(store)}
+          onPress={() => {
+            console.log('Opening map for store:', store.name);
+            setSelectedStore(store);
+            setShowMap(true);
+          }}
         >
           <Icon name="map-marker-alt" size={16} color="#333" />
           <Text style={styles.actionText}>View on Map</Text>
@@ -192,14 +196,6 @@ const BrowseScreen = ({ navigation, route }) => {
       </View>
     </TouchableOpacity>
   );
-
-      // Mock MapView component for Expo compatibility
-      const MockMapView = ({ children, style }) => (
-        <View style={[style, styles.mockMap]}>
-          {children}
-        </View>
-      );
-
 
       const MapViewComponent = () => {
         console.log('Rendering MapViewComponent, selectedStore:', selectedStore?.name);
@@ -212,56 +208,38 @@ const BrowseScreen = ({ navigation, route }) => {
               <Text style={styles.mapTitle}>Store Location</Text>
             </View>
 
-            <MockMapView style={styles.map}>
-              {/* Map background pattern */}
-              <View style={styles.mapBackground}>
-                <View style={styles.mapGrid}>
-                  {Array.from({ length: 20 }).map((_, i) => (
-                    <View key={i} style={styles.gridLine} />
-                  ))}
-                </View>
-                
-                {/* User location indicator */}
-                <View style={styles.userLocation}>
-                  <Icon name="circle" size={12} color="#007AFF" solid />
-                </View>
-
-                {selectedStore && (
-                  <View style={[styles.mockMarker, { 
-                    backgroundColor: '#FF6B6B',
-                    top: '40%',
-                    left: '60%',
-                  }]}>
-                    <Icon name="map-marker-alt" size={20} color="#fff" />
-                  </View>
-                )}
-                
-                {/* Show all stores as markers when no specific store is selected */}
-                {!selectedStore && searchResults.map((store, index) => {
-                  const positions = [
-                    { top: '30%', left: '20%' },
-                    { top: '60%', left: '70%' },
-                    { top: '25%', left: '80%' },
-                    { top: '70%', left: '30%' },
-                    { top: '45%', left: '50%' },
-                  ];
-                  const position = positions[index % positions.length];
-                  
-                  return (
-                    <TouchableOpacity
-                      key={store.id}
-                      style={[styles.mockMarker, { 
-                        backgroundColor: '#4ECDC4',
-                        ...position,
-                      }]}
-                      onPress={() => setSelectedStore(store)}
-                    >
-                      <Icon name="map-marker-alt" size={20} color="#fff" />
-                    </TouchableOpacity>
-                  );
-                })}
+            {MapView ? (
+              <MapView
+                style={styles.map}
+                initialRegion={{
+                  latitude: selectedStore?.coordinates?.latitude || 14.5995,
+                  longitude: selectedStore?.coordinates?.longitude || 120.9842,
+                  latitudeDelta: 0.05,
+                  longitudeDelta: 0.05,
+                }}
+                showsUserLocation={true}
+                showsMyLocationButton={true}
+                toolbarEnabled={true}
+                loadingEnabled={true}
+              >
+                {/* All store markers */}
+                {searchResults.map((s) => (
+                  <Marker
+                    key={s.id}
+                    coordinate={s.coordinates}
+                    title={s.name}
+                    description={`${s.category} • ${s.distance}`}
+                    onPress={() => setSelectedStore(s)}
+                  />
+                ))}
+              </MapView>
+            ) : (
+              <View style={styles.mapPlaceholder}>
+                <Icon name="map" size={40} color="#666" />
+                <Text style={styles.mapText}>Map unavailable</Text>
+                <Text style={styles.mapSubtext}>Install react-native-maps or configure Google Maps API key.</Text>
               </View>
-            </MockMapView>
+            )}
 
             {selectedStore && (
               <View style={styles.storeDetails}>
@@ -602,51 +580,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         borderWidth: 2,
         borderColor: '#ddd',
-      },
-      mockMap: {
-        backgroundColor: '#E8F4FD',
-        position: 'relative',
-        overflow: 'hidden',
-      },
-      mapBackground: {
-        flex: 1,
-        position: 'relative',
-      },
-      mapGrid: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-      },
-      gridLine: {
-        width: '20%',
-        height: '20%',
-        borderRightWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: '#B0D4F1',
-      },
-      userLocation: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: [{ translateX: -6 }, { translateY: -6 }],
-        zIndex: 10,
-      },
-      mockMarker: {
-        position: 'absolute',
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
       },
       mapInfoOverlay: {
         position: 'absolute',
