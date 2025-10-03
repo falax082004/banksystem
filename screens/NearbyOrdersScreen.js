@@ -156,8 +156,16 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Nearby Orders (Prototype)</Text>
-        <Text style={styles.subtitle}>Search and track orders near you</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginRight: 8 }}>
+            <Icon name="arrow-left" size={18} color="#333" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Nearby Orders (Prototype)</Text>
+            <Text style={styles.subtitle}>Search and track orders near you</Text>
+          </View>
+          <View style={{ width: 36 }} />
+        </View>
       </View>
 
       <View style={styles.filters}>

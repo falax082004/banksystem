@@ -139,6 +139,9 @@ const CartScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginRight: 8 }}>
+            <Icon name="arrow-left" size={18} color="#333" />
+          </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.title}>Shopping Cart</Text>
             <Text style={styles.subtitle}>

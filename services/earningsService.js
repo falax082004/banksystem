@@ -95,6 +95,26 @@ export const earningsService = {
     const data = snap.val();
     return Object.keys(data).map((k) => data[k]);
   },
+  
+  recordCancellationComp: async (riderId, order) => {
+    if (!riderId || !order?.id) return;
+    const fee = Number(order.cancellationFee || 0);
+    if (fee <= 0) return;
+    const earningsRef = ref(db, `earnings/riders/${riderId}`);
+    const newRef = push(earningsRef);
+    const payload = {
+      id: newRef.key,
+      riderId,
+      orderId: order.id,
+      orderNumber: order.orderNumber || null,
+      type: 'cancellation_compensation',
+      amount: fee,
+      createdAt: new Date().toISOString(),
+      createdAtServer: serverTimestamp(),
+    };
+    await set(newRef, payload);
+    return payload;
+  },
 };
 
 

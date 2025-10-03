@@ -392,6 +392,53 @@ const TrackOrderScreen = ({ navigation, route }) => {
 
         {/* Action Buttons */}
         <View style={styles.actionsSection}>
+            {viewerRole === 'shopper' && (
+              <TouchableOpacity
+                style={[styles.contactButton, { backgroundColor: '#FFF0F0', borderColor: '#FFCDD2' }]}
+                onPress={async () => {
+                  // Shopper cancel policy: allowed with fees depending on status
+                  const status = (trackingOrder?.status || order?.status || 'pending');
+                  let fee = 0;
+                  if (status === 'pending' || status === 'confirmed') {
+                    fee = 0; // free
+                  } else if (status === 'rider_assigned' || status === 'shopping') {
+                    fee = Math.round((order?.totalAmount || 50) * 0.2); // 20% as compensation
+                  } else if (status === 'on_way') {
+                    fee = Math.round((order?.totalAmount || 50) * 0.5); // 50%
+                  } else if (status === 'delivered') {
+                    return; // can't cancel
+                  }
+
+                  try {
+                    const shopperId = order?.ownerId || order?.userId;
+                    const cancelled = { ...(trackingOrder || order), status: 'cancelled', cancellationFee: fee };
+                    if (order?.id && shopperId) {
+                      const userOrderRef = ref(db, `orders/${shopperId}/${order.id}`);
+                      await set(userOrderRef, cancelled);
+                    }
+                    if (order?.id && order?.assignedTo) {
+                      const riderRef = ref(db, `riderDeliveries/${order.assignedTo}/${order.id}`);
+                      await set(riderRef, null); // remove from rider deliveries list
+                    }
+                    if (order?.id) {
+                      const poolRef = ref(db, `availableOrders/${order.id}`);
+                      await set(poolRef, null);
+                    }
+                    // Record rider compensation if assigned
+                    try {
+                      if (order?.assignedTo && fee > 0) {
+                        await earningsService.recordCancellationComp(order.assignedTo, { ...order, cancellationFee: fee });
+                      }
+                    } catch {}
+                    setTrackingOrder(cancelled);
+                    updateTrackingStatus(cancelled);
+                  } catch {}
+                }}
+              >
+                <Icon name="times-circle" size={16} color="#C62828" />
+                <Text style={[styles.contactButtonText, { color: '#C62828' }]}>Cancel Order</Text>
+              </TouchableOpacity>
+            )}
             {(viewerRole === 'shopper' && ['rider_assigned','shopping','on_way'].includes((trackingOrder?.status || order?.status || 'pending'))) ? (
               <TouchableOpacity style={styles.contactButton} onPress={() => navigation.navigate('Chat', { orderId: (trackingOrder?.id || order?.id), userId, viewerRole })}>
                 <Icon name="comments" size={16} color="#007AFF" />

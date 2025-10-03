@@ -51,7 +51,7 @@ const OrdersScreen = ({ navigation, route }) => {
         });
         // If rider view, hide delivered orders
         if (viewerRole === 'rider') {
-          ordersList = ordersList.filter(o => o.status !== 'delivered');
+          ordersList = ordersList.filter(o => o.status !== 'delivered' && o.status !== 'cancelled');
         }
         
         // Sort by creation date (newest first)
@@ -85,7 +85,7 @@ const OrdersScreen = ({ navigation, route }) => {
         const ordersData = snapshot.val();
         let ordersList = Object.keys(ordersData).map(key => ({ id: key, ...ordersData[key] }));
         if (viewerRole === 'rider') {
-          ordersList = ordersList.filter(o => o.status !== 'delivered');
+          ordersList = ordersList.filter(o => o.status !== 'delivered' && o.status !== 'cancelled');
         }
         ordersList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setOrders(ordersList);
@@ -232,20 +232,16 @@ const OrdersScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginRight: 8 }}>
+            <Icon name="arrow-left" size={18} color="#333" />
+          </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.title}>My Orders</Text>
             <Text style={styles.subtitle}>
               {orders.length} order{orders.length !== 1 ? 's' : ''} total
             </Text>
           </View>
-          <TouchableOpacity 
-            style={styles.refreshButton}
-            onPress={loadOrders}
-            disabled={loading}
-          >
-            <Icon name="sync-alt" size={16} color="#333" />
-            <Text style={styles.refreshButtonText}>Refresh</Text>
-          </TouchableOpacity>
+          <View style={{ width: 36 }} />
         </View>
       </View>
 
@@ -258,7 +254,7 @@ const OrdersScreen = ({ navigation, route }) => {
         <View style={styles.emptyOrders}>
           <Icon name="hand-holding" size={60} color="#ccc" />
           <Text style={styles.emptyOrdersText}>
-            {viewerRole === 'rider' ? 'You recently have no pasabuy requests' : 'No orders yet'}
+            {viewerRole === 'rider' ? 'You have no delivery orders' : 'No orders yet'}
           </Text>
           {viewerRole !== 'rider' && (
             <Text style={styles.emptyOrdersSubtext}>
