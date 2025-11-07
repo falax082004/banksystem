@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Alert, Text, StyleSheet, Modal, ScrollView } from 'react-native';
 import { db, ref, get, update, set, serverTimestamp } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/Feather';
+import { FONT } from '../styles/typography';
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -418,15 +419,15 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   headerText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 8,
     letterSpacing: 2,
   },
   subtitleText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
     marginBottom: 40,
     textAlign: 'center',
   },
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingLeft: 15,
     marginBottom: 15,
-    fontSize: 16,
+  fontSize: FONT.bodySize,
     backgroundColor: '#fff',
   },
   loginButton: {
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     color: '#fff',
     fontWeight: '600',
   },
@@ -462,12 +463,12 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   registerText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONT.bodySize,
+    color: FONT.headerColor,
   },
   registerLink: {
-    fontSize: 16,
-    color: '#000',
+    fontSize: FONT.bodySize,
+    color: FONT.headerColor,
     fontWeight: 'bold',
   },
   forgotPasswordContainer: {
@@ -475,8 +476,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   forgotPasswordText: {
-    color: '#000',
-    fontSize: 14,
+    color: FONT.headerColor,
+    fontSize: FONT.smallSize,
     textDecorationLine: 'underline',
   },
   modalOverlay: {
@@ -494,15 +495,15 @@ const styles = StyleSheet.create({
     maxHeight: '80%',
   },
   modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 10,
     textAlign: 'center',
   },
   modalSubtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 15,
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     backgroundColor: '#fff',
   },
   modalButton: {
@@ -525,7 +526,7 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
   },
   closeButton: {
@@ -546,8 +547,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   questionText: {
-    fontSize: 16,
-    color: '#000',
+    fontSize: FONT.bodySize,
+    color: FONT.headerColor,
     marginBottom: 10,
     fontWeight: '500',
   },
@@ -559,8 +560,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   supportButtonText: {
-    color: '#000',
-    fontSize: 16,
+    color: FONT.headerColor,
+    fontSize: FONT.bodySize,
     marginLeft: 8,
     fontWeight: '600',
   },

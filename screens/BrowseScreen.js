@@ -22,6 +22,7 @@ try {
   RN_PROVIDER_GOOGLE = RNMaps.PROVIDER_GOOGLE;
 } catch {}
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FONT } from '../styles/typography';
 import { useFocusEffect } from '@react-navigation/native';
 import { cartService } from '../services/cartService';
 import { orderService } from '../services/orderService';
@@ -381,23 +382,21 @@ const BrowseScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Browse Stores</Text>
-            <Text style={styles.subtitle}>Discover stores and items near you</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.cartButton}
-            onPress={() => navigation.navigate('Cart', { userId: userId || 'user123' })}
-          >
-            <Icon name="shopping-cart" size={24} color="#333" />
-            {cartCount > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.title}>Browse Stores</Text>
+        <Text style={styles.subtitle}>Discover stores and items near you</Text>
+
+        {/* keep cart button available but position it absolute to avoid centering the header */}
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={() => navigation.navigate('Cart', { userId: userId || 'user123' })}
+        >
+          <Icon name="shopping-cart" size={24} color="#333" />
+          {cartCount > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cartCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
@@ -458,23 +457,17 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 10,
+    paddingTop: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  headerText: {
-    flex: 1,
-  },
+  /* headerTop and headerText removed to left-align header like Inbox */
   cartButton: {
-    position: 'relative',
+    position: 'absolute',
+    top: 22,
+    right: 20,
     padding: 8,
-    marginTop: 4,
   },
   cartBadge: {
     position: 'absolute',
@@ -493,14 +486,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
   },
   searchContainer: {
     padding: 20,

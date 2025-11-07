@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FONT } from '../styles/typography';
 import { db, ref, set, onValue, off } from '../firebaseConfig';
 import { earningsService } from '../services/earningsService';
 
@@ -589,9 +590,9 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
   },
   placeholder: {
     width: 36,
@@ -606,14 +607,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   errorText: {
-    fontSize: 18,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
     marginTop: 16,
     fontWeight: '500',
   },
   backButtonText: {
     color: '#007AFF',
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
     marginTop: 20,
   },
@@ -632,9 +633,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   orderId: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -657,15 +658,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deliveryLabel: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.bodySize,
+    color: FONT.mutedColor,
     marginLeft: 8,
     flex: 1,
   },
   deliveryValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
   },
   trackingSection: {
     backgroundColor: '#fff',
@@ -677,9 +678,9 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 16,
   },
   stepContainer: {
@@ -724,9 +725,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   stepTitle: {
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
-    color: '#666',
+    color: FONT.mutedColor,
     flex: 1,
   },
   stepTitleCompleted: {
@@ -744,8 +745,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   stepDescription: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: FONT.smallSize,
+    color: FONT.secondaryMuted || '#999',
     lineHeight: 20,
   },
   locationInfo: {
@@ -788,19 +789,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   storeName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 2,
   },
   storeAddress: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
     marginBottom: 2,
   },
   storeCategory: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: FONT.smallSize,
+    color: FONT.secondaryMuted,
   },
   storeQuantity: {
     backgroundColor: '#f0f0f0',
@@ -809,9 +810,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   quantityText: {
-    fontSize: 12,
+    fontSize: FONT.smallSize,
     fontWeight: 'bold',
-    color: '#333',
+    color: FONT.headerColor,
   },
   actionsSection: {
     flexDirection: 'row',
@@ -831,7 +832,7 @@ const styles = StyleSheet.create({
   },
   contactButtonText: {
     color: '#007AFF',
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -847,8 +848,8 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   supportButtonText: {
-    color: '#666',
-    fontSize: 16,
+    color: FONT.mutedColor,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -867,7 +868,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   realtimeText: {
-    fontSize: 14,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
     color: '#2E7D32',
     marginLeft: 8,

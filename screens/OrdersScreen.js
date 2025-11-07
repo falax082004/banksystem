@@ -9,6 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FONT } from '../styles/typography';
 import { db, ref, get, orderByChild, query, onValue, off } from '../firebaseConfig';
 
 const OrdersScreen = ({ navigation, route }) => {
@@ -231,18 +232,10 @@ const OrdersScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginRight: 8 }}>
-            <Icon name="arrow-left" size={18} color="#333" />
-          </TouchableOpacity>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>My Orders</Text>
-            <Text style={styles.subtitle}>
-              {orders.length} order{orders.length !== 1 ? 's' : ''} total
-            </Text>
-          </View>
-          <View style={{ width: 36 }} />
-        </View>
+        <Text style={styles.title}>My Orders</Text>
+        <Text style={styles.subtitle}>
+          {orders.length} order{orders.length !== 1 ? 's' : ''} total
+        </Text>
       </View>
 
       {loading ? (
@@ -284,23 +277,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  headerText: {
-    flex: 1,
-  },
+  /* headerTop and headerText removed to left-align header like InboxScreen */
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
   },
   refreshButton: {
     flexDirection: 'row',
@@ -325,8 +311,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   loadingText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.bodySize,
+    color: FONT.mutedColor,
     marginTop: 12,
   },
   emptyOrders: {
@@ -336,14 +322,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyOrdersText: {
-    fontSize: 20,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
     marginTop: 16,
     fontWeight: '500',
   },
   emptyOrdersSubtext: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: FONT.smallSize,
+    color: FONT.secondaryMuted,
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,
@@ -359,7 +345,7 @@ const styles = StyleSheet.create({
   },
   browseButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -385,14 +371,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   orderId: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 2,
   },
   orderDate: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -411,9 +397,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   storesLabel: {
-    fontSize: 14,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
-    color: '#333',
+    color: FONT.headerColor,
     marginBottom: 6,
   },
   storeItem: {
@@ -422,14 +408,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   storeName: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.bodySize,
+    color: FONT.mutedColor,
     marginLeft: 8,
     flex: 1,
   },
   storeQuantity: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: FONT.smallSize,
+    color: FONT.secondaryMuted,
     fontWeight: 'bold',
   },
   orderFooter: {
@@ -442,14 +428,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   totalLabel: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.bodySize,
+    color: FONT.mutedColor,
     marginRight: 8,
   },
   totalAmount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.totalSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
   },
   actionsSection: {
     flexDirection: 'row',

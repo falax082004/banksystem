@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Modal, TextInput, ScrollView, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import FONT from '../styles/typography';
 
 const FAQS = [
   {
@@ -128,13 +129,13 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#222',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
   },
   subheader: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
     marginTop: 4,
   },
   cardsWrap: {
@@ -155,14 +156,14 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#222',
+    fontSize: FONT.subtitleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 2,
   },
   cardDesc: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
   },
   modalOverlay: {
     flex: 1,
@@ -179,23 +180,23 @@ const styles = StyleSheet.create({
     maxWidth: 460,
   },
   modalHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#222',
+    fontSize: FONT.subtitleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 12,
   },
   faqItem: {
     marginBottom: 14,
   },
   faqQ: {
-    fontWeight: 'bold',
-    color: '#222',
-    fontSize: 14,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
+    fontSize: FONT.subtitleSize,
     marginBottom: 2,
   },
   faqA: {
-    color: '#555',
-    fontSize: 13,
+    color: FONT.mutedColor,
+    fontSize: FONT.smallSize,
     marginLeft: 4,
   },
   closeBtn: {
@@ -207,18 +208,18 @@ const styles = StyleSheet.create({
   },
   closeBtnText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: FONT.weightBold,
+    fontSize: FONT.subtitleSize,
   },
   contactInfo: {
-    color: '#222',
-    fontSize: 14,
+    color: FONT.headerColor,
+    fontSize: FONT.bodySize,
     marginBottom: 6,
   },
   contactLabel: {
-    color: '#222',
-    fontWeight: 'bold',
-    fontSize: 14,
+    color: FONT.headerColor,
+    fontWeight: FONT.weightBold,
+    fontSize: FONT.bodySize,
     marginTop: 10,
     marginBottom: 6,
   },
@@ -229,8 +230,8 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 8,
     padding: 10,
-    fontSize: 14,
-    color: '#222',
+    fontSize: FONT.bodySize,
+    color: FONT.headerColor,
     backgroundColor: '#f7f7f7',
     marginBottom: 10,
   },
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
   },
   sendBtnText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: FONT.weightBold,
+    fontSize: FONT.subtitleSize,
   },
 });

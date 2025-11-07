@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
+import { FONT } from '../styles/typography';
 
 const HomeScreen = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -78,9 +79,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  jpDate: { fontSize: 14, color: '#333' },
-  jpWelcome: { fontSize: 26, color: '#333', marginTop: 10 },
-  jpHomeTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
+  jpDate: { fontSize: FONT.smallSize, color: FONT.headerColor },
+  jpWelcome: { fontSize: FONT.titleSize, color: FONT.headerColor, marginTop: 10 },
+  jpHomeTitle: { fontSize: FONT.bodySize, fontWeight: FONT.weightBold, color: '#fff' },
   // Styles for removed banking components have been cleaned up
   // Card styles removed
 });

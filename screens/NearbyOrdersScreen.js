@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FONT } from '../styles/typography';
 import { db, ref, get, set, onValue, off } from '../firebaseConfig';
 
 // Prototype-only mock nearby orders
@@ -147,7 +148,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
           }}
         >
           <Icon name="hand-paper" size={14} color="#333" />
-          <Text style={styles.secondaryBtnText}>Accept</Text>
+          <Text style={styles.secondaryBtnText}>Accept Delivery</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -156,16 +157,8 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginRight: 8 }}>
-            <Icon name="arrow-left" size={18} color="#333" />
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Nearby Orders (Prototype)</Text>
-            <Text style={styles.subtitle}>Search and track orders near you</Text>
-          </View>
-          <View style={{ width: 36 }} />
-        </View>
+        <Text style={styles.title}>Track Orders</Text>
+        <Text style={styles.subtitle}>Track and accept nearby deliveries</Text>
       </View>
 
       <View style={styles.filters}>
@@ -210,27 +203,27 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
-  title: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-  subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
+  title: { fontSize: FONT.titleSize, fontWeight: FONT.weightBold, color: FONT.headerColor },
+  subtitle: { fontSize: FONT.subtitleSize, color: FONT.mutedColor, marginTop: 4 },
   filters: { paddingHorizontal: 20, paddingTop: 12 },
   inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 12, marginBottom: 10 },
   input: { flex: 1, height: 42, marginLeft: 8, color: '#333' },
   list: { paddingHorizontal: 20, paddingTop: 10 },
   card: { backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#ddd', padding: 14, marginBottom: 10 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  orderNumber: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  orderNumber: { fontSize: FONT.bodySize, fontWeight: FONT.weightBold, color: FONT.headerColor },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  statusText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
-  meta: { fontSize: 12, color: '#666' },
+  statusText: { color: '#fff', fontSize: FONT.smallSize, fontWeight: 'bold' },
+  meta: { fontSize: FONT.smallSize, color: FONT.mutedColor },
   storeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-  storeText: { marginLeft: 6, color: '#666', fontSize: 12 },
+  storeText: { marginLeft: 6, color: FONT.mutedColor, fontSize: FONT.smallSize },
   actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   primaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#333', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 6 },
-  primaryBtnText: { color: '#fff', fontWeight: '600', marginLeft: 6 },
+  primaryBtnText: { color: '#fff', fontWeight: '600', marginLeft: 6, fontSize: FONT.bodySize },
   secondaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: '#ddd' },
-  secondaryBtnText: { color: '#333', fontWeight: '600', marginLeft: 6 },
+  secondaryBtnText: { color: '#333', fontWeight: '600', marginLeft: 6, fontSize: FONT.bodySize },
   emptyBox: { alignItems: 'center', padding: 30 },
-  emptyText: { color: '#888', marginTop: 8 },
+  emptyText: { color: FONT.secondaryMuted, marginTop: 8 },
 });
 
 export default NearbyOrdersScreen;

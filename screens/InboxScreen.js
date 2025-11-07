@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FONT } from '../styles/typography';
 import { db, ref, onValue, off } from '../firebaseConfig';
 
 const InboxScreen = ({ navigation, route }) => {
@@ -80,19 +81,19 @@ const InboxScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#333' },
-  subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
+  title: { fontSize: FONT.titleSize, fontWeight: FONT.weightBold, color: FONT.headerColor },
+  subtitle: { fontSize: FONT.subtitleSize, color: FONT.mutedColor, marginTop: 4 },
   list: { paddingHorizontal: 12, paddingTop: 8 },
   thread: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#ddd', padding: 12, marginVertical: 6 },
   threadLeft: { width: 40, alignItems: 'center' },
   avatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#333', alignItems: 'center', justifyContent: 'center' },
   threadCenter: { flex: 1, paddingHorizontal: 8 },
-  orderNumber: { fontWeight: '600', color: '#333' },
-  counterpart: { color: '#666', fontSize: 12 },
-  meta: { color: '#999', fontSize: 12, marginTop: 2 },
+  orderNumber: { fontSize: FONT.bodySize, fontWeight: '600', color: FONT.headerColor },
+  counterpart: { color: FONT.mutedColor, fontSize: FONT.smallSize },
+  meta: { color: FONT.secondaryMuted, fontSize: FONT.smallSize, marginTop: 2 },
   threadRight: { width: 24, alignItems: 'flex-end' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: '#999', marginTop: 8 },
+  emptyText: { color: FONT.secondaryMuted, marginTop: 8, fontSize: FONT.smallSize },
 });
 
 export default InboxScreen;

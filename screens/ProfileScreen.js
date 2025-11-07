@@ -13,6 +13,7 @@ import {
   Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FONT } from '../styles/typography';
 import { db, ref, get, update, set } from '../firebaseConfig';
 
 const ProfileScreen = ({ navigation, route }) => {
@@ -326,17 +327,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 18,
-    color: '#333',
+    fontSize: FONT.bodySize,
+    color: FONT.headerColor,
     fontWeight: '600',
   },
   phone: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
   },
   role: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: FONT.smallSize,
+    color: FONT.secondaryMuted,
     fontStyle: 'italic',
     marginTop: 2,
   },
@@ -354,8 +355,8 @@ const styles = StyleSheet.create({
   },
   verificationText: {
     marginLeft: 8,
-    fontSize: 14,
-    color: '#333',
+    fontSize: FONT.smallSize,
+    color: FONT.headerColor,
     fontWeight: '500',
   },
   menuContainer: {
@@ -380,8 +381,8 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     marginLeft: 15,
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONT.bodySize,
+    color: FONT.headerColor,
   },
   stretchArea: {
     flex: 1,
@@ -402,15 +403,15 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 10,
     textAlign: 'center',
   },
   modalSubtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -420,9 +421,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
     paddingHorizontal: 15,
-    fontSize: 18,
+    fontSize: FONT.bodySize,
     marginBottom: 20,
-    color: '#333',
+    color: FONT.headerColor,
     textAlign: 'center',
     letterSpacing: 8,
     borderWidth: 1,
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
     textAlign: 'center',
   },

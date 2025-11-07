@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FONT } from '../styles/typography';
 import { cartService } from '../services/cartService';
 
 const StoreItemsScreen = ({ navigation, route }) => {
@@ -142,22 +143,22 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
   backBtn: { padding: 8, marginRight: 12 },
   headerText: { flex: 1 },
-  title: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-  subtitle: { fontSize: 12, color: '#666', marginTop: 2 },
+  title: { fontSize: FONT.titleSize, fontWeight: FONT.weightBold, color: FONT.headerColor },
+  subtitle: { fontSize: FONT.smallSize, color: FONT.mutedColor, marginTop: 2 },
   list: { flex: 1, paddingHorizontal: 20 },
   itemRow: { backgroundColor: '#fff', borderRadius: 8, padding: 14, marginVertical: 6, borderWidth: 1, borderColor: '#ddd', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   itemInfo: { flex: 1 },
-  itemName: { fontSize: 16, fontWeight: '600', color: '#333' },
-  itemPrice: { fontSize: 14, color: '#666', marginTop: 2 },
+  itemName: { fontSize: FONT.bodySize, fontWeight: '600', color: FONT.headerColor },
+  itemPrice: { fontSize: FONT.smallSize, color: FONT.mutedColor, marginTop: 2 },
   qtyControls: { flexDirection: 'row', alignItems: 'center' },
   qtyBtn: { width: 30, height: 30, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, margin: 2, borderWidth: 1, borderColor: '#ddd' },
-  qtyText: { fontSize: 16, fontWeight: 'bold', color: '#333', marginHorizontal: 10 },
+  qtyText: { fontSize: FONT.bodySize, fontWeight: 'bold', color: FONT.headerColor, marginHorizontal: 10 },
   footer: { backgroundColor: '#fff', padding: 20, borderTopWidth: 1, borderTopColor: '#eee' },
   summary: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  summaryLabel: { fontSize: 16, color: '#666' },
-  summaryValue: { fontSize: 20, fontWeight: 'bold', color: '#333' },
+  summaryLabel: { fontSize: FONT.bodySize, color: FONT.mutedColor },
+  summaryValue: { fontSize: FONT.totalSize, fontWeight: FONT.weightBold, color: FONT.headerColor },
   addButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#333', paddingVertical: 14, borderRadius: 8 },
-  addButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
+  addButtonText: { color: '#fff', fontSize: FONT.bodySize, fontWeight: 'bold', marginLeft: 8 },
   empty: { padding: 30, alignItems: 'center' },
   emptyText: { color: '#999' },
 });

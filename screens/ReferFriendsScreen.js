@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { FONT } from '../styles/typography';
 
 const ReferFriendsScreen = ({ route }) => {
   const { userId, fullName } = route.params || {};
@@ -41,14 +42,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 6,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
   },
   card: {
     backgroundColor: '#fff',
@@ -59,8 +60,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardLabel: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: FONT.smallSize,
+    color: FONT.secondaryMuted,
     marginBottom: 12,
   },
   qrWrapper: {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   linkText: {
-    fontSize: 12,
+    fontSize: FONT.smallSize,
     color: '#007AFF',
   },
   noteBox: {
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
   },
   noteText: {
     color: '#44607A',
-    fontSize: 12,
+    fontSize: FONT.smallSize,
   },
 });
 

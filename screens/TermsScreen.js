@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { FONT } from '../styles/typography';
 
 const TermsScreen = () => {
   return (
@@ -98,23 +99,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
   },
   section: {
     marginBottom: 18,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 8,
   },
   content: {
-    fontSize: 14,
+    fontSize: FONT.smallSize,
     lineHeight: 20,
-    color: '#555555',
+    color: FONT.mutedColor,
   },
 });
 

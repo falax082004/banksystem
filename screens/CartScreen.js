@@ -13,6 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { cartService } from '../services/cartService';
 import { db, ref, push, set, get } from '../firebaseConfig';
 import { orderService } from '../services/orderService';
+import { FONT } from '../styles/typography';
 
 const CartScreen = ({ navigation, route }) => {
   const { userId } = route.params || {};
@@ -171,7 +172,7 @@ const CartScreen = ({ navigation, route }) => {
           </Text>
           <TouchableOpacity 
             style={styles.browseButton}
-            onPress={() => navigation.navigate('Browse')}
+            onPress={() => navigation.goBack()}
           >
             <Icon name="compass" size={16} color="#fff" />
             <Text style={styles.browseButtonText}>Browse Stores</Text>
@@ -262,14 +263,14 @@ const styles = StyleSheet.create({
   },
   
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
   },
   emptyCart: {
     flex: 1,
@@ -278,13 +279,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyCartText: {
-    fontSize: 20,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
     marginTop: 16,
     fontWeight: '500',
   },
   emptyCartSubtext: {
-    fontSize: 14,
+    fontSize: FONT.smallSize,
     color: '#999',
     marginTop: 8,
     textAlign: 'center',
@@ -301,10 +302,11 @@ const styles = StyleSheet.create({
   },
   browseButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
     marginLeft: 8,
   },
+  
   cartItems: {
     flex: 1,
     paddingHorizontal: 20,
@@ -324,18 +326,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   storeName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 2,
   },
   storeCategory: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
     marginBottom: 2,
   },
   storeAddress: {
-    fontSize: 12,
+    fontSize: FONT.smallSize,
     color: '#999',
   },
   itemControls: {
@@ -359,9 +361,9 @@ const styles = StyleSheet.create({
     margin: 2,
   },
   quantityText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginHorizontal: 12,
   },
   removeButton: {
@@ -380,14 +382,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   totalLabel: {
-    fontSize: 18,
+    fontSize: FONT.bodySize,
     fontWeight: '600',
-    color: '#333',
+    color: FONT.headerColor,
   },
   totalAmount: {
-    fontSize: 24,
+    fontSize: FONT.totalSize,
     fontWeight: 'bold',
-    color: '#333',
+    color: FONT.headerColor,
   },
   checkoutInfo: {
     marginBottom: 20,
@@ -410,7 +412,7 @@ const styles = StyleSheet.create({
   },
   checkoutButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: FONT.bodySize,
     fontWeight: 'bold',
     marginLeft: 8,
   },

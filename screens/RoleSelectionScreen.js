@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { db, ref, get, set } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FONT } from '../styles/typography';
 
 const RoleSelectionScreen = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -148,14 +149,14 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginBottom: 8,
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.subtitleSize,
+    color: FONT.mutedColor,
     textAlign: 'center',
   },
   rolesContainer: {
@@ -184,17 +185,17 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   roleTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: FONT.bodySize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
     marginTop: 10,
   },
   selectedText: {
     color: '#333',
   },
   roleDescription: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 20,
@@ -208,8 +209,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   featureText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
     marginLeft: 8,
   },
   noteContainer: {
@@ -220,8 +221,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   noteText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT.smallSize,
+    color: FONT.mutedColor,
     marginLeft: 8,
     fontStyle: 'italic',
   },
@@ -231,8 +232,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT.bodySize,
+    color: FONT.mutedColor,
     marginTop: 10,
   },
 });
