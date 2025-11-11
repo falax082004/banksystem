@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Alert, Text, StyleSheet, Modal, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Alert, Text, StyleSheet, Modal, Image } from 'react-native';
 import { db, ref, get, update, set, serverTimestamp } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/Feather';
 import { FONT } from '../styles/typography';
@@ -8,12 +8,11 @@ const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [forgotPasswordModal, setForgotPasswordModal] = useState(false);
-  const [resetStep, setResetStep] = useState(1); // 1: email, 2: questions, 3: new password
+  const [resetStep, setResetStep] = useState(1); // 1: email, 2: new password
   const [email, setEmail] = useState('');
-  const [answers, setAnswers] = useState(['', '', '']);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
+  const [foundUsername, setFoundUsername] = useState(null);
   const [supportModal, setSupportModal] = useState(false);
   const [supportMessage, setSupportMessage] = useState('');
   const [supportEmail, setSupportEmail] = useState('');
@@ -51,10 +50,9 @@ const LoginScreen = ({ navigation }) => {
     setForgotPasswordModal(true);
     setResetStep(1);
     setEmail('');
-    setAnswers(['', '', '']);
     setNewPassword('');
     setConfirmPassword('');
-    setCurrentUser(null);
+    setFoundUsername(null);
   };
 
   const verifyEmail = async () => {
@@ -63,74 +61,42 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    if (!username.trim()) {
-      Alert.alert('Error', 'Please enter your username first.');
-      return;
-    }
+    try {
+      // Search for user by email
+      const usersRef = ref(db, 'users/');
+      const snapshot = await get(usersRef);
 
-    const userRef = ref(db, 'users/' + username);
-    const snapshot = await get(userRef);
+      if (!snapshot.exists()) {
+        Alert.alert('Error', 'No users found in the system.');
+        return;
+      }
 
-    if (!snapshot.exists()) {
-      Alert.alert('Error', 'User not found.');
-      return;
-    }
+      let userFound = false;
+      let matchingUsername = null;
 
-    const userData = snapshot.val();
-    
-    // Check if email exists and matches
-    if (!userData.email) {
-      Alert.alert('Error', 'No email found for this account. Please contact support.');
-      setForgotPasswordModal(false);
-      return;
-    }
+      snapshot.forEach((childSnapshot) => {
+        const userData = childSnapshot.val();
+        if (userData.email && userData.email.toLowerCase() === email.toLowerCase()) {
+          userFound = true;
+          matchingUsername = childSnapshot.key;
+          return;
+        }
+      });
 
-    if (userData.email.toLowerCase() !== email.toLowerCase()) {
-      Alert.alert('Error', 'Email does not match our records.');
-      return;
-    }
+      if (!userFound) {
+        Alert.alert('Error', 'No account found with this email address.');
+        return;
+      }
 
-    // Check if security questions exist
-    if (!userData.securityQuestions || !Array.isArray(userData.securityQuestions) || userData.securityQuestions.length === 0) {
-      Alert.alert('Error', 'No security questions found for this account. Please contact support.');
-      setForgotPasswordModal(false);
-      return;
-    }
-
-    console.log('Security Questions:', userData.securityQuestions); // Debug log
-    setCurrentUser(userData);
-    setResetStep(2);
-  };
-
-  const verifyAnswers = async () => {
-    if (answers.some(answer => !answer.trim())) {
-      Alert.alert('Error', 'Please answer all security questions.');
-      return;
-    }
-
-    // Get the correct answers from the database
-    const correctAnswers = currentUser.securityAnswers.map(answer => 
-      answer.toLowerCase().trim()
-    );
-
-    // Get user's answers and normalize them
-    const userAnswers = answers.map(a => a.toLowerCase().trim());
-
-    // Debug logs
-    console.log('Correct Answers:', correctAnswers);
-    console.log('User Answers:', userAnswers);
-
-    // Check if all answers match
-    const allCorrect = correctAnswers.every((correct, index) => correct === userAnswers[index]);
-
-    if (allCorrect) {
-      // If all answers are correct, proceed to password reset
-      setResetStep(3);
-    } else {
-      // If any answer is wrong, show error
-      Alert.alert('Invalid Answer', 'One or more answers are incorrect. Please try again.');
+      // Email found, proceed to password reset
+      setFoundUsername(matchingUsername);
+      setResetStep(2);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to verify email. Please try again.');
+      console.error('Error verifying email:', error);
     }
   };
+
 
   const resetPassword = async () => {
     if (!newPassword.trim() || !confirmPassword.trim()) {
@@ -143,8 +109,13 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    if (!foundUsername) {
+      Alert.alert('Error', 'User information not found. Please try again.');
+      return;
+    }
+
     try {
-      const userRef = ref(db, 'users/' + username);
+      const userRef = ref(db, 'users/' + foundUsername);
       await update(userRef, {
         password: newPassword
       });
@@ -157,15 +128,15 @@ const LoginScreen = ({ navigation }) => {
             // Reset all states
             setResetStep(1);
             setEmail('');
-            setAnswers(['', '', '']);
             setNewPassword('');
             setConfirmPassword('');
-            setCurrentUser(null);
+            setFoundUsername(null);
           }
         }
       ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to reset password. Please try again.');
+      console.error('Error resetting password:', error);
     }
   };
 
@@ -219,34 +190,6 @@ const LoginScreen = ({ navigation }) => {
         );
       case 2:
         return (
-          <ScrollView>
-            <Text style={styles.modalTitle}>Security Questions</Text>
-            <Text style={styles.modalSubtitle}>Answer your security questions</Text>
-            {currentUser && currentUser.securityQuestions && currentUser.securityQuestions.map((question, index) => (
-              <View key={index} style={styles.questionContainer}>
-                <Text style={styles.questionText}>
-                  Question {index + 1}: {question}
-                </Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder={`Answer for question ${index + 1}`}
-                  value={answers[index]}
-                  onChangeText={(text) => {
-                    const newAnswers = [...answers];
-                    newAnswers[index] = text;
-                    setAnswers(newAnswers);
-                  }}
-                  autoCapitalize="none"
-                />
-              </View>
-            ))}
-            <TouchableOpacity style={styles.modalButton} onPress={verifyAnswers}>
-              <Text style={styles.modalButtonText}>Verify Answers</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        );
-      case 3:
-        return (
           <View>
             <Text style={styles.modalTitle}>New Password</Text>
             <Text style={styles.modalSubtitle}>Enter your new password</Text>
@@ -275,6 +218,11 @@ const LoginScreen = ({ navigation }) => {
   return (
     <View style={styles.background}>
       <View style={styles.container}>
+        {/* Logo */}
+        <Image
+          source={require('../assets/Pasabuy.png')}
+          style={styles.logo}
+        />
         {/* Low-fidelity header */}
         <Text style={styles.headerText}>PASABUY</Text>
         <Text style={styles.subtitleText}>Login to your account</Text>
@@ -417,6 +365,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#ddd',
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   headerText: {
     fontSize: FONT.titleSize,

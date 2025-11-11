@@ -6,6 +6,8 @@ import ProfileScreen from './ProfileScreen';
 import BrowseScreen from './BrowseScreen';
 import OrdersScreen from './OrdersScreen';
 import InboxScreen from './InboxScreen';
+import RiderInboxScreen from './RiderInboxScreen';
+import PasabuyerInboxScreen from './PasabuyerInboxScreen';
 import { db, ref, get, onValue, off } from '../firebaseConfig';
 import EarningsScreen from './EarningsScreen';
 import NearbyOrdersScreen from './NearbyOrdersScreen';
@@ -86,6 +88,16 @@ const BottomTabs = ({ route }) => {
             }}
           />
           <Tab.Screen
+            name="Inbox"
+            component={RiderInboxScreen}
+            initialParams={{ userId }}
+            options={{
+              tabBarIcon: ({ focused, color, size }) => (
+                <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
             name="Profile"
             component={ProfileScreen}
             initialParams={{ userId }}
@@ -136,8 +148,8 @@ const BottomTabs = ({ route }) => {
           />
           <Tab.Screen
             name="Inbox"
-            component={InboxScreen}
-            initialParams={{ userId, viewerRole: 'shopper' }}
+            component={pasabuyerEnabled ? PasabuyerInboxScreen : InboxScreen}
+            initialParams={{ userId, viewerRole: pasabuyerEnabled ? 'pasabuyer' : 'shopper' }}
             options={{
               tabBarIcon: ({ focused, color, size }) => (
                 <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={color} />

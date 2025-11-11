@@ -10,10 +10,9 @@ const InboxScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     if (!userId) return;
-    // Collect chat threads from orders for this user/rider
+    // Collect chat threads from orders for shoppers
     // Shopper: orders/{userId}
-    // Rider: riderDeliveries/{userId}
-    const path = (viewerRole === 'rider' || viewerRole === 'pasabuyer') ? `riderDeliveries/${userId}` : `orders/${userId}`;
+    const path = `orders/${userId}`;
     const r = ref(db, path);
     const unsub = onValue(r, (snap) => {
       if (!snap.exists()) { setThreads([]); return; }
@@ -23,7 +22,7 @@ const InboxScreen = ({ navigation, route }) => {
         return {
           id: o.id,
           orderNumber: o.orderNumber || o.id,
-          counterpart: (viewerRole === 'rider' || viewerRole === 'pasabuyer') ? (o.userId || o.ownerId || 'Shopper') : (o.assignedTo ? 'Rider' : 'Unassigned'),
+          counterpart: o.assignedTo ? 'Rider' : 'Unassigned',
           status: o.status || 'pending',
           totalAmount: o.totalAmount || 0,
           distanceKm: o.distanceKm || null,
@@ -59,7 +58,7 @@ const InboxScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Inbox</Text>
-        <Text style={styles.subtitle}>Messages with your { (viewerRole === 'rider' || viewerRole === 'pasabuyer') ? 'shoppers' : 'riders' }</Text>
+        <Text style={styles.subtitle}>Messages with your riders</Text>
       </View>
       {threads.length === 0 ? (
         <View style={styles.empty}>

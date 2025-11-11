@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 // Core Screens
 import SplashScreen from './screens/SplashScreen';
+import WelcomeScreen from './screens/WelcomeScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 import BrowseScreen from './screens/BrowseScreen';
@@ -17,6 +18,10 @@ import ChatScreen from './screens/ChatScreen';
 import VoucherScreen from './screens/VoucherScreen';
 import StoreItemsScreen from './screens/StoreItemsScreen';
 import InboxScreen from './screens/InboxScreen';
+import DeliveryHistoryScreen from './screens/DeliveryHistoryScreen';
+import PasabuyerRequestsScreen from './screens/PasabuyerRequestsScreen';
+import EarningsScreen from './screens/EarningsScreen';
+import AvailabilityScreen from './screens/AvailabilityScreen';
 
 // Profile Destination Screens
 import ReferFriendsScreen from './screens/ReferFriendsScreen';
@@ -40,6 +45,7 @@ export default function App() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         {/* Core Screens */}
         <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Home" component={BottomTabs} />
@@ -53,7 +59,11 @@ export default function App() {
         <Stack.Screen name="NearbyOrders" component={NearbyOrdersScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="Inbox" component={InboxScreen} />
-        <Stack.Screen name="Vouchers" component={VoucherScreen} />
+        <Stack.Screen name="Vouchers" component={VoucherScreen} options={commonScreenOptions} />
+        <Stack.Screen name="DeliveryHistory" component={DeliveryHistoryScreen} options={commonScreenOptions} />
+        <Stack.Screen name="PasabuyerRequests" component={PasabuyerRequestsScreen} options={commonScreenOptions} />
+        <Stack.Screen name="Earnings" component={EarningsScreen} options={commonScreenOptions} />
+        <Stack.Screen name="Availability" component={AvailabilityScreen} options={commonScreenOptions} />
 
         {/* Profile Destination Screens */}
         <Stack.Screen

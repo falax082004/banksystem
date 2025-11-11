@@ -2,11 +2,16 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { FONT } from '../styles/typography';
 
-const VoucherScreen = () => {
+const VoucherScreen = ({ navigation }) => {
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      title: 'Vouchers',
+    });
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Vouchers (Prototype)</Text>
+      <View style={styles.subtitleContainer}>
         <Text style={styles.subtitle}>Apply vouchers at checkout to save</Text>
       </View>
 
@@ -33,9 +38,17 @@ const VoucherScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
-  title: { fontSize: FONT.titleSize, fontWeight: FONT.weightBold, color: FONT.headerColor },
-  subtitle: { fontSize: FONT.subtitleSize, color: FONT.mutedColor, marginTop: 4 },
+  subtitleContainer: {
+    padding: 20,
+    paddingTop: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  subtitle: { 
+    fontSize: FONT.subtitleSize, 
+    color: FONT.mutedColor,
+  },
   content: { padding: 20 },
   card: { backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#ddd', padding: 16, marginBottom: 12 },
   voucherCode: { fontSize: FONT.bodySize, fontWeight: FONT.weightBold, color: FONT.headerColor },

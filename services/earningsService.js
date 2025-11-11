@@ -66,17 +66,20 @@ export const earningsService = {
     return { amount, distanceKm: distanceKm ?? null, method, vehicleType: vehicle, weightAdd, stopsAdd, perStop, vehicleMultiplier };
   },
 
-  recordDeliveryEarning: async (riderId, order) => {
+  recordDeliveryEarning: async (riderId, order, isPasabuyer = false) => {
     if (!riderId || !order?.id) return;
     const { amount, distanceKm, method } = earningsService.calculateEarningForOrder(order);
-    const earningsRef = ref(db, `earnings/riders/${riderId}`);
+    // Riders: earnings/riders/{riderId}
+    // Pasabuyers: earnings/pasabuyers/{riderId}
+    const path = isPasabuyer ? `earnings/pasabuyers/${riderId}` : `earnings/riders/${riderId}`;
+    const earningsRef = ref(db, path);
     const newRef = push(earningsRef);
     const payload = {
       id: newRef.key,
       riderId,
       orderId: order.id,
       orderNumber: order.orderNumber || null,
-      type: 'delivery',
+      type: isPasabuyer ? 'pasabuy' : 'delivery',
       amount,
       distanceKm,
       method,

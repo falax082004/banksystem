@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { db, ref, push, onValue, off, get } from '../firebaseConfig';
+import { db, ref, push, onValue, off, get, set } from '../firebaseConfig';
 
 const ChatScreen = ({ navigation, route }) => {
   const { orderId, userId, viewerRole, order, shopperId: propShopperId, riderId: propRiderId } = route.params || {};
@@ -81,7 +81,7 @@ const ChatScreen = ({ navigation, route }) => {
         <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
           <Text style={[styles.msgText, mine ? { color: '#fff' } : { color: '#222' }]}>{item.text}</Text>
           <Text style={[styles.meta, mine ? { color: '#f0f0f0' } : { color: '#888' }]}>
-            {item.senderRole === 'pasabuyer' ? 'Rider' : item.senderRole === 'shopper' ? 'Shopper' : 'User'}
+            {item.senderRole === 'pasabuyer' || item.senderRole === 'rider' ? 'Rider' : item.senderRole === 'shopper' ? 'Shopper' : 'User'}
           </Text>
         </View>
       </View>

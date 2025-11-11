@@ -3,13 +3,17 @@ import { View, Text, StyleSheet, SafeAreaView, FlatList } from 'react-native';
 import { onValue, off, ref, db } from '../firebaseConfig';
 
 const EarningsScreen = ({ route }) => {
-  const { userId } = route?.params || {};
+  const { userId, userType } = route?.params || {};
+  const isPasabuyer = userType === 'pasabuyer';
   const [earnings, setEarnings] = useState([]);
   const [totalThisWeek, setTotalThisWeek] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
-    const r = ref(db, `earnings/riders/${userId}`);
+    // Riders: earnings/riders/{userId}
+    // Pasabuyers: earnings/pasabuyers/{userId}
+    const path = isPasabuyer ? `earnings/pasabuyers/${userId}` : `earnings/riders/${userId}`;
+    const r = ref(db, path);
     const unsubscribe = onValue(r, (snap) => {
       if (!snap.exists()) {
         setEarnings([]);
@@ -28,13 +32,15 @@ const EarningsScreen = ({ route }) => {
       setTotalThisWeek(Math.round(weekTotal * 100) / 100);
     });
     return () => off(r, 'value', unsubscribe);
-  }, [userId]);
+  }, [userId, isPasabuyer]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Earnings</Text>
-        <Text style={styles.subtitle}>Your delivery earnings summary</Text>
+        <Text style={styles.subtitle}>
+          Your {isPasabuyer ? 'pasabuy' : 'delivery'} earnings summary
+        </Text>
       </View>
 
       <View style={styles.card}>
@@ -43,7 +49,7 @@ const EarningsScreen = ({ route }) => {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.label}>Total deliveries</Text>
+        <Text style={styles.label}>Total {isPasabuyer ? 'requests' : 'deliveries'}</Text>
         <Text style={styles.value}>{earnings.length}</Text>
       </View>
 

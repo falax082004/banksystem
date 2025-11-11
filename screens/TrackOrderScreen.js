@@ -550,7 +550,8 @@ const TrackOrderScreen = ({ navigation, route }) => {
                     try {
                       const riderId = userId;
                       if (riderId) {
-                        await earningsService.recordDeliveryEarning(riderId, delivered);
+                        const isPasabuyer = viewerRole === 'pasabuyer';
+                        await earningsService.recordDeliveryEarning(riderId, delivered, isPasabuyer);
                       }
                     } catch (e) {
                       // ignore earning errors in prototype flow

@@ -21,6 +21,7 @@ const ProfileScreen = ({ navigation, route }) => {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [pasabuyerEnabled, setPasabuyerEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasMpin, setHasMpin] = useState(false);
   const [showMpinModal, setShowMpinModal] = useState(false);
@@ -37,6 +38,7 @@ const ProfileScreen = ({ navigation, route }) => {
           setName(userData.name || 'User');
           setPhoneNumber(userData.phoneNumber || 'No phone number');
           setUserRole(userData.role || '');
+          setPasabuyerEnabled(!!userData.pasabuyerEnabled);
           setHasMpin(!!userData.mpin);
         }
       } catch (error) {
@@ -57,10 +59,6 @@ const ProfileScreen = ({ navigation, route }) => {
         { text: 'Log out', style: 'destructive', onPress: () => navigation.navigate('Login') }
       ]
     );
-  };
-
-  const handleRoleChange = () => {
-    navigation.navigate('RoleSelection', { userId });
   };
 
   const handleApplyPasabuyer = async () => {
@@ -138,12 +136,17 @@ const ProfileScreen = ({ navigation, route }) => {
     <TouchableOpacity 
       style={styles.menuItem} 
       onPress={() => requiresMpin ? handleProtectedNavigation(label, { userId, fullName: name }) : onPress()}
+      activeOpacity={0.7}
     >
       <View style={styles.menuItemContent}>
-        <Icon name={icon} size={18} color="#333" solid />
+        <View style={styles.iconContainer}>
+          <Icon name={icon} size={18} color="#333" solid />
+        </View>
         <Text style={styles.menuLabel}>{label}</Text>
       </View>
-      <Icon name="chevron-right" size={16} color="#666" />
+      <View style={styles.chevronContainer}>
+        <Icon name="chevron-right" size={16} color="#666" />
+      </View>
     </TouchableOpacity>
   );
 
@@ -184,41 +187,68 @@ const ProfileScreen = ({ navigation, route }) => {
                     <MenuItem 
                       icon="motorcycle" 
                       label="My Deliveries" 
-                      onPress={() => navigation.navigate('Orders', { userId })}
+                      onPress={() => navigation.navigate('DeliveryHistory', { userId })}
                     />
                     <MenuItem 
                       icon="wallet" 
                       label="Earnings" 
-                      onPress={() => Alert.alert('Prototype', 'Earnings screen prototype')}
+                      onPress={() => navigation.navigate('Earnings', { userId })}
                     />
                     <MenuItem 
                       icon="calendar-check" 
                       label="Availability" 
-                      onPress={() => Alert.alert('Prototype', 'Availability screen prototype')}
+                      onPress={() => navigation.navigate('Availability', { userId })}
                     />
                   </>
                 ) : (
                   <>
-                    <MenuItem 
-                      icon="exchange-alt" 
-                      label="Change Role" 
-                      onPress={handleRoleChange}
-                    />
-                    <MenuItem 
-                      icon="ticket-alt" 
-                      label="Vouchers" 
-                      onPress={() => navigation.navigate('Vouchers')}
-                    />
-                    <MenuItem 
-                      icon="shopping-bag" 
-                      label="Apply as Pasabuyer (Prototype)" 
-                      onPress={handleApplyPasabuyer}
-                    />
-                    <MenuItem 
-                      icon="user-friends" 
-                      label="Refer Friends" 
-                      onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })}
-                    />
+                    {pasabuyerEnabled ? (
+                      <>
+                        <MenuItem 
+                          icon="briefcase" 
+                          label="Requests" 
+                          onPress={() => navigation.navigate('PasabuyerRequests', { userId })}
+                        />
+                        <MenuItem 
+                          icon="wallet" 
+                          label="Earnings" 
+                          onPress={() => navigation.navigate('Earnings', { userId, userType: 'pasabuyer' })}
+                        />
+                        <MenuItem 
+                          icon="calendar-check" 
+                          label="Availability" 
+                          onPress={() => navigation.navigate('Availability', { userId, userType: 'pasabuyer' })}
+                        />
+                        <MenuItem 
+                          icon="ticket-alt" 
+                          label="Vouchers" 
+                          onPress={() => navigation.navigate('Vouchers')}
+                        />
+                        <MenuItem 
+                          icon="user-friends" 
+                          label="Refer Friends" 
+                          onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <MenuItem 
+                          icon="ticket-alt" 
+                          label="Vouchers" 
+                          onPress={() => navigation.navigate('Vouchers')}
+                        />
+                        <MenuItem 
+                          icon="shopping-bag" 
+                          label="Apply as Pasabuyer" 
+                          onPress={handleApplyPasabuyer}
+                        />
+                        <MenuItem 
+                          icon="user-friends" 
+                          label="Refer Friends" 
+                          onPress={() => navigation.navigate('ReferFriends', { userId, fullName: name })}
+                        />
+                      </>
+                    )}
                   </>
                 )}
 
@@ -371,18 +401,35 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 15,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    minHeight: 50,
   },
   menuItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   menuLabel: {
     marginLeft: 15,
     fontSize: FONT.bodySize,
     color: FONT.headerColor,
+    flex: 1,
+  },
+  iconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chevronContainer: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stretchArea: {
     flex: 1,
