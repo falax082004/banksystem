@@ -15,6 +15,13 @@ import { FONT } from '../styles/typography';
 import { pasapayService } from '../services/pasapayService';
 
 const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
+const sanitizeAmountInput = (raw = '') => raw.replace(/[^\d.]/g, '');
+
+const safeWithdrawalFee = (amount) => {
+  const value = Number(amount);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.max(10, Math.round(value * 0.02));
+};
 
 const PasapayWalletScreen = ({ route, navigation }) => {
   const { userId } = route.params || {};
@@ -86,7 +93,7 @@ const PasapayWalletScreen = ({ route, navigation }) => {
     </ScrollView>
   );
 
-  const withdrawalFee = withdrawAmount ? pasapayService.getWithdrawalFee(withdrawAmount || 0) : 0;
+  const withdrawalFee = safeWithdrawalFee(withdrawAmount);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -114,7 +121,7 @@ const PasapayWalletScreen = ({ route, navigation }) => {
             keyboardType="numeric"
             placeholder="Enter amount"
             value={cashInAmount}
-            onChangeText={setCashInAmount}
+            onChangeText={(value) => setCashInAmount(sanitizeAmountInput(value))}
           />
           <TouchableOpacity style={styles.primaryButton} onPress={handleCashIn}>
             <Icon name="plus-circle" size={16} color="#fff" />
@@ -130,7 +137,7 @@ const PasapayWalletScreen = ({ route, navigation }) => {
             keyboardType="numeric"
             placeholder="Enter amount"
             value={withdrawAmount}
-            onChangeText={setWithdrawAmount}
+            onChangeText={(value) => setWithdrawAmount(sanitizeAmountInput(value))}
           />
           <Text style={styles.feeText}>Withdrawal fee: {formatPeso(withdrawalFee)}</Text>
           <TouchableOpacity style={styles.secondaryButton} onPress={handleWithdraw}>

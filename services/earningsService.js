@@ -31,7 +31,7 @@ export const earningsService = {
   recordDeliveryEarning: async (riderId, order, isPasabuyer = false) => {
     if (!riderId || !order?.id) return;
     const { amount, distanceKm, method } = earningsService.calculateEarningForOrder(order);
-    const platformFee = order?.paymentMethod === 'cash' ? pasapayService.getCashPlatformFeeFromEarning(amount) : 0;
+    const platformFee = pasapayService.getCashPlatformFeeFromEarning(amount);
     const netAmount = Math.max(0, Number((amount - platformFee).toFixed(2)));
     // Riders: earnings/riders/{riderId}
     // Pasabuyers: earnings/pasabuyers/{riderId}
@@ -44,7 +44,8 @@ export const earningsService = {
       orderId: order.id,
       orderNumber: order.orderNumber || null,
       type: isPasabuyer ? 'pasabuy' : 'delivery',
-      amount,
+      amount: netAmount,
+      grossAmount: amount,
       platformFee,
       netAmount,
       distanceKm,
@@ -57,14 +58,16 @@ export const earningsService = {
     await set(newRef, payload);
 
     // Pasapay connection:
-    // - ONLINE/PASAPAY: credit the gross earning into Pasapay
+    // - ONLINE/PASAPAY: credit NET earning (after fixed -₱10 platform fee)
     // - CASH: do NOT credit earning into Pasapay; only deduct the fixed platform fee (-₱10)
     if (order?.paymentMethod !== 'cash') {
-      await pasapayService.credit(riderId, amount, `Earnings from ${isPasabuyer ? 'pasabuy' : 'delivery'} ${order.orderNumber || order.id}`, {
+      await pasapayService.credit(riderId, netAmount, `Earnings from ${isPasabuyer ? 'pasabuy' : 'delivery'} ${order.orderNumber || order.id}`, {
         orderId: order.id,
         orderNumber: order.orderNumber || null,
         earningId: payload.id,
         grossAmount: amount,
+        platformFee,
+        netAmount,
       });
     }
     if (order?.paymentMethod === 'cash' && platformFee > 0) {

@@ -13,7 +13,14 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { db, ref, get } from '../firebaseConfig';
 import { FONT } from '../styles/typography';
 import { orderActionsService } from '../services/orderActionsService';
-import { pasapayService } from '../services/pasapayService';
+
+const sanitizeAmountInput = (raw = '') => raw.replace(/[^\d.]/g, '');
+
+const getSafeCashReserve = (amount) => {
+  const value = Number(amount);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.ceil((value * 1.2) / 10) * 10;
+};
 
 const NewPasabuyRequestScreen = ({ navigation, route }) => {
   const { userId } = route.params || {};
@@ -112,7 +119,7 @@ const NewPasabuyRequestScreen = ({ navigation, route }) => {
             style={styles.input}
             placeholder="Enter estimated amount"
             value={budget}
-            onChangeText={setBudget}
+            onChangeText={(value) => setBudget(sanitizeAmountInput(value))}
             keyboardType="numeric"
           />
 
@@ -165,7 +172,7 @@ const NewPasabuyRequestScreen = ({ navigation, route }) => {
 
           {paymentMethod === 'cash' && budget ? (
             <Text style={styles.hintText}>
-              Cash requests require at least ₱{pasapayService.getRequiredCashReserve(Number(budget) || 0)} Pasapay balance before they can be accepted.
+              Cash requests require at least ₱{getSafeCashReserve(budget)} Pasapay balance before they can be accepted.
             </Text>
           ) : null}
 
