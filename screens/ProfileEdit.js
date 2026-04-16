@@ -217,11 +217,11 @@ const ProfileEdit = ({ navigation, route }) => {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Icon name="times" size={14} color="#333" />
           </TouchableOpacity>
+          <Text style={styles.headerText}>Edit Profile</Text>
         </View>
         <View style={styles.profileIcon}>
           <Icon name="user" size={48} color="#333" />
         </View>
-        <Text style={styles.headerText}>Edit Profile</Text>
 
         {loading ? (
           <ActivityIndicator size="large" color="#333" />
@@ -476,6 +476,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
   backButton: {
@@ -504,7 +505,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: 30,
   },
   userInfoContainer: {

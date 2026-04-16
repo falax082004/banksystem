@@ -100,7 +100,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   header: {
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
   backButton: {
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    marginBottom: 10,
+    marginRight: 10,
   },
   title: {
     fontSize: FONT.titleSize,

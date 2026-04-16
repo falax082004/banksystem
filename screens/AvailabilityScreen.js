@@ -117,11 +117,13 @@ const AvailabilityScreen = ({ navigation, route }) => {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Icon name="arrow-left" size={14} color="#333" />
           </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Availability</Text>
+            <Text style={styles.subtitle}>
+              Manage your {isPasabuyer ? 'pasabuy' : 'delivery'} availability
+            </Text>
+          </View>
         </View>
-        <Text style={styles.title}>Availability</Text>
-        <Text style={styles.subtitle}>
-          Manage your {isPasabuyer ? 'pasabuy' : 'delivery'} availability
-        </Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -259,6 +261,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
   backButton: {

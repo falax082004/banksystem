@@ -163,13 +163,17 @@ const DeliveryHistoryScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={14} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Delivery History</Text>
-        <Text style={styles.subtitle}>
-          {activeCount} active • {completedCount} completed
-        </Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color="#333" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Delivery History</Text>
+            <Text style={styles.subtitle}>
+              {activeCount} active • {completedCount} completed
+            </Text>
+          </View>
+        </View>
       </View>
 
       {loading ? (
@@ -207,6 +211,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   backButton: {
     width: 32,
     height: 32,
@@ -216,7 +224,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    marginBottom: 10,
+    marginRight: 10,
   },
   title: {
     fontSize: FONT.titleSize,

@@ -12,11 +12,15 @@ const ReferFriendsScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}> 
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={14} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Invite a friend to Pasabuy</Text>
-        <Text style={styles.subtitle}>{displayName} is inviting you to join Pasabuy.</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color="#333" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Invite a friend to Pasabuy</Text>
+            <Text style={styles.subtitle}>{displayName} is inviting you to join Pasabuy.</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.card}>
@@ -45,6 +49,10 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 16,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   backButton: {
     width: 32,
     height: 32,
@@ -54,7 +62,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    marginBottom: 10,
+    marginRight: 10,
   },
   title: {
     fontSize: FONT.titleSize,

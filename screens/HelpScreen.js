@@ -45,11 +45,15 @@ const HelpCenterScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerWrap}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={18} color="#222" />
-        </TouchableOpacity>
-        <Text style={styles.header}>Help Center</Text>
-        <Text style={styles.subheader}>Find answers and contact Pasabuy Support</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="close" size={18} color="#222" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.header}>Help Center</Text>
+            <Text style={styles.subheader}>Find answers and contact Pasabuy Support</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.cardsWrap}>
@@ -139,8 +143,12 @@ const styles = StyleSheet.create({
     borderColor: '#e5e5e5',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginRight: 10,
     backgroundColor: '#fff',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   header: {
     fontSize: FONT.titleSize,

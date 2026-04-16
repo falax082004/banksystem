@@ -13,10 +13,15 @@ const VoucherScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.subtitleContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={14} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.subtitle}>Apply vouchers at checkout to save</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color="#333" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Vouchers</Text>
+            <Text style={styles.subtitle}>Apply vouchers at checkout to save</Text>
+          </View>
+        </View>
       </View>
 
       <ScrollView style={styles.content}>
@@ -49,6 +54,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: FONT.titleSize,
+    fontWeight: FONT.weightBold,
+    color: FONT.headerColor,
+    marginBottom: 2,
+  },
   backButton: {
     width: 32,
     height: 32,
@@ -58,7 +73,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    marginBottom: 10,
+    marginRight: 10,
   },
   subtitle: { 
     fontSize: FONT.subtitleSize, 

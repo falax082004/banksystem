@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList } from 'react-native';
 import { onValue, off, ref, db } from '../firebaseConfig';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
 
@@ -40,9 +39,6 @@ const EarningsScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={14} color="#333" />
-        </TouchableOpacity>
         <Text style={styles.title}>Earnings</Text>
         <Text style={styles.subtitle}>
           Your {isPasabuyer ? 'pasabuy' : 'delivery'} earnings summary
@@ -95,17 +91,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    marginBottom: 10,
   },
   title: {
     fontSize: 24,
