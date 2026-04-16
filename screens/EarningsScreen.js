@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
 import { onValue, off, ref, db } from '../firebaseConfig';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
-const EarningsScreen = ({ route }) => {
+const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
+
+const EarningsScreen = ({ route, navigation }) => {
   const { userId, userType } = route?.params || {};
   const isPasabuyer = userType === 'pasabuyer';
   const [earnings, setEarnings] = useState([]);
@@ -29,7 +32,7 @@ const EarningsScreen = ({ route }) => {
       const weekTotal = list
         .filter((e) => e.createdAt && new Date(e.createdAt) >= weekStart)
         .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-      setTotalThisWeek(Math.round(weekTotal * 100) / 100);
+      setTotalThisWeek(Math.round(weekTotal));
     });
     return () => off(r, 'value', unsubscribe);
   }, [userId, isPasabuyer]);
@@ -37,6 +40,9 @@ const EarningsScreen = ({ route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={14} color="#333" />
+        </TouchableOpacity>
         <Text style={styles.title}>Earnings</Text>
         <Text style={styles.subtitle}>
           Your {isPasabuyer ? 'pasabuy' : 'delivery'} earnings summary
@@ -45,7 +51,7 @@ const EarningsScreen = ({ route }) => {
 
       <View style={styles.card}>
         <Text style={styles.label}>This week</Text>
-        <Text style={styles.value}>₱{totalThisWeek.toFixed(2)}</Text>
+        <Text style={styles.value}>{formatPeso(totalThisWeek)}</Text>
       </View>
 
       <View style={styles.card}>
@@ -67,7 +73,7 @@ const EarningsScreen = ({ route }) => {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f3f3' }}>
-                <Text style={{ fontWeight: '600', color: '#333' }}>₱{Number(item.amount || 0).toFixed(2)}</Text>
+                <Text style={{ fontWeight: '600', color: '#333' }}>{formatPeso(item.amount)}</Text>
                 <Text style={{ color: '#666', fontSize: 12 }}>{item.type || 'delivery'} • {item.orderNumber || item.orderId}</Text>
                 <Text style={{ color: '#999', fontSize: 12 }}>{new Date(item.createdAt).toLocaleString()}</Text>
               </View>
@@ -89,6 +95,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    marginBottom: 10,
   },
   title: {
     fontSize: 24,

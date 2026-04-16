@@ -22,6 +22,8 @@ import DeliveryHistoryScreen from './screens/DeliveryHistoryScreen';
 import PasabuyerRequestsScreen from './screens/PasabuyerRequestsScreen';
 import EarningsScreen from './screens/EarningsScreen';
 import AvailabilityScreen from './screens/AvailabilityScreen';
+import PasapayWalletScreen from './screens/PasapayWalletScreen';
+import NewPasabuyRequestScreen from './screens/NewPasabuyRequestScreen';
 
 // Profile Destination Screens
 import ReferFriendsScreen from './screens/ReferFriendsScreen';
@@ -34,9 +36,7 @@ const Stack = createStackNavigator();
 
 // Common screen options
 const commonScreenOptions = {
-  headerStyle: { backgroundColor: '#333' },
-  headerTitleStyle: { color: '#fff' },
-  headerShown: true,
+  headerShown: false,
 };
 
 export default function App() {
@@ -64,6 +64,8 @@ export default function App() {
         <Stack.Screen name="PasabuyerRequests" component={PasabuyerRequestsScreen} options={commonScreenOptions} />
         <Stack.Screen name="Earnings" component={EarningsScreen} options={commonScreenOptions} />
         <Stack.Screen name="Availability" component={AvailabilityScreen} options={commonScreenOptions} />
+        <Stack.Screen name="Pasapay" component={PasapayWalletScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="NewPasabuyRequest" component={NewPasabuyRequestScreen} options={commonScreenOptions} />
 
         {/* Profile Destination Screens */}
         <Stack.Screen

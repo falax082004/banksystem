@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 
 const VoucherScreen = ({ navigation }) => {
@@ -12,6 +13,9 @@ const VoucherScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.subtitleContainer}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={14} color="#333" />
+        </TouchableOpacity>
         <Text style={styles.subtitle}>Apply vouchers at checkout to save</Text>
       </View>
 
@@ -44,6 +48,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    marginBottom: 10,
   },
   subtitle: { 
     fontSize: FONT.subtitleSize, 

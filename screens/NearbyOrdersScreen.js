@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TextInput, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
-import { db, ref, get, set, onValue, off } from '../firebaseConfig';
+import { db, ref, get, onValue, off, set } from '../firebaseConfig';
+import { orderActionsService } from '../services/orderActionsService';
+import { pasapayService } from '../services/pasapayService';
 
 // Prototype-only mock nearby orders
 const MOCK_ORDERS = [
@@ -46,6 +48,24 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
   const [query, setQuery] = useState('');
   const [maxDistance, setMaxDistance] = useState('3'); // km
   const [remoteOrders, setRemoteOrders] = useState(null);
+  const [viewerRole, setViewerRole] = useState('rider');
+  const [userBarangay, setUserBarangay] = useState(null);
+  const [pasapayBalance, setPasapayBalance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!userId) return;
+      const snapshot = await get(ref(db, `users/${userId}`));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setViewerRole(data.role === 'rider' ? 'rider' : data.pasabuyerEnabled ? 'pasabuyer' : 'rider');
+        setUserBarangay(data.barangay || null);
+        setPasapayBalance(Number(data.pasapayBalance || 0));
+      }
+    };
+    loadUser();
+  }, [userId]);
 
   useEffect(() => {
     const poolRef = ref(db, 'availableOrders');
@@ -61,6 +81,32 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
     return () => off(poolRef, 'value', unsub);
   }, []);
 
+  const handleRefresh = async () => {
+    if (!userId) return;
+    setIsRefreshing(true);
+    try {
+      const userSnap = await get(ref(db, `users/${userId}`));
+      if (userSnap.exists()) {
+        const data = userSnap.val();
+        setViewerRole(data.role === 'rider' ? 'rider' : data.pasabuyerEnabled ? 'pasabuyer' : 'rider');
+        setUserBarangay(data.barangay || null);
+        setPasapayBalance(Number(data.pasapayBalance || 0));
+      }
+      const poolSnap = await get(ref(db, 'availableOrders'));
+      if (poolSnap.exists()) {
+        const val = poolSnap.val();
+        const list = Object.keys(val).map((k) => ({ id: k, ...val[k] }));
+        setRemoteOrders(list);
+      } else {
+        setRemoteOrders([]);
+      }
+    } catch (e) {
+      // no-op; realtime subscription will still update
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const source = remoteOrders && remoteOrders.length >= 0 ? remoteOrders : MOCK_ORDERS;
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -70,9 +116,15 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
       !o.assignedTo &&
       // Do not show user's own orders to themselves
       (o.ownerId ? o.ownerId !== userId : true) &&
+      (viewerRole === 'rider' ? true : !o.deliveryBarangay || o.deliveryBarangay === userBarangay) &&
+      // Cash orders should not even display if assignee has insufficient Pasapay reserve
+      (o.paymentMethod !== 'cash'
+        ? true
+        : pasapayBalance >= Number(o.cashReserveRequired || pasapayService.getRequiredCashReserve(o.totalAmount || 0))) &&
       o.distanceKm <= max && (
         q.length === 0 ||
         o.orderNumber.toLowerCase().includes(q) ||
+        (o.requestedItem || '').toLowerCase().includes(q) ||
         o.stores.some(s =>
           s.storeName.toLowerCase().includes(q) ||
           s.storeCategory.toLowerCase().includes(q) ||
@@ -80,7 +132,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
         )
       )
     ).sort((a,b) => a.distanceKm - b.distanceKm);
-  }, [query, maxDistance, source]);
+  }, [query, maxDistance, source, userId, viewerRole, userBarangay, pasapayBalance]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -101,6 +153,11 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
       </View>
       <Text style={styles.meta}>Distance: {order.distanceKm} km</Text>
       <Text style={styles.meta}>Total: ₱{order.totalAmount}</Text>
+      <Text style={styles.meta}>Payment: {(order.paymentChannel || order.paymentMethod || 'cash').toString()}</Text>
+      <Text style={styles.meta}>Address: {order.deliveryAddress || 'No delivery address'}</Text>
+      {order.requestType === 'custom_pasabuy' && order.requestedItem ? (
+        <Text style={styles.meta}>Requested item: {order.requestedItem}</Text>
+      ) : null}
       <View style={styles.storeRow}>
         <Icon name="store" size={12} color="#666" />
         <Text style={styles.storeText}>{order.stores[0].storeName} • {order.stores[0].storeCategory}</Text>
@@ -108,7 +165,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => navigation.navigate('TrackOrder', { order, userId, viewerRole: 'pasabuyer' })}
+          onPress={() => navigation.navigate('TrackOrder', { order, userId, viewerRole })}
         >
           <Icon name="map-marker-alt" size={14} color="#fff" />
           <Text style={styles.primaryBtnText}>Track</Text>
@@ -116,39 +173,53 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
         <TouchableOpacity
           style={styles.secondaryBtn}
           onPress={async () => {
-            // Accept order: move to rider's deliveries and remove from available pool
             try {
-              if (order.ownerId && order.ownerId === userId) {
-                return; // Prevent accepting own order
-              }
-              const updated = { ...order, assignedTo: userId, status: 'rider_assigned' };
-              // Write to rider's deliveries
-              const riderRef = ref(db, `riderDeliveries/${userId}/${order.id}`);
-              await set(riderRef, updated);
-              // Reflect in shopper's order
+              if (!order?.id || !userId) return;
+              // Allow pre-accept communication: enroll as chat participant without accepting the order.
+              await set(ref(db, `chats/${order.id}/participants/${userId}`), true);
               if (order.ownerId) {
-                const shopperOrderRef = ref(db, `orders/${order.ownerId}/${order.id}`);
-                await set(shopperOrderRef, { ...(order.original || order), status: 'rider_assigned', assignedTo: userId, id: order.id, userId: order.ownerId });
+                await set(ref(db, `chats/${order.id}/participants/${order.ownerId}`), true);
               }
-              // Add rider to chat participants
-              const chatMetaRef = ref(db, `chats/${order.id}/participants/${userId}`);
-              await set(chatMetaRef, true);
-              // Add shopper as participant too
-              if (order.ownerId) {
-                const shopperChatRef = ref(db, `chats/${order.id}/participants/${order.ownerId}`);
-                await set(shopperChatRef, true);
-              }
-              // Remove from available so others cannot see
-              const assignmentRef = ref(db, `availableOrders/${order.id}`);
-              await set(assignmentRef, null);
-              navigation.navigate('TrackOrder', { order: updated, userId, viewerRole: 'rider' });
+              navigation.navigate('Chat', {
+                orderId: order.id,
+                userId,
+                viewerRole,
+                order,
+                shopperId: order.ownerId,
+              });
             } catch (e) {
-              // no-op
+              Alert.alert('Chat Unavailable', e.message || 'Unable to open chat.');
             }
           }}
         >
+          <Icon name="comments" size={14} color="#333" />
+          <Text style={styles.secondaryBtnText}>Chat Customer</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          onPress={() => {
+            Alert.alert(
+              'Confirm Order',
+              `Accept this ${viewerRole === 'rider' ? 'delivery' : 'pasabuy'} request for ${order.deliveryAddress || 'the shopper address'}?`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Accept',
+                  onPress: async () => {
+                    try {
+                      const updated = await orderActionsService.acceptAvailableOrder({ order, userId, viewerRole });
+                      navigation.navigate('TrackOrder', { order: updated, userId, viewerRole });
+                    } catch (e) {
+                      Alert.alert('Unable to Accept', e.message || 'Failed to accept this order.');
+                    }
+                  },
+                },
+              ]
+            );
+          }}
+        >
           <Icon name="hand-paper" size={14} color="#333" />
-          <Text style={styles.secondaryBtnText}>Accept Delivery</Text>
+          <Text style={styles.secondaryBtnText}>Accept Order</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -157,8 +228,20 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Track Orders</Text>
-        <Text style={styles.subtitle}>Track and accept nearby deliveries</Text>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>{viewerRole === 'rider' ? 'Available Orders' : 'Orders In My Barangay'}</Text>
+            <Text style={styles.subtitle}>
+              {viewerRole === 'rider'
+                ? 'Riders can accept orders across Batangas.'
+                : `Pasabuyers only see requests in ${userBarangay || 'their barangay'}.`}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.refreshBtn} onPress={handleRefresh} disabled={isRefreshing}>
+            <Icon name="sync" size={16} color="#333" />
+            <Text style={styles.refreshText}>{isRefreshing ? 'Refreshing' : 'Refresh'}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.filters}>
@@ -203,8 +286,11 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   title: { fontSize: FONT.titleSize, fontWeight: FONT.weightBold, color: FONT.headerColor },
   subtitle: { fontSize: FONT.subtitleSize, color: FONT.mutedColor, marginTop: 4 },
+  refreshBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', borderWidth: 1, borderColor: '#ddd', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
+  refreshText: { marginLeft: 6, color: '#333', fontWeight: '600', fontSize: 13 },
   filters: { paddingHorizontal: 20, paddingTop: 12 },
   inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 12, marginBottom: 10 },
   input: { flex: 1, height: 42, marginLeft: 8, color: '#333' },
@@ -217,10 +303,10 @@ const styles = StyleSheet.create({
   meta: { fontSize: FONT.smallSize, color: FONT.mutedColor },
   storeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
   storeText: { marginLeft: 6, color: FONT.mutedColor, fontSize: FONT.smallSize },
-  actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  primaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#333', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 6 },
+  actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, gap: 8 },
+  primaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#333', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 6, flex: 1, justifyContent: 'center' },
   primaryBtnText: { color: '#fff', fontWeight: '600', marginLeft: 6, fontSize: FONT.bodySize },
-  secondaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: '#ddd' },
+  secondaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: '#ddd', flex: 1, justifyContent: 'center' },
   secondaryBtnText: { color: '#333', fontWeight: '600', marginLeft: 6, fontSize: FONT.bodySize },
   emptyBox: { alignItems: 'center', padding: 30 },
   emptyText: { color: FONT.secondaryMuted, marginTop: 8 },

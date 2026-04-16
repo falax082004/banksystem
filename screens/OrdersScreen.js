@@ -101,8 +101,10 @@ const OrdersScreen = ({ navigation, route }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return '#FFA500';
-      case 'in_progress': return '#007AFF';
-      case 'completed': return '#00C853';
+      case 'rider_assigned': return '#9C27B0';
+      case 'shopping': return '#FF9800';
+      case 'on_way': return '#007AFF';
+      case 'delivered': return '#00C853';
       case 'cancelled': return '#FF6B6B';
       default: return '#666';
     }
@@ -111,8 +113,10 @@ const OrdersScreen = ({ navigation, route }) => {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'pending': return 'clock';
-      case 'in_progress': return 'truck';
-      case 'completed': return 'check-circle';
+      case 'rider_assigned': return 'user-check';
+      case 'shopping': return 'shopping-cart';
+      case 'on_way': return 'truck';
+      case 'delivered': return 'check-circle';
       case 'cancelled': return 'times-circle';
       default: return 'question-circle';
     }
@@ -186,7 +190,7 @@ const OrdersScreen = ({ navigation, route }) => {
           <View key={index} style={styles.storeItem}>
             <Icon name="store" size={14} color="#666" />
             <Text style={styles.storeName}>{store.storeName}</Text>
-            <Text style={styles.storeQuantity}>x{store.quantity}</Text>
+            <Text style={styles.storeQuantity}>x{store.serviceQuantity || store.quantity || 1}</Text>
           </View>
         ))}
       </View>
@@ -218,7 +222,14 @@ const OrdersScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      {order.status === 'in_progress' && (
+      <View style={styles.deliveryInfo}>
+        <Icon name="map-marker-alt" size={14} color="#007AFF" />
+        <Text style={styles.deliveryText}>
+          {order.deliveryAddress || 'No delivery address saved'}
+        </Text>
+      </View>
+
+      {['rider_assigned', 'shopping', 'on_way'].includes(order.status) && (
         <View style={styles.deliveryInfo}>
           <Icon name="clock" size={14} color="#007AFF" />
           <Text style={styles.deliveryText}>

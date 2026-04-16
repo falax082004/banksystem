@@ -1,12 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { TouchableOpacity } from 'react-native';
 import { FONT } from '../styles/typography';
 
-const TermsScreen = () => {
+const TermsScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color="#333" />
+          </TouchableOpacity>
           <Text style={styles.title}>Pasabuy Terms and Conditions</Text>
         </View>
 
@@ -97,6 +102,17 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'flex-start',
     marginBottom: 16,
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    marginBottom: 10,
   },
   title: {
     fontSize: FONT.titleSize,

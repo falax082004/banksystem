@@ -11,14 +11,19 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useFocusEffect } from '@react-navigation/native';
 import { cartService } from '../services/cartService';
-import { db, ref, push, set, get } from '../firebaseConfig';
+import { db, ref, get } from '../firebaseConfig';
 import { orderService } from '../services/orderService';
 import { FONT } from '../styles/typography';
+import { pasapayService } from '../services/pasapayService';
 
 const CartScreen = ({ navigation, route }) => {
   const { userId } = route.params || {};
   const [cart, setCart] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentChannel, setPaymentChannel] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [pasapayBalance, setPasapayBalance] = useState(0);
 
   console.log('CartScreen: Received userId:', userId);
 
@@ -36,6 +41,25 @@ const CartScreen = ({ navigation, route }) => {
       const currentCart = cartService.getCart();
       console.log('CartScreen: Refreshing cart:', currentCart);
       setCart(currentCart);
+
+      const loadCheckoutData = async () => {
+        if (!userId) return;
+        try {
+          const snapshot = await get(ref(db, `users/${userId}`));
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            setDeliveryAddress(
+              data.address ||
+              (data.barangay && data.area ? `${data.barangay}, ${data.area}, Batangas` : '')
+            );
+            setPasapayBalance(Number(data.pasapayBalance || 0));
+          }
+        } catch (error) {
+          console.error('CartScreen: Failed to load checkout data', error);
+        }
+      };
+
+      loadCheckoutData();
     }, [])
   );
 
@@ -64,20 +88,60 @@ const CartScreen = ({ navigation, route }) => {
       return;
     }
 
+    if (!deliveryAddress) {
+      Alert.alert('Address Required', 'Please set your Batangas area and barangay in your profile first.');
+      return;
+    }
+
+    if (paymentMethod === 'online' && !paymentChannel) {
+      Alert.alert('Payment Channel Required', 'Choose GCash, Maya, PayPal, or Card for online payment.');
+      return;
+    }
+
+    const totalAmount = calculateTotal();
+    const cashReserveRequired = pasapayService.getRequiredCashReserve(totalAmount);
+
+    if (paymentMethod === 'pasapay' && pasapayBalance < totalAmount) {
+      Alert.alert('Insufficient Pasapay', 'Your Pasapay balance is not enough for this payment.');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
-      const saved = await orderService.createOrderFromCart(userId);
+      await orderService.createOrderFromCart(userId, {
+        paymentMethod,
+        paymentChannel: paymentMethod === 'online' ? paymentChannel : '',
+        deliveryAddress,
+      });
       // Immediately clear cart and go to Orders
       cartService.clearCart();
       setCart([]);
+      if (paymentMethod === 'pasapay') {
+        setPasapayBalance((value) => Math.max(0, value - totalAmount));
+      }
       setIsLoading(false);
+      if (paymentMethod === 'cash') {
+        Alert.alert(
+          'Order Placed',
+          `Cash payment selected. Riders or pasabuyers will need at least ₱${cashReserveRequired} Pasapay balance before they can accept this order.`
+        );
+      }
       navigation.navigate('Home', { userId, screen: 'Orders' });
     } catch (error) {
       setIsLoading(false);
       Alert.alert('Error', `Failed to place order: ${error.message}`);
     }
   };
+
+  const paymentOptions = [
+    { id: 'cash', label: 'Cash' },
+    { id: 'online', label: 'Online' },
+    { id: 'pasapay', label: 'Pasapay' },
+  ];
+
+  const totalAmount = calculateTotal();
+  const cashReserveRequired = cart.length > 0 ? pasapayService.getRequiredCashReserve(totalAmount) : 0;
 
   const CartItem = ({ store }) => (
     <View style={styles.cartItem}>
@@ -90,17 +154,23 @@ const CartScreen = ({ navigation, route }) => {
             <Text style={styles.lineName}>{line.itemName}</Text>
             <View style={styles.lineRight}>
               <Text style={styles.linePrice}>₱{line.itemPrice}</Text>
-              <View style={styles.quantityControls}>
-                <TouchableOpacity 
+              <View style={styles.lineQtyControls}>
+                <TouchableOpacity
                   style={styles.quantityButton}
-                  onPress={() => { cartService.updateItemQuantity({ storeId: store.storeId, itemId: line.itemId, newQuantity: line.quantity - 1 }); setCart([...cart]); }}
+                  onPress={() => {
+                    cartService.updateItemQuantity({ storeId: store.storeId, itemId: line.itemId, newQuantity: line.quantity - 1 });
+                    setCart([...cartService.getCart()]);
+                  }}
                 >
                   <Icon name="minus" size={12} color="#333" />
                 </TouchableOpacity>
-                <Text style={styles.quantityText}>{line.quantity}</Text>
-                <TouchableOpacity 
+                <Text style={styles.lineQtyText}>{line.quantity}</Text>
+                <TouchableOpacity
                   style={styles.quantityButton}
-                  onPress={() => { cartService.updateItemQuantity({ storeId: store.storeId, itemId: line.itemId, newQuantity: line.quantity + 1 }); setCart([...cart]); }}
+                  onPress={() => {
+                    cartService.updateItemQuantity({ storeId: store.storeId, itemId: line.itemId, newQuantity: line.quantity + 1 });
+                    setCart([...cartService.getCart()]);
+                  }}
                 >
                   <Icon name="plus" size={12} color="#333" />
                 </TouchableOpacity>
@@ -111,21 +181,6 @@ const CartScreen = ({ navigation, route }) => {
       </View>
 
       <View style={styles.itemControls}>
-        <View style={styles.quantityControls}>
-          <TouchableOpacity 
-            style={styles.quantityButton}
-            onPress={() => updateQuantity(store.id, (store.serviceQuantity || 1) - 1)}
-          >
-            <Icon name="minus" size={12} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.quantityText}>{store.serviceQuantity || 1}</Text>
-          <TouchableOpacity 
-            style={styles.quantityButton}
-            onPress={() => updateQuantity(store.id, (store.serviceQuantity || 1) + 1)}
-          >
-            <Icon name="plus" size={12} color="#333" />
-          </TouchableOpacity>
-        </View>
         <TouchableOpacity 
           style={styles.removeButton}
           onPress={() => removeFromCart(store.id)}
@@ -190,6 +245,66 @@ const CartScreen = ({ navigation, route }) => {
             <View style={styles.totalSection}>
               <Text style={styles.totalLabel}>Total Amount:</Text>
               <Text style={styles.totalAmount}>₱{calculateTotal()}</Text>
+            </View>
+
+            <View style={styles.addressCard}>
+              <Text style={styles.checkoutLabel}>Delivery Address</Text>
+              <Text style={styles.addressValue}>{deliveryAddress || 'Set your area and barangay in profile first.'}</Text>
+            </View>
+
+            <View style={styles.paymentCard}>
+              <Text style={styles.checkoutLabel}>Payment Method</Text>
+              <View style={styles.paymentOptionsRow}>
+                {paymentOptions.map((option) => {
+                  const active = paymentMethod === option.id;
+                  return (
+                    <TouchableOpacity
+                      key={option.id}
+                      style={[styles.paymentChip, active && styles.paymentChipActive]}
+                      onPress={() => {
+                        setPaymentMethod(option.id);
+                        if (option.id !== 'online') {
+                          setPaymentChannel('');
+                        }
+                      }}
+                    >
+                      <Text style={[styles.paymentChipText, active && styles.paymentChipTextActive]}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {paymentMethod === 'online' && (
+                <>
+                  <Text style={styles.checkoutLabel}>Online Channel</Text>
+                  <View style={styles.paymentOptionsRow}>
+                    {['GCash', 'Maya', 'PayPal', 'Card'].map((channel) => {
+                      const active = paymentChannel === channel;
+                      return (
+                        <TouchableOpacity
+                          key={channel}
+                          style={[styles.paymentChip, active && styles.paymentChipActive]}
+                          onPress={() => setPaymentChannel(channel)}
+                        >
+                          <Text style={[styles.paymentChipText, active && styles.paymentChipTextActive]}>{channel}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+
+              {paymentMethod === 'pasapay' && (
+                <Text style={styles.checkoutInfoText}>
+                  Pasapay balance: ₱{pasapayBalance.toFixed(2)}
+                </Text>
+              )}
+
+              {paymentMethod === 'cash' && (
+                <Text style={styles.checkoutInfoText}>
+                  Cash orders require at least ₱{cashReserveRequired} Pasapay balance before a rider or pasabuyer can accept them.
+                </Text>
+              )}
             </View>
             
             <View style={styles.checkoutInfo}>
@@ -344,6 +459,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  lineQtyControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  lineQtyText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginHorizontal: 10,
+    minWidth: 16,
+    textAlign: 'center',
+  },
   quantityControls: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -374,6 +506,59 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: '#eee',
+  },
+  addressCard: {
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  paymentCard: {
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  checkoutLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  addressValue: {
+    color: '#666',
+    fontSize: 14,
+  },
+  paymentOptionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 8,
+  },
+  paymentChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  paymentChipActive: {
+    backgroundColor: '#333',
+    borderColor: '#333',
+  },
+  paymentChipText: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  paymentChipTextActive: {
+    color: '#fff',
   },
   totalSection: {
     flexDirection: 'row',

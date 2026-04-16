@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { db, ref, get, update } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
+import { BATANGAS_LOCATION_OPTIONS, getBatangasLocationByLabel } from '../constants/batangasLocations';
 
 const ProfileEdit = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -57,7 +57,7 @@ const ProfileEdit = ({ navigation, route }) => {
           const addressToShow = userData.address || registeredAddress || '';
           setAddress(addressToShow);
           // Initialize dropdown selections from registered location.
-          const matchedArea = BATANGAS_LOCATION_OPTIONS.find((a) => a.label === userData.area) || null;
+          const matchedArea = getBatangasLocationByLabel(userData.area);
           setSelectedArea(matchedArea);
           setSelectedBarangay(userData.barangay || '');
           setOriginalArea(matchedArea);
@@ -147,7 +147,7 @@ const ProfileEdit = ({ navigation, route }) => {
 
   const handleSaveAddress = async () => {
     if (!selectedArea || !selectedBarangay) {
-      alert('Please select your city/municipality and barangay');
+      alert('Please select your area and barangay');
       return;
     }
 
@@ -213,6 +213,11 @@ const ProfileEdit = ({ navigation, route }) => {
   return (
     <View style={styles.background}>
       <View style={styles.container}>
+        <View style={styles.topBar}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="times" size={14} color="#333" />
+          </TouchableOpacity>
+        </View>
         <View style={styles.profileIcon}>
           <Icon name="user" size={48} color="#333" />
         </View>
@@ -300,7 +305,7 @@ const ProfileEdit = ({ navigation, route }) => {
                       }}
                     >
                       <Text style={selectedArea ? styles.dropdownValue : styles.dropdownPlaceholder}>
-                        {selectedArea ? selectedArea.label : 'Choose city/municipality'}
+                        {selectedArea ? selectedArea.label : 'Choose area'}
                       </Text>
                     </TouchableOpacity>
                     {showAreaDropdown && (
@@ -468,6 +473,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+  },
+  topBar: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
   },
   profileIcon: {
     width: 120,

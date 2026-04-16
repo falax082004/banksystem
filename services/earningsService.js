@@ -1,74 +1,38 @@
 import { db, ref, push, set, serverTimestamp, get } from '../firebaseConfig';
+import { pasapayService } from './pasapayService';
 
-// Enhanced earning calculation similar to common delivery platforms
-// Configurable tiers and multipliers
-const VEHICLE_MULTIPLIER = {
-  bike: 0.8,
-  motorcycle: 1.0,
-  car: 1.6,
-  van: 2.5,
+const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+// Batangas provincial delivery pricing (gross earning shown in Earnings)
+// Near (1–2 km) → ₱30 – ₱50
+// Medium (3–5 km) → ₱50 – ₱80
+// Far (6–10 km) → ₱80 – ₱120
+const calculateProvincialDeliveryFee = (distanceKm) => {
+  const d = typeof distanceKm === 'number' && Number.isFinite(distanceKm) ? distanceKm : null;
+  if (d === null) return 50;
+
+  if (d <= 1) return 30;
+  if (d <= 2) return Math.round(lerp(30, 50, clamp((d - 1) / 1, 0, 1)));
+  if (d < 3) return 50;
+  if (d <= 5) return Math.round(lerp(50, 80, clamp((d - 3) / 2, 0, 1)));
+  if (d < 6) return 80;
+  if (d <= 10) return Math.round(lerp(80, 120, clamp((d - 6) / 4, 0, 1)));
+  return Math.round(120 + (d - 10) * 10);
 };
-
-const DISTANCE_TIERS = [
-  { maxKm: 3, base: 50, perKm: 0 },
-  { maxKm: 5, base: 60, perKm: 8 },
-  { maxKm: 8, base: 75, perKm: 10 },
-  { maxKm: 12, base: 90, perKm: 12 },
-  { maxKm: Infinity, base: 100, perKm: 14 },
-];
-
-const WEIGHT_TIERS = [
-  { maxKg: 3, add: 0 },
-  { maxKg: 5, add: 10 },
-  { maxKg: 10, add: 25 },
-  { maxKg: Infinity, add: 50 },
-];
-
-const STOP_FEE_RANGE = { min: 20, max: 50 }; // per additional stop (beyond first)
-const FALLBACK_PERCENT = 0.1; // fallback if distance missing
 
 export const earningsService = {
   calculateEarningForOrder: (order) => {
     const distanceKm = typeof order?.distanceKm === 'number' ? order.distanceKm : null;
-    const totalAmount = typeof order?.totalAmount === 'number' ? order.totalAmount : 0;
-    const vehicle = (order?.vehicleType || 'motorcycle').toLowerCase();
-    const vehicleMultiplier = VEHICLE_MULTIPLIER[vehicle] ?? 1.0;
-    const estWeightKg = typeof order?.estimatedWeightKg === 'number' ? order.estimatedWeightKg : null;
-    const stops = Array.isArray(order?.stores) ? Math.max(1, order.stores.length) : 1;
-
-    let method = 'distance_vehicle_weight_stops';
-    let base = 0;
-    if (distanceKm !== null && !Number.isNaN(distanceKm)) {
-      // pick tier and compute
-      const tier = DISTANCE_TIERS.find(t => distanceKm <= t.maxKm) || DISTANCE_TIERS[DISTANCE_TIERS.length - 1];
-      const extraKm = Math.max(0, distanceKm - (tier.maxKm === Infinity ? 12 : (tier.maxKm - (tier.perKm > 0 ? 1 : 0))));
-      base = tier.base + (tier.perKm > 0 ? (Math.max(0, distanceKm - Math.min(distanceKm, (tier.maxKm === Infinity ? 12 : (tier.maxKm - 1)))) * tier.perKm) : 0);
-    } else {
-      method = 'fallback_percent_total';
-      base = Math.max(0, totalAmount * FALLBACK_PERCENT);
-    }
-
-    // weight add-on
-    let weightAdd = 0;
-    if (estWeightKg !== null && !Number.isNaN(estWeightKg)) {
-      const wt = WEIGHT_TIERS.find(w => estWeightKg <= w.maxKg) || WEIGHT_TIERS[WEIGHT_TIERS.length - 1];
-      weightAdd = wt.add;
-    }
-
-    // stops add-on (beyond first)
-    const additionalStops = Math.max(0, stops - 1);
-    // distribute per stop within range relative to distance (simple heuristic)
-    const perStop = Math.round((STOP_FEE_RANGE.min + Math.min(1, (distanceKm ?? 5) / 10) * (STOP_FEE_RANGE.max - STOP_FEE_RANGE.min)));
-    const stopsAdd = additionalStops * perStop;
-
-    let amount = (base + weightAdd + stopsAdd) * vehicleMultiplier;
-    amount = Math.round(amount * 100) / 100;
-    return { amount, distanceKm: distanceKm ?? null, method, vehicleType: vehicle, weightAdd, stopsAdd, perStop, vehicleMultiplier };
+    const amount = calculateProvincialDeliveryFee(distanceKm);
+    return { amount, distanceKm: distanceKm ?? null, method: 'batangas_provincial_pricing' };
   },
 
   recordDeliveryEarning: async (riderId, order, isPasabuyer = false) => {
     if (!riderId || !order?.id) return;
     const { amount, distanceKm, method } = earningsService.calculateEarningForOrder(order);
+    const platformFee = order?.paymentMethod === 'cash' ? pasapayService.getCashPlatformFeeFromEarning(amount) : 0;
+    const netAmount = Math.max(0, Number((amount - platformFee).toFixed(2)));
     // Riders: earnings/riders/{riderId}
     // Pasabuyers: earnings/pasabuyers/{riderId}
     const path = isPasabuyer ? `earnings/pasabuyers/${riderId}` : `earnings/riders/${riderId}`;
@@ -81,13 +45,36 @@ export const earningsService = {
       orderNumber: order.orderNumber || null,
       type: isPasabuyer ? 'pasabuy' : 'delivery',
       amount,
+      platformFee,
+      netAmount,
       distanceKm,
       method,
       totalAmount: order.totalAmount ?? null,
       createdAt: new Date().toISOString(),
       createdAtServer: serverTimestamp(),
+      creditedToPasapay: order?.paymentMethod === 'cash' ? false : true,
     };
     await set(newRef, payload);
+
+    // Pasapay connection:
+    // - ONLINE/PASAPAY: credit the gross earning into Pasapay
+    // - CASH: do NOT credit earning into Pasapay; only deduct the fixed platform fee (-₱10)
+    if (order?.paymentMethod !== 'cash') {
+      await pasapayService.credit(riderId, amount, `Earnings from ${isPasabuyer ? 'pasabuy' : 'delivery'} ${order.orderNumber || order.id}`, {
+        orderId: order.id,
+        orderNumber: order.orderNumber || null,
+        earningId: payload.id,
+        grossAmount: amount,
+      });
+    }
+    if (order?.paymentMethod === 'cash' && platformFee > 0) {
+      await pasapayService.spend(
+        riderId,
+        platformFee,
+        `Platform fee for cash order ${order.orderNumber || order.id}`,
+        { orderId: order.id, orderNumber: order.orderNumber || null, earningId: payload.id, feeType: 'platform_fee_cash' }
+      );
+    }
     return payload;
   },
 
@@ -114,8 +101,16 @@ export const earningsService = {
       amount: fee,
       createdAt: new Date().toISOString(),
       createdAtServer: serverTimestamp(),
+      creditedToPasapay: true,
     };
     await set(newRef, payload);
+
+    await pasapayService.credit(
+      riderId,
+      fee,
+      `Cancellation compensation ${order.orderNumber || order.id}`,
+      { orderId: order.id, orderNumber: order.orderNumber || null, earningId: payload.id }
+    );
     return payload;
   },
 };

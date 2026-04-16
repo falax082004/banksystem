@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 
-const ReferFriendsScreen = ({ route }) => {
+const ReferFriendsScreen = ({ route, navigation }) => {
   const { userId, fullName } = route.params || {};
   const displayName = fullName || 'A friend';
   const referralUrl = `https://pasabuy.app/ref?userId=${encodeURIComponent(userId || 'guest')}`;
@@ -11,6 +12,9 @@ const ReferFriendsScreen = ({ route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}> 
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={14} color="#333" />
+        </TouchableOpacity>
         <Text style={styles.title}>Invite a friend to Pasabuy</Text>
         <Text style={styles.subtitle}>{displayName} is inviting you to join Pasabuy.</Text>
       </View>
@@ -40,6 +44,17 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 16,
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    marginBottom: 10,
   },
   title: {
     fontSize: FONT.titleSize,

@@ -184,6 +184,11 @@ const ProfileScreen = ({ navigation, route }) => {
               <View style={styles.menuContainer}>
                 {userRole === 'rider' ? (
                   <>
+                    <MenuItem
+                      icon="wallet"
+                      label="Pasapay"
+                      onPress={() => navigation.navigate('Pasapay', { userId })}
+                    />
                     <MenuItem 
                       icon="motorcycle" 
                       label="My Deliveries" 
@@ -202,6 +207,11 @@ const ProfileScreen = ({ navigation, route }) => {
                   </>
                 ) : (
                   <>
+                    <MenuItem
+                      icon="wallet"
+                      label="Pasapay"
+                      onPress={() => navigation.navigate('Pasapay', { userId })}
+                    />
                     {pasabuyerEnabled ? (
                       <>
                         <MenuItem 

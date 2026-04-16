@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { db, ref, set, get } from '../firebaseConfig';
+import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -8,8 +9,13 @@ const RegisterScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [selectedBarangay, setSelectedBarangay] = useState('');
+  const [showAreaDropdown, setShowAreaDropdown] = useState(false);
+  const [showBarangayDropdown, setShowBarangayDropdown] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const barangayOptions = useMemo(() => selectedArea?.barangays || [], [selectedArea]);
 
   const handleRegister = async () => {
     setErrorMessage('');
@@ -17,6 +23,11 @@ const RegisterScreen = ({ navigation }) => {
 
     if (!name.trim() || !email.trim() || !username.trim() || !password.trim() || !confirmPassword.trim()) {
       setErrorMessage('Please fill out all fields');
+      return;
+    }
+
+    if (!selectedArea || !selectedBarangay) {
+      setErrorMessage('Please choose your area and barangay in Batangas');
       return;
     }
 
@@ -49,11 +60,18 @@ const RegisterScreen = ({ navigation }) => {
       }
 
       const newUserRef = ref(db, 'users/' + username);
+      const derivedAddress = `${selectedBarangay}, ${selectedArea.label}, Batangas`;
       await set(newUserRef, {
         name,
         email,
         username,
         password,
+        area: selectedArea.label,
+        barangay: selectedBarangay,
+        address: derivedAddress,
+        homeLocation: selectedArea.coordinates,
+        pasapayBalance: 0,
+        pasapayTransactions: [],
       });
 
       setSuccessMessage('Account Created Successfully!');
@@ -65,7 +83,7 @@ const RegisterScreen = ({ navigation }) => {
 
   return (
     <View style={styles.background}>
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.formContainer}>
           <Text style={styles.headerText}>PASABUY</Text>
           <Text style={styles.subtitleText}>Create your account</Text>
@@ -105,6 +123,65 @@ const RegisterScreen = ({ navigation }) => {
             secureTextEntry
           />
 
+          <TouchableOpacity
+            style={styles.dropdownTrigger}
+            onPress={() => {
+              setShowAreaDropdown((value) => !value);
+              setShowBarangayDropdown(false);
+            }}
+          >
+            <Text style={selectedArea ? styles.dropdownValue : styles.dropdownPlaceholder}>
+              {selectedArea ? selectedArea.label : 'Choose area in Batangas'}
+            </Text>
+          </TouchableOpacity>
+          {showAreaDropdown && (
+            <ScrollView style={styles.dropdownList} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+              {BATANGAS_LOCATION_OPTIONS.map((area) => (
+                <TouchableOpacity
+                  key={area.key}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedArea(area);
+                    setSelectedBarangay('');
+                    setShowAreaDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownItemText}>{area.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+
+          <TouchableOpacity
+            style={[styles.dropdownTrigger, !selectedArea && styles.dropdownDisabled]}
+            disabled={!selectedArea}
+            onPress={() => {
+              if (!selectedArea) return;
+              setShowBarangayDropdown((value) => !value);
+              setShowAreaDropdown(false);
+            }}
+          >
+            <Text style={selectedBarangay ? styles.dropdownValue : styles.dropdownPlaceholder}>
+              {selectedBarangay || 'Choose barangay'}
+            </Text>
+          </TouchableOpacity>
+          {showBarangayDropdown && (
+            <ScrollView style={styles.dropdownList} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+              {barangayOptions.map((barangay) => (
+                <TouchableOpacity
+                  key={barangay}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedBarangay(barangay);
+                    setShowBarangayDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownItemText}>{barangay}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+
           <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
             <Text style={styles.registerButtonText}>Register</Text>
           </TouchableOpacity>
@@ -116,7 +193,7 @@ const RegisterScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -127,9 +204,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 24,
   },
   formContainer: {
     padding: 20,
@@ -164,6 +242,46 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
     backgroundColor: '#fff',
+  },
+  dropdownTrigger: {
+    width: '100%',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+  },
+  dropdownDisabled: {
+    backgroundColor: '#f3f4f6',
+  },
+  dropdownPlaceholder: {
+    color: '#9ca3af',
+    fontSize: 16,
+  },
+  dropdownValue: {
+    color: '#111827',
+    fontSize: 16,
+  },
+  dropdownList: {
+    width: '100%',
+    maxHeight: 180,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+  },
+  dropdownItem: {
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  dropdownItemText: {
+    color: '#111827',
+    fontSize: 15,
   },
   errorText: {
     color: 'red',

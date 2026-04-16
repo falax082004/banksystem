@@ -113,6 +113,11 @@ const AvailabilityScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <View style={styles.topBar}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color="#333" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.title}>Availability</Text>
         <Text style={styles.subtitle}>
           Manage your {isPasabuyer ? 'pasabuy' : 'delivery'} availability
@@ -251,6 +256,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  topBar: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: FONT.titleSize,

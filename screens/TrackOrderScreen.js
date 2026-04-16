@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,10 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { db, ref, set, onValue, off } from '../firebaseConfig';
 import { earningsService } from '../services/earningsService';
+import { orderActionsService } from '../services/orderActionsService';
+import * as Location from 'expo-location';
+
+const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
 
 const TrackOrderScreen = ({ navigation, route }) => {
   const { order, userId, viewerRole } = route.params || {};
@@ -20,6 +24,7 @@ const TrackOrderScreen = ({ navigation, route }) => {
   const [trackingOrder, setTrackingOrder] = useState(order);
   const [riderLocation, setRiderLocation] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState('');
+  const locationWatchRef = useRef(null);
 
   useEffect(() => {
     if (!order) return;
@@ -41,19 +46,79 @@ const TrackOrderScreen = ({ navigation, route }) => {
       });
     }
 
-    // Prototype: simulate rider location
-    const locationInterval = setInterval(() => {
-      updateRiderLocation();
-    }, 5000);
+    // Live subscribe to rider/pasabuyer location for this order
+    let unsubOrderLocation;
+    if (order?.id) {
+      const locRef = ref(db, `orderLocations/${order.id}`);
+      unsubOrderLocation = onValue(locRef, (snapshot) => {
+        if (snapshot.exists()) {
+          setRiderLocation(snapshot.val());
+        }
+      });
+    }
+
+    const startRiderGpsSharing = async () => {
+      // Only the assigned rider/pasabuyer should publish GPS
+      const assignedTo = (trackingOrder?.assignedTo ?? order?.assignedTo) || null;
+      const isAssignedSelf = isRiderView && userId && (assignedTo === userId);
+      if (!isAssignedSelf || !order?.id) return;
+
+      const status = trackingOrder?.status || order?.status || 'pending';
+      if (['delivered', 'cancelled'].includes(status)) return;
+
+      try {
+        const { status: permStatus } = await Location.requestForegroundPermissionsAsync();
+        if (permStatus !== 'granted') {
+          return;
+        }
+        // Stop any previous watcher
+        try {
+          locationWatchRef.current?.remove?.();
+        } catch {}
+
+        locationWatchRef.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 5000,
+            distanceInterval: 10,
+          },
+          async (pos) => {
+            try {
+              const coords = pos?.coords;
+              if (!coords) return;
+              const payload = {
+                riderId: userId,
+                lat: coords.latitude,
+                lng: coords.longitude,
+                accuracy: coords.accuracy ?? null,
+                heading: coords.heading ?? null,
+                speed: coords.speed ?? null,
+                updatedAt: new Date().toISOString(),
+              };
+              await set(ref(db, `orderLocations/${order.id}`), payload);
+            } catch {}
+          }
+        );
+      } catch {}
+    };
+
+    startRiderGpsSharing();
 
     return () => {
       if (order?.userId && order?.id && unsubUserOrder) {
         const userOrderRef = ref(db, `orders/${order.userId}/${order.id}`);
         off(userOrderRef, 'value', unsubUserOrder);
       }
-      clearInterval(locationInterval);
+      if (order?.id && unsubOrderLocation) {
+        const locRef = ref(db, `orderLocations/${order.id}`);
+        off(locRef, 'value', unsubOrderLocation);
+      }
+      try {
+        locationWatchRef.current?.remove?.();
+      } catch {}
+      locationWatchRef.current = null;
     };
-  }, [order]);
+  }, [order, userId, isRiderView, trackingOrder?.assignedTo, trackingOrder?.status]);
 
   const updateTrackingStatus = (orderData) => {
     const status = orderData.status;
@@ -84,19 +149,6 @@ const TrackOrderScreen = ({ navigation, route }) => {
     
     setCurrentStep(step);
     updateEstimatedTime(orderData);
-  };
-
-  const updateRiderLocation = () => {
-    // Simulate rider location (in real app, this would come from GPS)
-    const locations = [
-      { lat: 14.5995, lng: 120.9842, address: 'Near Jollibee, Manila' },
-      { lat: 14.5547, lng: 121.0244, address: 'Ayala Avenue, Makati' },
-      { lat: 14.5503, lng: 121.0490, address: 'BGC, Taguig' },
-      { lat: 14.6760, lng: 121.0437, address: 'EDSA, Quezon City' },
-    ];
-    
-    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
-    setRiderLocation(randomLocation);
   };
 
   const updateEstimatedTime = (orderData) => {
@@ -134,8 +186,8 @@ const TrackOrderScreen = ({ navigation, route }) => {
   const trackingSteps = [
     {
       id: 0,
-      title: isRiderView ? 'Order Accepted/Available' : 'Order Confirmed',
-      description: isRiderView ? 'You accepted or can accept this order' : 'Your order has been received and confirmed',
+      title: isRiderView ? 'Order Accepted' : 'Order Placed',
+      description: isRiderView ? 'This order is assigned to you.' : 'Your order has been posted and is waiting for an assignee.',
       icon: 'check-circle',
       completed: currentStep >= 0,
       status: trackingOrder?.status === 'pending' ? 'current' : currentStep > 0 ? 'completed' : 'pending',
@@ -275,7 +327,11 @@ const TrackOrderScreen = ({ navigation, route }) => {
           {step.status === 'current' && step.id === 3 && riderLocation && (
             <View style={styles.locationInfo}>
               <Icon name="map-marker-alt" size={12} color="#007AFF" />
-              <Text style={styles.locationText}>{riderLocation.address}</Text>
+              <Text style={styles.locationText}>
+                {typeof riderLocation?.lat === 'number' && typeof riderLocation?.lng === 'number'
+                  ? `Lat ${riderLocation.lat.toFixed(5)}, Lng ${riderLocation.lng.toFixed(5)}`
+                  : riderLocation?.address || 'Location updating...'}
+              </Text>
             </View>
           )}
         </View>
@@ -334,14 +390,42 @@ const TrackOrderScreen = ({ navigation, route }) => {
             <View style={styles.deliveryItem}>
               <Icon name="map-marker-alt" size={16} color="#007AFF" />
               <Text style={styles.deliveryLabel}>Total amount:</Text>
-              <Text style={styles.deliveryValue}>₱{trackingOrder?.totalAmount || order.totalAmount}</Text>
+              <Text style={styles.deliveryValue}>{formatPeso(trackingOrder?.totalAmount || order.totalAmount)}</Text>
+            </View>
+
+            <View style={styles.deliveryItem}>
+              <Icon name="credit-card" size={16} color="#007AFF" />
+              <Text style={styles.deliveryLabel}>Payment:</Text>
+              <Text style={styles.deliveryValue}>
+                {(trackingOrder?.paymentChannel || trackingOrder?.paymentMethod || order.paymentChannel || order.paymentMethod || 'cash').toString()}
+              </Text>
+            </View>
+
+            {(viewerRole === 'rider' || viewerRole === 'pasabuyer') && (trackingOrder?.paymentMethod === 'cash' || order.paymentMethod === 'cash') && (
+              <View style={styles.deliveryItem}>
+                <Icon name="wallet" size={16} color="#007AFF" />
+                <Text style={styles.deliveryLabel}>Required Pasapay:</Text>
+                <Text style={styles.deliveryValue}>
+                  {formatPeso(trackingOrder?.cashReserveRequired || order.cashReserveRequired)}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.deliveryItem}>
+              <Icon name="home" size={16} color="#007AFF" />
+              <Text style={styles.deliveryLabel}>Address:</Text>
+              <Text style={styles.deliveryValue}>{trackingOrder?.deliveryAddress || order.deliveryAddress || 'No address saved'}</Text>
             </View>
 
             {riderLocation && (
               <View style={styles.deliveryItem}>
                 <Icon name="truck" size={16} color="#007AFF" />
                 <Text style={styles.deliveryLabel}>Rider location:</Text>
-                <Text style={styles.deliveryValue}>{riderLocation.address}</Text>
+                <Text style={styles.deliveryValue}>
+                  {typeof riderLocation?.lat === 'number' && typeof riderLocation?.lng === 'number'
+                    ? `Lat ${riderLocation.lat.toFixed(5)}, Lng ${riderLocation.lng.toFixed(5)}`
+                    : riderLocation?.address || 'Location updating...'}
+                </Text>
               </View>
             )}
           </View>
@@ -373,7 +457,7 @@ const TrackOrderScreen = ({ navigation, route }) => {
                 <Text style={styles.storeCategory}>{store.storeCategory}</Text>
               </View>
               <View style={styles.storeQuantity}>
-                <Text style={styles.quantityText}>x{store.quantity}</Text>
+                <Text style={styles.quantityText}>x{store.serviceQuantity || store.quantity || 1}</Text>
               </View>
             </View>
           ))}
@@ -397,43 +481,26 @@ const TrackOrderScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 style={[styles.contactButton, { backgroundColor: '#FFF0F0', borderColor: '#FFCDD2' }]}
                 onPress={async () => {
-                  // Shopper cancel policy: allowed with fees depending on status
-                  const status = (trackingOrder?.status || order?.status || 'pending');
-                  let fee = 0;
-                  if (status === 'pending' || status === 'confirmed') {
-                    fee = 0; // free
-                  } else if (status === 'rider_assigned' || status === 'shopping') {
-                    fee = Math.round((order?.totalAmount || 50) * 0.2); // 20% as compensation
-                  } else if (status === 'on_way') {
-                    fee = Math.round((order?.totalAmount || 50) * 0.5); // 50%
-                  } else if (status === 'delivered') {
-                    return; // can't cancel
-                  }
-
-                  try {
-                    const shopperId = order?.ownerId || order?.userId;
-                    const cancelled = { ...(trackingOrder || order), status: 'cancelled', cancellationFee: fee };
-                    if (order?.id && shopperId) {
-                      const userOrderRef = ref(db, `orders/${shopperId}/${order.id}`);
-                      await set(userOrderRef, cancelled);
-                    }
-                    if (order?.id && order?.assignedTo) {
-                      const riderRef = ref(db, `riderDeliveries/${order.assignedTo}/${order.id}`);
-                      await set(riderRef, null); // remove from rider deliveries list
-                    }
-                    if (order?.id) {
-                      const poolRef = ref(db, `availableOrders/${order.id}`);
-                      await set(poolRef, null);
-                    }
-                    // Record rider compensation if assigned
-                    try {
-                      if (order?.assignedTo && fee > 0) {
-                        await earningsService.recordCancellationComp(order.assignedTo, { ...order, cancellationFee: fee });
-                      }
-                    } catch {}
-                    setTrackingOrder(cancelled);
-                    updateTrackingStatus(cancelled);
-                  } catch {}
+                  Alert.alert(
+                    'Cancel Order',
+                    'Do you want to cancel this order? Cancellation fees may apply depending on the current status.',
+                    [
+                      { text: 'Keep Order', style: 'cancel' },
+                      {
+                        text: 'Cancel Order',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            const cancelled = await orderActionsService.cancelOrder({ order: trackingOrder || order });
+                            setTrackingOrder(cancelled);
+                            updateTrackingStatus(cancelled);
+                          } catch (error) {
+                            Alert.alert('Cancellation Failed', error.message || 'Unable to cancel this order.');
+                          }
+                        },
+                      },
+                    ]
+                  );
                 }}
               >
                 <Icon name="times-circle" size={16} color="#C62828" />
@@ -463,31 +530,12 @@ const TrackOrderScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 style={[styles.contactButton, { backgroundColor: '#E3F2FD', borderColor: '#BBDEFB' }]}
                 onPress={async () => {
-                  // Start shopping: set status to 'shopping' (prototype)
                   try {
-                    const shopperId = order?.ownerId || order?.userId;
-                    const updated = { ...(trackingOrder || order), status: 'shopping' };
-                    if (order?.id && shopperId) {
-                      const userOrderRef = ref(db, `orders/${shopperId}/${order.id}`);
-                      await set(userOrderRef, updated);
-                    }
-                    if (order?.id && userId) {
-                      const riderRef = ref(db, `riderDeliveries/${userId}/${order.id}`);
-                      await set(riderRef, { ...(trackingOrder || order), status: 'shopping', assignedTo: userId });
-                    }
-                    // Ensure both are chat participants
-                    if (order?.id && shopperId) {
-                      const shopperChatRef = ref(db, `chats/${order.id}/participants/${shopperId}`);
-                      await set(shopperChatRef, true);
-                    }
-                    if (order?.id && userId) {
-                      const riderChatRef = ref(db, `chats/${order.id}/participants/${userId}`);
-                      await set(riderChatRef, true);
-                    }
+                    const updated = await orderActionsService.updateOrderStatus({ order: trackingOrder || order, userId, status: 'shopping' });
                     setTrackingOrder(updated);
                     updateTrackingStatus(updated);
                   } catch (e) {
-                    // ignore prototype errors
+                    Alert.alert('Update Failed', e.message || 'Unable to start shopping.');
                   }
                 }}
               >
@@ -500,22 +548,12 @@ const TrackOrderScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 style={[styles.contactButton, { backgroundColor: '#FFF3E0', borderColor: '#FFE0B2' }]}
                 onPress={async () => {
-                  // Pickup complete: set status to 'on_way' (prototype)
                   try {
-                    const shopperId = order?.ownerId || order?.userId;
-                    const updated = { ...(trackingOrder || order), status: 'on_way' };
-                    if (order?.id && shopperId) {
-                      const userOrderRef = ref(db, `orders/${shopperId}/${order.id}`);
-                      await set(userOrderRef, updated);
-                    }
-                    if (order?.id && userId) {
-                      const riderRef = ref(db, `riderDeliveries/${userId}/${order.id}`);
-                      await set(riderRef, { ...(trackingOrder || order), status: 'on_way', assignedTo: userId });
-                    }
+                    const updated = await orderActionsService.updateOrderStatus({ order: trackingOrder || order, userId, status: 'on_way' });
                     setTrackingOrder(updated);
                     updateTrackingStatus(updated);
                   } catch (e) {
-                    // ignore prototype errors
+                    Alert.alert('Update Failed', e.message || 'Unable to mark pickup complete.');
                   }
                 }}
               >
@@ -527,39 +565,12 @@ const TrackOrderScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 style={[styles.contactButton, { backgroundColor: '#E8F5E8', borderColor: '#C8E6C9' }]}
                 onPress={async () => {
-                  // Mark delivered (prototype). Update both pools if available
                   try {
-                    const delivered = { ...(trackingOrder || order), status: 'delivered' };
-                    const shopperId = order?.ownerId || order?.userId;
-                    // Reflect on shopper's order
-                    if (order?.id && shopperId) {
-                      const userOrderRef = ref(db, `orders/${shopperId}/${order.id}`);
-                      await set(userOrderRef, delivered);
-                    }
-                    // Reflect on rider's deliveries bucket
-                    if (order?.id && userId) {
-                      const riderRef = ref(db, `riderDeliveries/${userId}/${order.id}`);
-                      await set(riderRef, { ...(trackingOrder || order), status: 'delivered', assignedTo: userId });
-                    }
-                    // Remove from available pool definitively
-                    if (order?.id) {
-                      const poolRef = ref(db, `availableOrders/${order.id}`);
-                      await set(poolRef, null);
-                    }
-                    // Record earning for rider/pasabuyer based on database
-                    try {
-                      const riderId = userId;
-                      if (riderId) {
-                        const isPasabuyer = viewerRole === 'pasabuyer';
-                        await earningsService.recordDeliveryEarning(riderId, delivered, isPasabuyer);
-                      }
-                    } catch (e) {
-                      // ignore earning errors in prototype flow
-                    }
+                    const delivered = await orderActionsService.updateOrderStatus({ order: trackingOrder || order, userId, status: 'delivered' });
                     setTrackingOrder(delivered);
                     updateTrackingStatus(delivered);
                   } catch (e) {
-                    // ignore prototype errors
+                    Alert.alert('Update Failed', e.message || 'Unable to mark this order delivered.');
                   }
                 }}
               >

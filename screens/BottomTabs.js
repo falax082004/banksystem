@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import ProfileScreen from './ProfileScreen';
-import BrowseScreen from './BrowseScreen';
+import BrowseBatangasStoresScreen from './BrowseBatangasStoresScreen';
 import OrdersScreen from './OrdersScreen';
 import InboxScreen from './InboxScreen';
 import RiderInboxScreen from './RiderInboxScreen';
@@ -138,12 +138,13 @@ const BottomTabs = ({ route }) => {
           )}
           <Tab.Screen
             name="Browse"
-            component={BrowseScreen}
+            component={BrowseBatangasStoresScreen}
             initialParams={{ userId }}
             options={{
               tabBarIcon: ({ focused, color, size }) => (
                 <Ionicons name={focused ? 'restaurant' : 'restaurant-outline'} size={size} color={color} />
               ),
+              tabBarLabel: 'My Area',
             }}
           />
           <Tab.Screen

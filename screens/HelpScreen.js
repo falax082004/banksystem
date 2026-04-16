@@ -27,7 +27,7 @@ const FAQS = [
   },
 ];
 
-const HelpCenterScreen = () => {
+const HelpCenterScreen = ({ navigation }) => {
   const [faqVisible, setFaqVisible] = useState(false);
   const [contactVisible, setContactVisible] = useState(false);
   const [message, setMessage] = useState('');
@@ -45,6 +45,9 @@ const HelpCenterScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerWrap}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="close" size={18} color="#222" />
+        </TouchableOpacity>
         <Text style={styles.header}>Help Center</Text>
         <Text style={styles.subheader}>Find answers and contact Pasabuy Support</Text>
       </View>
@@ -127,6 +130,17 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingHorizontal: 20,
     paddingBottom: 8,
+  },
+  backButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    backgroundColor: '#fff',
   },
   header: {
     fontSize: FONT.titleSize,

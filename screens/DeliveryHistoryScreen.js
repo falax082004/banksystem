@@ -163,6 +163,9 @@ const DeliveryHistoryScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={14} color="#333" />
+        </TouchableOpacity>
         <Text style={styles.title}>Delivery History</Text>
         <Text style={styles.subtitle}>
           {activeCount} active • {completedCount} completed
@@ -203,6 +206,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    marginBottom: 10,
   },
   title: {
     fontSize: FONT.titleSize,

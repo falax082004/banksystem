@@ -38,6 +38,16 @@ const STORE_TEMPLATES = [
   },
 ];
 
+const toRealisticPrice = (base) => {
+  const value = Number(base || 0);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  // heuristic markup for more realistic pricing
+  const markup = value <= 100 ? 1.08 : value <= 500 ? 1.1 : 1.05;
+  const priced = value * markup;
+  // round up to nearest 5 pesos
+  return Math.ceil(priced / 5) * 5;
+};
+
 const generateBatangasStores = () => {
   const stores = [];
   BATANGAS_LOCATION_OPTIONS.forEach((loc, locIdx) => {
@@ -62,7 +72,7 @@ const generateBatangasStores = () => {
         items: tpl.items.map((it, itemIdx) => ({
           id: `${id}-item-${itemIdx + 1}`,
           name: it.name,
-          price: it.price + (tplIdx === 0 ? 0 : tplIdx === 1 ? 0 : 0),
+          price: toRealisticPrice(it.price),
         })),
       });
     });
@@ -74,17 +84,18 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
   const { userId } = route.params || {};
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [showOtherCities, setShowOtherCities] = useState(false);
+  const [showAllBatangas, setShowAllBatangas] = useState(false);
   const [userArea, setUserArea] = useState(null);
+  const [userBarangay, setUserBarangay] = useState(null);
   const [cartCount, setCartCount] = useState(0);
 
   const allStores = useMemo(() => generateBatangasStores(), []);
 
   const baseStores = useMemo(() => {
-    if (!userArea) return allStores;
-    if (showOtherCities) return allStores;
+    if (showAllBatangas) return allStores;
+    if (!userArea) return [];
     return allStores.filter((s) => s.area === userArea);
-  }, [allStores, userArea, showOtherCities]);
+  }, [allStores, userArea, showAllBatangas]);
 
   useEffect(() => {
     const init = async () => {
@@ -92,17 +103,19 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
         if (userId) {
           const userSnap = await get(ref(db, `users/${userId}`));
           const area = userSnap.exists() ? userSnap.val()?.area || null : null;
+          const barangay = userSnap.exists() ? userSnap.val()?.barangay || null : null;
           setUserArea(area);
-          setSearchResults(allStores.filter((s) => !area || showOtherCities ? true : s.area === area));
+          setUserBarangay(barangay);
+          setSearchResults(area ? allStores.filter((s) => s.area === area) : []);
         } else {
-          setSearchResults(allStores);
+          setSearchResults([]);
         }
       } catch {
-        setSearchResults(allStores);
+        setSearchResults([]);
       }
     };
     init();
-  }, [userId, allStores, showOtherCities]);
+  }, [userId, allStores]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -168,8 +181,8 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
       <View style={styles.header}>
         <Text style={styles.title}>Browse Stores</Text>
         <Text style={styles.subtitle}>
-          {userArea ? `Home area: ${userArea}` : 'Batangas prototype stores'}
-          {showOtherCities ? ' • Browsing all cities/municipalities' : showOtherCities ? '' : ''}
+          {userArea ? `My Area: ${userArea}${userBarangay ? `, ${userBarangay}` : ''}` : 'Set your Batangas area to browse nearby stores'}
+          {showAllBatangas ? ' • Showing all Batangas stores' : userArea ? ' • Showing stores in your area' : ''}
         </Text>
 
         <TouchableOpacity
@@ -206,13 +219,20 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
           <TouchableOpacity
             style={styles.mapToggleButton}
             onPress={() => {
-              const next = !showOtherCities;
-              setShowOtherCities(next);
+              const next = !showAllBatangas;
+              setShowAllBatangas(next);
               setSearchQuery('');
             }}
           >
             <Icon name="globe-asia" size={16} color="#333" />
-            <Text style={styles.mapToggleText}>{showOtherCities ? 'My Area Only' : 'Browse Other Cities'}</Text>
+            <Text style={styles.mapToggleText}>{showAllBatangas ? 'My Area' : 'All Batangas'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.mapToggleButton}
+            onPress={() => navigation.navigate('NewPasabuyRequest', { userId })}
+          >
+            <Icon name="shopping-bag" size={16} color="#333" />
+            <Text style={styles.mapToggleText}>New Pasabuy Request</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -221,8 +241,10 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
         {searchResults.length === 0 ? (
           <View style={styles.noResults}>
             <Icon name="search" size={40} color="#999" />
-            <Text style={styles.noResultsText}>No stores found</Text>
-            <Text style={styles.noResultsSubtext}>Try a different search term</Text>
+            <Text style={styles.noResultsText}>{userArea ? 'No stores found' : 'No area selected yet'}</Text>
+            <Text style={styles.noResultsSubtext}>
+              {userArea ? 'Try a different search term' : 'Set your Batangas area and barangay in your profile first.'}
+            </Text>
           </View>
         ) : (
           searchResults.map((store) => <StoreCard key={store.id} store={store} />)
