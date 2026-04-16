@@ -31,8 +31,10 @@ export const earningsService = {
   recordDeliveryEarning: async (riderId, order, isPasabuyer = false) => {
     if (!riderId || !order?.id) return;
     const { amount, distanceKm, method } = earningsService.calculateEarningForOrder(order);
-    const platformFee = pasapayService.getCashPlatformFeeFromEarning(amount);
-    const netAmount = Math.max(0, Number((amount - platformFee).toFixed(2)));
+    // IMPORTANT: earnings are based on DELIVERY FEE only, never on item/order total.
+    const deliveryFee = Number(amount || 0);
+    const platformFee = order?.paymentMethod === 'cash' ? pasapayService.getCashPlatformFeeFromEarning(deliveryFee) : 0;
+    const netAmount = Math.max(0, Number((deliveryFee - platformFee).toFixed(2)));
     // Riders: earnings/riders/{riderId}
     // Pasabuyers: earnings/pasabuyers/{riderId}
     const path = isPasabuyer ? `earnings/pasabuyers/${riderId}` : `earnings/riders/${riderId}`;
@@ -45,11 +47,13 @@ export const earningsService = {
       orderNumber: order.orderNumber || null,
       type: isPasabuyer ? 'pasabuy' : 'delivery',
       amount: netAmount,
-      grossAmount: amount,
+      deliveryFee,
+      grossAmount: deliveryFee,
       platformFee,
       netAmount,
       distanceKm,
       method,
+      paymentMethod: order?.paymentMethod || 'cash',
       totalAmount: order.totalAmount ?? null,
       createdAt: new Date().toISOString(),
       createdAtServer: serverTimestamp(),
@@ -65,7 +69,8 @@ export const earningsService = {
         orderId: order.id,
         orderNumber: order.orderNumber || null,
         earningId: payload.id,
-        grossAmount: amount,
+        deliveryFee,
+        grossAmount: deliveryFee,
         platformFee,
         netAmount,
       });

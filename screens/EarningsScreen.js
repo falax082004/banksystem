@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { onValue, off, ref, db } from '../firebaseConfig';
 
 const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
@@ -39,7 +40,12 @@ const EarningsScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Earnings</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Earnings</Text>
+        </View>
         <Text style={styles.subtitle}>
           Your {isPasabuyer ? 'pasabuy' : 'delivery'} earnings summary
         </Text>
@@ -71,6 +77,11 @@ const EarningsScreen = ({ route, navigation }) => {
               <View style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f3f3' }}>
                 <Text style={{ fontWeight: '600', color: '#333' }}>{formatPeso(item.amount)}</Text>
                 <Text style={{ color: '#666', fontSize: 12 }}>{item.type || 'delivery'} • {item.orderNumber || item.orderId}</Text>
+                {item.paymentMethod === 'cash' && (
+                  <Text style={{ color: '#666', fontSize: 12 }}>
+                    Delivery fee: {formatPeso(item.deliveryFee || item.grossAmount || item.amount)} • Platform fee: -{formatPeso(item.platformFee || 0)}
+                  </Text>
+                )}
                 <Text style={{ color: '#999', fontSize: 12 }}>{new Date(item.createdAt).toLocaleString()}</Text>
               </View>
             )}
@@ -91,6 +102,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  backButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    marginRight: 10,
   },
   title: {
     fontSize: 24,

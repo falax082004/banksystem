@@ -27,6 +27,8 @@ const ProfileScreen = ({ navigation, route }) => {
   const [showMpinModal, setShowMpinModal] = useState(false);
   const [mpin, setMpin] = useState('');
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [ratingAverage, setRatingAverage] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -40,6 +42,8 @@ const ProfileScreen = ({ navigation, route }) => {
           setUserRole(userData.role || '');
           setPasabuyerEnabled(!!userData.pasabuyerEnabled);
           setHasMpin(!!userData.mpin);
+          setRatingAverage(Number(userData.ratingAverage || 0));
+          setRatingCount(Number(userData.ratingCount || 0));
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -175,6 +179,15 @@ const ProfileScreen = ({ navigation, route }) => {
           <Icon name="check-circle" size={16} color="#00c853" solid />
           <Text style={styles.verificationText}>Verified User</Text>
         </View>
+        {(userRole === 'rider' || pasabuyerEnabled) && (
+          <View style={styles.ratingCard}>
+            <Icon name="star" size={16} color="#FFC107" solid />
+            <Text style={styles.ratingText}>
+              Rating: {ratingCount > 0 ? `${ratingAverage.toFixed(1)} / 5` : 'No ratings yet'}
+              {ratingCount > 0 ? ` (${ratingCount})` : ''}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.stretchArea}>
           <ScrollView contentContainerStyle={styles.scroll}>
@@ -394,6 +407,24 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   verificationText: {
+    marginLeft: 8,
+    fontSize: FONT.smallSize,
+    color: FONT.headerColor,
+    fontWeight: '500',
+  },
+  ratingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  ratingText: {
     marginLeft: 8,
     fontSize: FONT.smallSize,
     color: FONT.headerColor,

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
-import { db, ref, set, onValue, off } from '../firebaseConfig';
+import { db, ref, set, get, push, update, onValue, off } from '../firebaseConfig';
 import { earningsService } from '../services/earningsService';
 import { orderActionsService } from '../services/orderActionsService';
 import * as Location from 'expo-location';
@@ -24,6 +24,8 @@ const TrackOrderScreen = ({ navigation, route }) => {
   const [trackingOrder, setTrackingOrder] = useState(order);
   const [riderLocation, setRiderLocation] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState('');
+  const [ratingScore, setRatingScore] = useState(0);
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const locationWatchRef = useRef(null);
 
   useEffect(() => {
@@ -339,6 +341,67 @@ const TrackOrderScreen = ({ navigation, route }) => {
     );
   };
 
+  const canRateDelivery =
+    viewerRole === 'shopper' &&
+    (trackingOrder?.status || order?.status) === 'delivered' &&
+    !trackingOrder?.ratedByShopper &&
+    !!(trackingOrder?.assignedTo || order?.assignedTo);
+
+  const submitRating = async () => {
+    try {
+      const activeOrder = trackingOrder || order;
+      const assigneeId = activeOrder?.assignedTo;
+      const shopperId = activeOrder?.ownerId || activeOrder?.userId;
+      if (!assigneeId || !shopperId) {
+        Alert.alert('Rating Unavailable', 'This order has no assigned rider/pasabuyer.');
+        return;
+      }
+      if (ratingScore < 1 || ratingScore > 5) {
+        Alert.alert('Rating Required', 'Please select 1 to 5 stars.');
+        return;
+      }
+
+      setRatingSubmitting(true);
+      const ratingRef = push(ref(db, `users/${assigneeId}/ratings`));
+      const ratingPayload = {
+        id: ratingRef.key,
+        orderId: activeOrder.id,
+        orderNumber: activeOrder.orderNumber || null,
+        fromUserId: userId,
+        score: ratingScore,
+        comment: '',
+        roleRated: activeOrder.assignedRole || 'rider',
+        createdAt: new Date().toISOString(),
+      };
+      await set(ratingRef, ratingPayload);
+
+      const assigneeRef = ref(db, `users/${assigneeId}`);
+      const assigneeSnap = await get(assigneeRef);
+      const assigneeData = assigneeSnap.exists() ? assigneeSnap.val() : {};
+      const previousCount = Number(assigneeData.ratingCount || 0);
+      const previousAverage = Number(assigneeData.ratingAverage || 0);
+      const nextCount = previousCount + 1;
+      const nextAverage = Number((((previousAverage * previousCount) + ratingScore) / nextCount).toFixed(2));
+      await update(assigneeRef, {
+        ratingCount: nextCount,
+        ratingAverage: nextAverage,
+      });
+
+      const patch = { ratedByShopper: true, shopperRating: ratingScore };
+      await update(ref(db, `orders/${shopperId}/${activeOrder.id}`), patch);
+      if (assigneeId) {
+        await update(ref(db, `riderDeliveries/${assigneeId}/${activeOrder.id}`), patch);
+      }
+
+      setTrackingOrder((prev) => ({ ...(prev || activeOrder), ...patch }));
+      Alert.alert('Rating Submitted', 'Thanks for rating your rider/pasabuyer.');
+    } catch (error) {
+      Alert.alert('Rating Failed', error.message || 'Unable to save rating.');
+    } finally {
+      setRatingSubmitting(false);
+    }
+  };
+
   if (!order) {
     return (
       <SafeAreaView style={styles.container}>
@@ -579,6 +642,27 @@ const TrackOrderScreen = ({ navigation, route }) => {
               </TouchableOpacity>
             )}
         </View>
+
+        {canRateDelivery && (
+          <View style={styles.ratingPanel}>
+            <Text style={styles.sectionTitle}>Rate your {trackingOrder?.assignedRole === 'pasabuyer' ? 'pasabuyer' : 'rider'}</Text>
+            <View style={styles.starsRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setRatingScore(star)}>
+                  <Icon name="star" size={26} color={star <= ratingScore ? '#FFC107' : '#ddd'} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={[styles.contactButton, !ratingSubmitting ? null : { opacity: 0.7 }]}
+              onPress={submitRating}
+              disabled={ratingSubmitting}
+            >
+              <Icon name="check-circle" size={16} color="#007AFF" />
+              <Text style={styles.contactButtonText}>{ratingSubmitting ? 'Submitting...' : 'Submit Rating'}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -897,6 +981,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#4CAF50',
     marginLeft: 24,
+  },
+  ratingPanel: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 16,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 14,
   },
 });
 

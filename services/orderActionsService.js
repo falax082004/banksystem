@@ -7,6 +7,17 @@ const normalizeOrder = (order) => ({
   ...order,
 });
 
+const createNotification = async (targetUserId, payload) => {
+  if (!targetUserId) return;
+  const notifRef = push(ref(db, `users/${targetUserId}/notifications`));
+  await set(notifRef, {
+    id: notifRef.key,
+    createdAt: new Date().toISOString(),
+    read: false,
+    ...payload,
+  });
+};
+
 export const orderActionsService = {
   async createPasabuyRequest({
     userId,
@@ -177,6 +188,13 @@ export const orderActionsService = {
       await set(ref(db, `chats/${updated.id}/participants/${updated.ownerId}`), true);
     }
     await set(ref(db, `availableOrders/${updated.id}`), null);
+    await createNotification(updated.ownerId, {
+      type: 'order_accepted',
+      orderId: updated.id,
+      orderNumber: updated.orderNumber || null,
+      title: 'Order accepted',
+      message: `Your order ${updated.orderNumber || updated.id} was accepted by a ${viewerRole}.`,
+    });
     return updated;
   },
 
@@ -206,6 +224,22 @@ export const orderActionsService = {
       await set(ref(db, `availableOrders/${updated.id}`), null);
       if (userId) {
         await earningsService.recordDeliveryEarning(userId, updated, updated.assignedRole === 'pasabuyer');
+      }
+      await createNotification(shopperId, {
+        type: 'order_delivered',
+        orderId: updated.id,
+        orderNumber: updated.orderNumber || null,
+        title: 'Order delivered',
+        message: `Your order ${updated.orderNumber || updated.id} has been delivered.`,
+      });
+      if (updated.assignedTo) {
+        await createNotification(updated.assignedTo, {
+          type: 'delivery_completed',
+          orderId: updated.id,
+          orderNumber: updated.orderNumber || null,
+          title: 'Delivery completed',
+          message: `You marked order ${updated.orderNumber || updated.id} as delivered.`,
+        });
       }
     }
     return updated;

@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { cartService } from '../services/cartService';
 import { db, ref, get } from '../firebaseConfig';
 import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
+import NotificationBell from './NotificationBell';
 
 // 3 stores per city/municipality (Batangas-only) - list UI only (no map)
 const STORE_TEMPLATES = [
@@ -185,17 +186,20 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
           {showAllBatangas ? ' • Showing all Batangas stores' : userArea ? ' • Showing stores in your area' : ''}
         </Text>
 
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={() => navigation.navigate('Cart', { userId: userId || 'user123' })}
-        >
-          <Icon name="shopping-cart" size={24} color="#333" />
-          {cartCount > 0 && (
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{cartCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <NotificationBell userId={userId} navigation={navigation} />
+          <TouchableOpacity
+            style={styles.cartButton}
+            onPress={() => navigation.navigate('Cart', { userId: userId || 'user123' })}
+          >
+            <Icon name="shopping-cart" size={24} color="#333" />
+            {cartCount > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{cartCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
@@ -257,7 +261,8 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 20, paddingTop: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
-  cartButton: { position: 'absolute', top: 22, right: 20, padding: 8 },
+  headerActions: { position: 'absolute', top: 20, right: 20, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cartButton: { padding: 6 },
   cartBadge: { position: 'absolute', top: -6, right: -6, backgroundColor: '#ff6b6b', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center' },
   cartBadgeText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
   title: { fontSize: FONT.titleSize, fontWeight: FONT.weightBold, color: FONT.headerColor, marginBottom: 4 },

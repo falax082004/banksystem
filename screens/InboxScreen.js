@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList } from
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { db, ref, onValue, off } from '../firebaseConfig';
+import NotificationBell from './NotificationBell';
 
 const InboxScreen = ({ navigation, route }) => {
   const { userId, viewerRole } = route.params || {};
@@ -59,6 +60,7 @@ const InboxScreen = ({ navigation, route }) => {
       <View style={styles.header}>
         <Text style={styles.title}>Inbox</Text>
         <Text style={styles.subtitle}>Messages with your riders</Text>
+        <NotificationBell userId={userId} navigation={navigation} style={styles.notifButton} />
       </View>
       {threads.length === 0 ? (
         <View style={styles.empty}>
@@ -80,6 +82,7 @@ const InboxScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
+  notifButton: { position: 'absolute', top: 20, right: 20 },
   title: { fontSize: FONT.titleSize, fontWeight: FONT.weightBold, color: FONT.headerColor },
   subtitle: { fontSize: FONT.subtitleSize, color: FONT.mutedColor, marginTop: 4 },
   list: { paddingHorizontal: 12, paddingTop: 8 },

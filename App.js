@@ -24,6 +24,7 @@ import EarningsScreen from './screens/EarningsScreen';
 import AvailabilityScreen from './screens/AvailabilityScreen';
 import PasapayWalletScreen from './screens/PasapayWalletScreen';
 import NewPasabuyRequestScreen from './screens/NewPasabuyRequestScreen';
+import NotificationsScreen from './screens/NotificationsScreen';
 
 // Profile Destination Screens
 import ReferFriendsScreen from './screens/ReferFriendsScreen';
@@ -66,6 +67,7 @@ export default function App() {
         <Stack.Screen name="Availability" component={AvailabilityScreen} options={commonScreenOptions} />
         <Stack.Screen name="Pasapay" component={PasapayWalletScreen} options={{ headerShown: false }} />
         <Stack.Screen name="NewPasabuyRequest" component={NewPasabuyRequestScreen} options={commonScreenOptions} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} options={commonScreenOptions} />
 
         {/* Profile Destination Screens */}
         <Stack.Screen

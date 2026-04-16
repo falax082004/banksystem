@@ -11,6 +11,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { db, ref, get, orderByChild, query, onValue, off } from '../firebaseConfig';
+import NotificationBell from './NotificationBell';
 
 const OrdersScreen = ({ navigation, route }) => {
   const { userId, viewerRole } = route.params || {};
@@ -247,6 +248,7 @@ const OrdersScreen = ({ navigation, route }) => {
         <Text style={styles.subtitle}>
           {orders.length} order{orders.length !== 1 ? 's' : ''} total
         </Text>
+        <NotificationBell userId={userId} navigation={navigation} style={styles.notifButton} />
       </View>
 
       {loading ? (
@@ -298,6 +300,11 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FONT.subtitleSize,
     color: FONT.mutedColor,
+  },
+  notifButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
   },
   refreshButton: {
     flexDirection: 'row',

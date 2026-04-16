@@ -46,7 +46,7 @@ const MOCK_ORDERS = [
 const NearbyOrdersScreen = ({ navigation, route }) => {
   const { userId } = route.params || {};
   const [query, setQuery] = useState('');
-  const [maxDistance, setMaxDistance] = useState('3'); // km
+  const [maxDistance, setMaxDistance] = useState(''); // blank means no max filter
   const [remoteOrders, setRemoteOrders] = useState(null);
   const [viewerRole, setViewerRole] = useState('rider');
   const [userBarangay, setUserBarangay] = useState(null);
@@ -59,7 +59,9 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
       const snapshot = await get(ref(db, `users/${userId}`));
       if (snapshot.exists()) {
         const data = snapshot.val();
-        setViewerRole(data.role === 'rider' ? 'rider' : data.pasabuyerEnabled ? 'pasabuyer' : 'rider');
+        const nextRole = data.role === 'rider' ? 'rider' : data.pasabuyerEnabled ? 'pasabuyer' : 'rider';
+        setViewerRole(nextRole);
+        setMaxDistance(nextRole === 'rider' ? '' : '3');
         setUserBarangay(data.barangay || null);
         setPasapayBalance(Number(data.pasapayBalance || 0));
       }
@@ -88,7 +90,9 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
       const userSnap = await get(ref(db, `users/${userId}`));
       if (userSnap.exists()) {
         const data = userSnap.val();
-        setViewerRole(data.role === 'rider' ? 'rider' : data.pasabuyerEnabled ? 'pasabuyer' : 'rider');
+        const nextRole = data.role === 'rider' ? 'rider' : data.pasabuyerEnabled ? 'pasabuyer' : 'rider';
+        setViewerRole(nextRole);
+        setMaxDistance(nextRole === 'rider' ? '' : '3');
         setUserBarangay(data.barangay || null);
         setPasapayBalance(Number(data.pasapayBalance || 0));
       }
@@ -110,7 +114,8 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
   const source = remoteOrders && remoteOrders.length >= 0 ? remoteOrders : MOCK_ORDERS;
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const max = parseFloat(maxDistance) || 999;
+    const parsed = parseFloat(maxDistance);
+    const max = Number.isFinite(parsed) && parsed > 0 ? parsed : Number.POSITIVE_INFINITY;
     return source.filter(o =>
       // Hide orders already assigned
       !o.assignedTo &&
@@ -255,17 +260,24 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
             placeholderTextColor="#888"
           />
         </View>
-        <View style={styles.inputWrap}>
-          <Icon name="ruler" size={14} color="#666" />
-          <TextInput
-            style={styles.input}
-            placeholder="Max distance (km)"
-            keyboardType="numeric"
-            value={maxDistance}
-            onChangeText={setMaxDistance}
-            placeholderTextColor="#888"
-          />
-        </View>
+        {viewerRole !== 'rider' ? (
+          <View style={styles.inputWrap}>
+            <Icon name="ruler" size={14} color="#666" />
+            <TextInput
+              style={styles.input}
+              placeholder="Max distance (km)"
+              keyboardType="numeric"
+              value={maxDistance}
+              onChangeText={setMaxDistance}
+              placeholderTextColor="#888"
+            />
+          </View>
+        ) : (
+          <View style={styles.inputWrap}>
+            <Icon name="globe-asia" size={14} color="#666" />
+            <Text style={styles.input}>Coverage: Entire Batangas</Text>
+          </View>
+        )}
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>

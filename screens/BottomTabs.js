@@ -9,7 +9,6 @@ import InboxScreen from './InboxScreen';
 import RiderInboxScreen from './RiderInboxScreen';
 import PasabuyerInboxScreen from './PasabuyerInboxScreen';
 import { db, ref, get, onValue, off } from '../firebaseConfig';
-import EarningsScreen from './EarningsScreen';
 import NearbyOrdersScreen from './NearbyOrdersScreen';
 
 const Tab = createBottomTabNavigator();
@@ -75,16 +74,6 @@ const BottomTabs = ({ route }) => {
                 <Ionicons name={focused ? 'bicycle' : 'bicycle-outline'} size={size} color={color} />
               ),
               tabBarLabel: 'Deliveries',
-            }}
-          />
-          <Tab.Screen
-            name="Earnings"
-            component={EarningsScreen}
-            initialParams={{ userId }}
-            options={{
-              tabBarIcon: ({ focused, color, size }) => (
-                <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={size} color={color} />
-              ),
             }}
           />
           <Tab.Screen
