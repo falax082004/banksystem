@@ -23,6 +23,9 @@ const calculateProvincialDeliveryFee = (distanceKm) => {
 
 export const earningsService = {
   calculateEarningForOrder: (order) => {
+    if (order?.requestType === 'custom_pasabuy') {
+      return { amount: 50, distanceKm: null, method: 'custom_pasabuy_fixed_fee' };
+    }
     const distanceKm = typeof order?.distanceKm === 'number' ? order.distanceKm : null;
     const amount = calculateProvincialDeliveryFee(distanceKm);
     return { amount, distanceKm: distanceKm ?? null, method: 'batangas_provincial_pricing' };
