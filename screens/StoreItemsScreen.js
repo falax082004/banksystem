@@ -9,35 +9,15 @@ const StoreItemsScreen = ({ navigation, route }) => {
   const [quantities, setQuantities] = useState({});
 
   const items = useMemo(() => {
-    // Demo catalog per store with prices
-    const catalogs = {
-      1: [
-        { id: 'chickenjoy', name: 'Chicken Joy', price: 89 },
-        { id: 'jollyspaghetti', name: 'Jolly Spaghetti', price: 65 },
-        { id: 'burgersteak', name: 'Burger Steak', price: 79 },
-      ],
-      2: [
-        { id: 'bigmac', name: 'Big Mac', price: 150 },
-        { id: 'mcflurry', name: 'McFlurry', price: 59 },
-        { id: 'nuggets6', name: 'Chicken McNuggets (6pc)', price: 99 },
-      ],
-      3: [
-        { id: 'frappuccino', name: 'Frappuccino', price: 180 },
-        { id: 'latte', name: 'Latte', price: 140 },
-        { id: 'pastries', name: 'Pastries', price: 95 },
-      ],
-      4: [
-        { id: 'snacks', name: 'Snacks', price: 45 },
-        { id: 'drinks', name: 'Drinks', price: 35 },
-        { id: 'groceries', name: 'Basic Groceries', price: 120 },
-      ],
-      5: [
-        { id: 'produce', name: 'Fresh Produce', price: 200 },
-        { id: 'household', name: 'Household Items', price: 150 },
-        { id: 'groceries', name: 'Groceries', price: 300 },
-      ],
-    };
-    return catalogs[store?.id] || [];
+    // Prefer store-provided items (Batangas-generated stores).
+    if (Array.isArray(store?.items) && store.items.length > 0) {
+      return store.items.map((it, idx) => ({
+        id: it.id || `${store?.id || 'store'}-item-${idx + 1}`,
+        name: it.name,
+        price: Number(it.price || 0),
+      }));
+    }
+    return [];
   }, [store]);
 
   const updateQty = (itemId, delta) => {
@@ -79,6 +59,8 @@ const StoreItemsScreen = ({ navigation, route }) => {
       storeAddress: store.address,
       storeCategory: store.category,
       items: selected,
+      area: store.area,
+      coordinates: store.coordinates,
     });
 
     Alert.alert('Added', 'Items added to cart.', [

@@ -5,11 +5,13 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
 import { db, ref, get, update } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
 
 const ProfileEdit = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -19,6 +21,12 @@ const ProfileEdit = ({ navigation, route }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [address, setAddress] = useState('');
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [selectedBarangay, setSelectedBarangay] = useState('');
+  const [originalArea, setOriginalArea] = useState(null);
+  const [originalBarangay, setOriginalBarangay] = useState('');
+  const [showAreaDropdown, setShowAreaDropdown] = useState(false);
+  const [showBarangayDropdown, setShowBarangayDropdown] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -42,18 +50,33 @@ const ProfileEdit = ({ navigation, route }) => {
           setName(userData.name);
           setEmail(userData.email);
           setPassword(userData.password);
-          setAddress(userData.address || '');
+          const registeredAddress =
+            userData.barangay && userData.area
+              ? `${userData.barangay}, ${userData.area}, Batangas`
+              : '';
+          const addressToShow = userData.address || registeredAddress || '';
+          setAddress(addressToShow);
+          // Initialize dropdown selections from registered location.
+          const matchedArea = BATANGAS_LOCATION_OPTIONS.find((a) => a.label === userData.area) || null;
+          setSelectedArea(matchedArea);
+          setSelectedBarangay(userData.barangay || '');
+          setOriginalArea(matchedArea);
+          setOriginalBarangay(userData.barangay || '');
           setPhoneNumber(userData.phoneNumber || '');
           setOriginalName(userData.name);
           setOriginalEmail(userData.email);
           setOriginalPassword(userData.password);
-          setOriginalAddress(userData.address || '');
+          setOriginalAddress(addressToShow);
           setOriginalPhone(userData.phoneNumber || '');
         } else {
           setName('Unknown');
           setEmail('Unknown');
           setPassword('Unknown');
           setAddress('Unknown');
+          setSelectedArea(null);
+          setSelectedBarangay('');
+          setOriginalArea(null);
+          setOriginalBarangay('');
           setPhoneNumber('Unknown');
         }
       } catch (error) {
@@ -62,6 +85,10 @@ const ProfileEdit = ({ navigation, route }) => {
         setEmail('Error');
         setPassword('Error');
         setAddress('Error');
+        setSelectedArea(null);
+        setSelectedBarangay('');
+        setOriginalArea(null);
+        setOriginalBarangay('');
         setPhoneNumber('Error');
       } finally {
         setLoading(false);
@@ -74,7 +101,14 @@ const ProfileEdit = ({ navigation, route }) => {
   const handleEditName = () => setIsEditingName(true);
   const handleEditEmail = () => setIsEditingEmail(true);
   const handlePasswordEdit = () => setIsPasswordEditing(true);
-  const handleEditAddress = () => setIsEditingAddress(true);
+  const handleEditAddress = () => {
+    setSelectedArea(originalArea);
+    setSelectedBarangay(originalBarangay);
+    setShowAreaDropdown(false);
+    setShowBarangayDropdown(false);
+    setAddress(originalAddress);
+    setIsEditingAddress(true);
+  };
   const handleEditPhone = () => setIsEditingPhone(true);
 
   const handleSaveName = async () => {
@@ -112,15 +146,22 @@ const ProfileEdit = ({ navigation, route }) => {
   };
 
   const handleSaveAddress = async () => {
-    if (address.trim() === '') {
-      alert('Address cannot be empty');
+    if (!selectedArea || !selectedBarangay) {
+      alert('Please select your city/municipality and barangay');
       return;
     }
 
+    const derivedAddress = `${selectedBarangay}, ${selectedArea.label}, Batangas`;
     try {
       const userRef = ref(db, 'users/' + userId);
-      await update(userRef, { address });
-      setOriginalAddress(address);
+      await update(userRef, {
+        address: derivedAddress,
+        area: selectedArea.label,
+        barangay: selectedBarangay,
+        homeLocation: selectedArea.coordinates,
+      });
+      setAddress(derivedAddress);
+      setOriginalAddress(derivedAddress);
       setIsEditingAddress(false);
     } catch (error) {
       console.error('Error updating address:', error);
@@ -250,16 +291,75 @@ const ProfileEdit = ({ navigation, route }) => {
               <Text style={styles.label}>Address:</Text>
               {isEditingAddress ? (
                 <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.input}
-                    value={address}
-                    onChangeText={setAddress}
-                  />
+                  <View style={{ flex: 1 }}>
+                    <TouchableOpacity
+                      style={styles.dropdownTrigger}
+                      onPress={() => {
+                        setShowAreaDropdown((v) => !v);
+                        setShowBarangayDropdown(false);
+                      }}
+                    >
+                      <Text style={selectedArea ? styles.dropdownValue : styles.dropdownPlaceholder}>
+                        {selectedArea ? selectedArea.label : 'Choose city/municipality'}
+                      </Text>
+                    </TouchableOpacity>
+                    {showAreaDropdown && (
+                      <ScrollView style={styles.dropdownList} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                        {BATANGAS_LOCATION_OPTIONS.map((area) => (
+                          <TouchableOpacity
+                            key={area.key}
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                              setSelectedArea(area);
+                              setSelectedBarangay('');
+                              setAddress('');
+                              setShowAreaDropdown(false);
+                            }}
+                          >
+                            <Text style={styles.dropdownItemText}>{area.label}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    )}
+
+                    <TouchableOpacity
+                      style={[styles.dropdownTrigger, !selectedArea && styles.dropdownDisabled]}
+                      disabled={!selectedArea}
+                      onPress={() => {
+                        if (!selectedArea) return;
+                        setShowBarangayDropdown((v) => !v);
+                        setShowAreaDropdown(false);
+                      }}
+                    >
+                      <Text style={selectedBarangay ? styles.dropdownValue : styles.dropdownPlaceholder}>
+                        {selectedBarangay || 'Choose barangay'}
+                      </Text>
+                    </TouchableOpacity>
+                    {selectedArea && showBarangayDropdown && (
+                      <ScrollView style={styles.dropdownList} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                        {selectedArea.barangays.map((barangay) => (
+                          <TouchableOpacity
+                            key={barangay}
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                              setSelectedBarangay(barangay);
+                              setAddress(`${barangay}, ${selectedArea.label}, Batangas`);
+                              setShowBarangayDropdown(false);
+                            }}
+                          >
+                            <Text style={styles.dropdownItemText}>{barangay}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    )}
+                  </View>
                   <View style={styles.editButtonsContainer}>
                     <TouchableOpacity style={styles.iconButton} onPress={handleSaveAddress}>
                       <Icon name="check" size={20} color="#4CAF50" />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.iconButton} onPress={() => {
+                      setSelectedArea(originalArea);
+                      setSelectedBarangay(originalBarangay);
                       setAddress(originalAddress);
                       setIsEditingAddress(false);
                     }}>
@@ -441,6 +541,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     flex: 1,
+  },
+  dropdownTrigger: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 11,
+    backgroundColor: '#fff',
+    marginBottom: 8,
+  },
+  dropdownDisabled: {
+    backgroundColor: '#f3f4f6',
+  },
+  dropdownPlaceholder: {
+    color: '#9ca3af',
+    fontSize: 14,
+  },
+  dropdownValue: {
+    color: '#111827',
+    fontSize: 14,
+  },
+  dropdownList: {
+    maxHeight: 180,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#fff',
+  },
+  dropdownItem: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  dropdownItemText: {
+    color: '#111827',
+    fontSize: 13,
   },
 });
 

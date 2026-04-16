@@ -30,7 +30,7 @@ export const cartService = {
     return cart;
   },
 
-  addStoreItemsToCart: ({ storeId, storeName, storeAddress, storeCategory, items }) => {
+  addStoreItemsToCart: ({ storeId, storeName, storeAddress, storeCategory, items, area = null, coordinates = null }) => {
     console.log('Adding store items to cart:', storeName, items);
     let storeEntry = cart.find(s => s.storeId === storeId);
     if (!storeEntry) {
@@ -40,6 +40,8 @@ export const cartService = {
         storeName,
         storeAddress,
         storeCategory,
+        area,
+        coordinates,
         items: [],
         serviceQuantity: 1,
         addedAt: new Date().toISOString(),

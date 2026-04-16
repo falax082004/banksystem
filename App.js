@@ -7,7 +7,7 @@ import SplashScreen from './screens/SplashScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
-import BrowseScreen from './screens/BrowseScreen';
+import BrowseBatangasStoresScreen from './screens/BrowseBatangasStoresScreen';
 import CartScreen from './screens/CartScreen';
 import OrdersScreen from './screens/OrdersScreen';
 import TrackOrderScreen from './screens/TrackOrderScreen';
@@ -50,7 +50,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Home" component={BottomTabs} />
         {/* Delivery screens */}
-        <Stack.Screen name="Browse" component={BrowseScreen} />
+        <Stack.Screen name="Browse" component={BrowseBatangasStoresScreen} />
         <Stack.Screen name="StoreItems" component={StoreItemsScreen} />
         <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Orders" component={OrdersScreen} />
