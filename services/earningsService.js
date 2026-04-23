@@ -1,24 +1,11 @@
 import { db, ref, push, set, serverTimestamp, get } from '../firebaseConfig';
 import { pasapayService } from './pasapayService';
 
-const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-const lerp = (a, b, t) => a + (b - a) * t;
-
-// Batangas provincial delivery pricing (gross earning shown in Earnings)
-// Near (1–2 km) → ₱30 – ₱50
-// Medium (3–5 km) → ₱50 – ₱80
-// Far (6–10 km) → ₱80 – ₱120
+// Stable prototype delivery pricing:
+// Use a flat gross delivery fee so Earnings and Pasapay stay consistent.
+const FLAT_DELIVERY_FEE = 50;
 const calculateProvincialDeliveryFee = (distanceKm) => {
-  const d = typeof distanceKm === 'number' && Number.isFinite(distanceKm) ? distanceKm : null;
-  if (d === null) return 50;
-
-  if (d <= 1) return 30;
-  if (d <= 2) return Math.round(lerp(30, 50, clamp((d - 1) / 1, 0, 1)));
-  if (d < 3) return 50;
-  if (d <= 5) return Math.round(lerp(50, 80, clamp((d - 3) / 2, 0, 1)));
-  if (d < 6) return 80;
-  if (d <= 10) return Math.round(lerp(80, 120, clamp((d - 6) / 4, 0, 1)));
-  return Math.round(120 + (d - 10) * 10);
+  return FLAT_DELIVERY_FEE;
 };
 
 export const earningsService = {
@@ -36,7 +23,8 @@ export const earningsService = {
     const { amount, distanceKm, method } = earningsService.calculateEarningForOrder(order);
     // IMPORTANT: earnings are based on DELIVERY FEE only, never on item/order total.
     const deliveryFee = Number(amount || 0);
-    const platformFee = order?.paymentMethod === 'cash' ? pasapayService.getCashPlatformFeeFromEarning(deliveryFee) : 0;
+    // Apply fixed platform fee to every completed delivery earning.
+    const platformFee = pasapayService.getCashPlatformFeeFromEarning(deliveryFee);
     const netAmount = Math.max(0, Number((deliveryFee - platformFee).toFixed(2)));
     // Riders: earnings/riders/{riderId}
     // Pasabuyers: earnings/pasabuyers/{riderId}
@@ -65,8 +53,8 @@ export const earningsService = {
     await set(newRef, payload);
 
     // Pasapay connection:
-    // - ONLINE/PASAPAY: credit NET earning (after fixed -₱10 platform fee)
-    // - CASH: do NOT credit earning into Pasapay; only deduct the fixed platform fee (-₱10)
+    // - ONLINE/PASAPAY: credit NET earning (already after fixed -₱10 platform fee)
+    // - CASH: do NOT credit earning into Pasapay; deduct fixed platform fee (-₱10) from Pasapay
     if (order?.paymentMethod !== 'cash') {
       await pasapayService.credit(riderId, netAmount, `Earnings from ${isPasabuyer ? 'pasabuy' : 'delivery'} ${order.orderNumber || order.id}`, {
         orderId: order.id,

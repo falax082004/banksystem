@@ -3,8 +3,45 @@ import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { onValue, off, ref, db } from '../firebaseConfig';
 import { useThemeMode } from '../theme/ThemeContext';
+import { pasapayService } from '../services/pasapayService';
 
 const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
+const toNumber = (value, fallback = 0) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+};
+
+const normalizeEarning = (item = {}) => {
+  const paymentMethod = (item.paymentMethod || 'cash').toString().toLowerCase();
+  const hasDeliveryFee = item.deliveryFee != null || item.grossAmount != null;
+  let baseDeliveryFee = toNumber(item.deliveryFee ?? item.grossAmount ?? item.amount, 0);
+  // Keep legacy records aligned with current fixed-fee policy.
+  if ((item.type === 'delivery' || item.type === 'pasabuy') && baseDeliveryFee > 0 && baseDeliveryFee < 50) {
+    baseDeliveryFee = 50;
+  }
+  const basePlatformFee =
+    item.platformFee != null
+      ? toNumber(item.platformFee, 0)
+      : hasDeliveryFee
+        ? pasapayService.getCashPlatformFeeFromEarning(baseDeliveryFee)
+        : 0;
+  const computedNet = Math.max(0, Number((baseDeliveryFee - basePlatformFee).toFixed(2)));
+  const netAmount =
+    item.netAmount != null
+      ? toNumber(item.netAmount, computedNet)
+      : hasDeliveryFee
+        ? computedNet
+        : toNumber(item.amount, 0);
+
+  return {
+    ...item,
+    paymentMethod,
+    deliveryFee: baseDeliveryFee,
+    platformFee: basePlatformFee,
+    netAmount,
+    amount: netAmount,
+  };
+};
 
 const EarningsScreen = ({ route, navigation }) => {
   const { colors } = useThemeMode();
@@ -26,14 +63,16 @@ const EarningsScreen = ({ route, navigation }) => {
         return;
       }
       const data = snap.val();
-      const list = Object.keys(data).map((k) => data[k]).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const list = Object.keys(data)
+        .map((k) => normalizeEarning(data[k]))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setEarnings(list);
       const now = new Date();
       const weekStart = new Date(now);
       weekStart.setDate(now.getDate() - now.getDay()); // Sunday start
       const weekTotal = list
         .filter((e) => e.createdAt && new Date(e.createdAt) >= weekStart)
-        .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        .reduce((sum, e) => sum + (Number(e.netAmount ?? e.amount) || 0), 0);
       setTotalThisWeek(Math.round(weekTotal));
     });
     return () => off(r, 'value', unsubscribe);
@@ -77,9 +116,9 @@ const EarningsScreen = ({ route, navigation }) => {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                <Text style={{ fontWeight: '600', color: colors.text }}>{formatPeso(item.amount)}</Text>
+                <Text style={{ fontWeight: '600', color: colors.text }}>{formatPeso(item.netAmount ?? item.amount)}</Text>
                 <Text style={{ color: colors.mutedText, fontSize: 12 }}>{item.type || 'delivery'} • {item.orderNumber || item.orderId}</Text>
-                {item.paymentMethod === 'cash' && (
+                {item.platformFee > 0 && (
                   <Text style={{ color: colors.mutedText, fontSize: 12 }}>
                     Delivery fee: {formatPeso(item.deliveryFee || item.grossAmount || item.amount)} • Platform fee: -{formatPeso(item.platformFee || 0)}
                   </Text>

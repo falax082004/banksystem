@@ -243,11 +243,6 @@ const ProfileScreen = ({ navigation, route }) => {
                     {pasabuyerEnabled ? (
                       <>
                         <MenuItem 
-                          icon="briefcase" 
-                          label="Requests" 
-                          onPress={() => navigation.navigate('PasabuyerRequests', { userId })}
-                        />
-                        <MenuItem 
                           icon="wallet" 
                           label="Earnings" 
                           onPress={() => navigation.navigate('Earnings', { userId, userType: 'pasabuyer' })}
