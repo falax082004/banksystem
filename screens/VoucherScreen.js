@@ -2,8 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const VoucherScreen = ({ navigation }) => {
+  const { isDark, colors } = useThemeMode();
   React.useLayoutEffect(() => {
     navigation.setOptions({
       title: 'Vouchers',
@@ -11,32 +13,32 @@ const VoucherScreen = ({ navigation }) => {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.subtitleContainer}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.subtitleContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={14} color="#333" />
+          <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Vouchers</Text>
-            <Text style={styles.subtitle}>Apply vouchers at checkout to save</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Vouchers</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedText }]}>Apply vouchers at checkout to save</Text>
           </View>
         </View>
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.card}>
-          <Text style={styles.voucherCode}>PASABUY50</Text>
-          <Text style={styles.voucherDesc}>₱50 off service fee • Min spend ₱200</Text>
-          <TouchableOpacity style={styles.applyBtn} disabled>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.voucherCode, { color: colors.text }]}>PASABUY50</Text>
+          <Text style={[styles.voucherDesc, { color: colors.mutedText }]}>₱50 off service fee • Min spend ₱200</Text>
+          <TouchableOpacity style={[styles.applyBtn, { backgroundColor: isDark ? '#2F2F35' : '#333' }]} disabled>
             <Text style={styles.applyText}>Apply at Checkout</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.voucherCode}>FIRSTORDER</Text>
-          <Text style={styles.voucherDesc}>10% off first order • Max ₱100</Text>
-          <TouchableOpacity style={styles.applyBtn} disabled>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.voucherCode, { color: colors.text }]}>FIRSTORDER</Text>
+          <Text style={[styles.voucherDesc, { color: colors.mutedText }]}>10% off first order • Max ₱100</Text>
+          <TouchableOpacity style={[styles.applyBtn, { backgroundColor: isDark ? '#2F2F35' : '#333' }]} disabled>
             <Text style={styles.applyText}>Apply at Checkout</Text>
           </TouchableOpacity>
         </View>

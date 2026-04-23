@@ -98,24 +98,28 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Full Name"
+            placeholderTextColor={colors.mutedText}
             value={name}
             onChangeText={setName}
           />
           <TextInput
             style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Email"
+            placeholderTextColor={colors.mutedText}
             value={email}
             onChangeText={setEmail}
           />
           <TextInput
             style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Username"
+            placeholderTextColor={colors.mutedText}
             value={username}
             onChangeText={setUsername}
           />
           <TextInput
             style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Password"
+            placeholderTextColor={colors.mutedText}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -123,6 +127,7 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Confirm Password"
+            placeholderTextColor={colors.mutedText}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
@@ -135,16 +140,16 @@ const RegisterScreen = ({ navigation }) => {
               setShowBarangayDropdown(false);
             }}
           >
-            <Text style={selectedArea ? styles.dropdownValue : styles.dropdownPlaceholder}>
+            <Text style={[selectedArea ? styles.dropdownValue : styles.dropdownPlaceholder, { color: selectedArea ? colors.text : colors.mutedText }]}>
               {selectedArea ? selectedArea.label : 'Choose area in Batangas'}
             </Text>
           </TouchableOpacity>
           {showAreaDropdown && (
-            <ScrollView style={styles.dropdownList} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+            <ScrollView style={[styles.dropdownList, { borderColor: colors.border, backgroundColor: colors.surface }]} nestedScrollEnabled showsVerticalScrollIndicator={false}>
               {BATANGAS_LOCATION_OPTIONS.map((area) => (
                 <TouchableOpacity
                   key={area.key}
-                  style={styles.dropdownItem}
+                  style={[styles.dropdownItem, { borderBottomColor: colors.border }]}
                   onPress={() => {
                     setSelectedArea(area);
                     setSelectedBarangay('');
@@ -166,16 +171,16 @@ const RegisterScreen = ({ navigation }) => {
               setShowAreaDropdown(false);
             }}
           >
-            <Text style={selectedBarangay ? styles.dropdownValue : styles.dropdownPlaceholder}>
+            <Text style={[selectedBarangay ? styles.dropdownValue : styles.dropdownPlaceholder, { color: selectedBarangay ? colors.text : colors.mutedText }]}>
               {selectedBarangay || 'Choose barangay'}
             </Text>
           </TouchableOpacity>
           {showBarangayDropdown && (
-            <ScrollView style={styles.dropdownList} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+            <ScrollView style={[styles.dropdownList, { borderColor: colors.border, backgroundColor: colors.surface }]} nestedScrollEnabled showsVerticalScrollIndicator={false}>
               {barangayOptions.map((barangay) => (
                 <TouchableOpacity
                   key={barangay}
-                  style={styles.dropdownItem}
+                  style={[styles.dropdownItem, { borderBottomColor: colors.border }]}
                   onPress={() => {
                     setSelectedBarangay(barangay);
                     setShowBarangayDropdown(false);

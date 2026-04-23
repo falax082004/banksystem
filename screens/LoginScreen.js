@@ -253,7 +253,7 @@ const LoginScreen = ({ navigation }) => {
       <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         {/* Logo */}
         <Image
-          source={require('../assets/Pasabuy.png')}
+          source={isDark ? require('../assets/Pasabuy2.png') : require('../assets/Pasabuy.png')}
           style={styles.logo}
         />
         {/* Low-fidelity header */}

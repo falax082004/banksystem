@@ -3,28 +3,30 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-na
 import QRCode from 'react-native-qrcode-svg';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const ReferFriendsScreen = ({ route, navigation }) => {
+  const { colors } = useThemeMode();
   const { userId, fullName } = route.params || {};
   const displayName = fullName || 'A friend';
   const referralUrl = `https://pasabuy.app/ref?userId=${encodeURIComponent(userId || 'guest')}`;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}> 
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={14} color="#333" />
+          <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Invite a friend to Pasabuy</Text>
-            <Text style={styles.subtitle}>{displayName} is inviting you to join Pasabuy.</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Invite a friend to Pasabuy</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedText }]}>{displayName} is inviting you to join Pasabuy.</Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>Your referral QR</Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.cardLabel, { color: colors.mutedText }]}>Your referral QR</Text>
         <View style={styles.qrWrapper}>
           <QRCode value={referralUrl} size={200} />
         </View>
@@ -33,8 +35,8 @@ const ReferFriendsScreen = ({ route, navigation }) => {
         </Text>
       </View>
 
-      <View style={styles.noteBox}>
-        <Text style={styles.noteText}>Share this QR or link. New users can scan to get started quickly.</Text>
+      <View style={[styles.noteBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.noteText, { color: colors.mutedText }]}>Share this QR or link. New users can scan to get started quickly.</Text>
       </View>
     </SafeAreaView>
   );

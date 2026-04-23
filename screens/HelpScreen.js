@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Modal, TextInpu
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FONT from '../styles/typography';
 import { db, ref, push, set, get } from '../firebaseConfig';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const FAQS = [
   {
@@ -29,6 +30,7 @@ const FAQS = [
 ];
 
 const HelpCenterScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { userId } = route?.params || {};
   const [faqVisible, setFaqVisible] = useState(false);
   const [contactVisible, setContactVisible] = useState(false);
@@ -98,39 +100,39 @@ const HelpCenterScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.headerWrap}>
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="close" size={18} color="#222" />
+          <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
+            <Ionicons name="close" size={18} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={styles.header}>Help Center</Text>
-            <Text style={styles.subheader}>Find answers and contact Pasabuy Support</Text>
+            <Text style={[styles.header, { color: colors.text }]}>Help Center</Text>
+            <Text style={[styles.subheader, { color: colors.mutedText }]}>Find answers and contact Pasabuy Support</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.cardsWrap}>
-        <TouchableOpacity style={styles.card} onPress={() => setFaqVisible(true)}>
-          <Ionicons name="help-circle-outline" size={28} color="#222" style={styles.cardIcon} />
+        <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => setFaqVisible(true)}>
+          <Ionicons name="help-circle-outline" size={28} color={colors.text} style={styles.cardIcon} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>FAQs</Text>
-            <Text style={styles.cardDesc}>Common questions about Pasabuy</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>FAQs</Text>
+            <Text style={[styles.cardDesc, { color: colors.mutedText }]}>Common questions about Pasabuy</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.card} onPress={() => setContactVisible(true)}>
-          <Ionicons name="call-outline" size={28} color="#222" style={styles.cardIcon} />
+        <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => setContactVisible(true)}>
+          <Ionicons name="call-outline" size={28} color={colors.text} style={styles.cardIcon} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>Contact Support</Text>
-            <Text style={styles.cardDesc}>Send us a message</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Contact Support</Text>
+            <Text style={[styles.cardDesc, { color: colors.mutedText }]}>Send us a message</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SupportInbox', { userId, isAdmin: false })}>
-          <Ionicons name="mail-open-outline" size={28} color="#222" style={styles.cardIcon} />
+        <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => navigation.navigate('SupportInbox', { userId, isAdmin: false })}>
+          <Ionicons name="mail-open-outline" size={28} color={colors.text} style={styles.cardIcon} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>My Tickets</Text>
-            <Text style={styles.cardDesc}>View and continue your support chats</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>My Tickets</Text>
+            <Text style={[styles.cardDesc, { color: colors.mutedText }]}>View and continue your support chats</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -138,17 +140,17 @@ const HelpCenterScreen = ({ navigation, route }) => {
       {/* FAQ Modal */}
       <Modal visible={faqVisible} animationType="slide" transparent onRequestClose={() => setFaqVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalHeader}>Frequently Asked Questions</Text>
+          <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalHeader, { color: colors.text }]}>Frequently Asked Questions</Text>
             <ScrollView style={{ maxHeight: 360 }}>
               {FAQS.map((faq, idx) => (
                 <View key={idx} style={styles.faqItem}>
-                  <Text style={styles.faqQ}>{faq.question}</Text>
-                  <Text style={styles.faqA}>{faq.answer}</Text>
+                  <Text style={[styles.faqQ, { color: colors.text }]}>{faq.question}</Text>
+                  <Text style={[styles.faqA, { color: colors.mutedText }]}>{faq.answer}</Text>
                 </View>
               ))}
             </ScrollView>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setFaqVisible(false)}>
+            <TouchableOpacity style={[styles.closeBtn, { backgroundColor: isDark ? '#2F2F35' : '#222' }]} onPress={() => setFaqVisible(false)}>
               <Text style={styles.closeBtnText}>Close</Text>
             </TouchableOpacity>
           </View>
@@ -158,33 +160,33 @@ const HelpCenterScreen = ({ navigation, route }) => {
       {/* Contact Support Modal */}
       <Modal visible={contactVisible} animationType="slide" transparent onRequestClose={() => setContactVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalHeader}>Contact Support</Text>
-            <Text style={styles.contactInfo}><Ionicons name="mail" size={16} /> support@pasabuy.app</Text>
-            <Text style={styles.contactInfo}><Ionicons name="call" size={16} /> +63 2 1234 5678</Text>
-            <Text style={styles.contactLabel}>Send us a message:</Text>
+          <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalHeader, { color: colors.text }]}>Contact Support</Text>
+            <Text style={[styles.contactInfo, { color: colors.text }]}><Ionicons name="mail" size={16} color={colors.text} /> support@pasabuy.app</Text>
+            <Text style={[styles.contactInfo, { color: colors.text }]}><Ionicons name="call" size={16} color={colors.text} /> +63 2 1234 5678</Text>
+            <Text style={[styles.contactLabel, { color: colors.text }]}>Send us a message:</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
               placeholder="Your email"
-              placeholderTextColor="#888"
+              placeholderTextColor={colors.mutedText}
               value={contactEmail}
               onChangeText={setContactEmail}
               keyboardType="email-address"
               autoCapitalize="none"
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
               placeholder="Type your message..."
-              placeholderTextColor="#888"
+              placeholderTextColor={colors.mutedText}
               value={message}
               onChangeText={setMessage}
               multiline
               numberOfLines={3}
             />
-            <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
+            <TouchableOpacity style={[styles.sendBtn, { backgroundColor: isDark ? '#2F2F35' : '#222' }]} onPress={handleSend}>
               <Text style={styles.sendBtnText}>Send</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setContactVisible(false)}>
+            <TouchableOpacity style={[styles.closeBtn, { backgroundColor: isDark ? '#2F2F35' : '#222' }]} onPress={() => setContactVisible(false)}>
               <Text style={styles.closeBtnText}>Close</Text>
             </TouchableOpacity>
           </View>
