@@ -4,6 +4,8 @@ import { pasapayService } from './pasapayService';
 // Stable prototype delivery pricing:
 // Use a flat gross delivery fee so Earnings and Pasapay stay consistent.
 const FLAT_DELIVERY_FEE = 50;
+const RIDER_PLATFORM_FEE = 10;
+const PASABUYER_PLATFORM_FEE = 12;
 const calculateProvincialDeliveryFee = (distanceKm) => {
   return FLAT_DELIVERY_FEE;
 };
@@ -23,8 +25,9 @@ export const earningsService = {
     const { amount, distanceKm, method } = earningsService.calculateEarningForOrder(order);
     // IMPORTANT: earnings are based on DELIVERY FEE only, never on item/order total.
     const deliveryFee = Number(amount || 0);
-    // Apply fixed platform fee to every completed delivery earning.
-    const platformFee = pasapayService.getCashPlatformFeeFromEarning(deliveryFee);
+    // Apply role-based platform fee to every completed delivery earning.
+    // Riders: -10, Pasabuyers: -12.
+    const platformFee = isPasabuyer ? PASABUYER_PLATFORM_FEE : RIDER_PLATFORM_FEE;
     const netAmount = Math.max(0, Number((deliveryFee - platformFee).toFixed(2)));
     // Riders: earnings/riders/{riderId}
     // Pasabuyers: earnings/pasabuyers/{riderId}

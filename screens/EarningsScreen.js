@@ -19,11 +19,12 @@ const normalizeEarning = (item = {}) => {
   if ((item.type === 'delivery' || item.type === 'pasabuy') && baseDeliveryFee > 0 && baseDeliveryFee < 50) {
     baseDeliveryFee = 50;
   }
+  const inferredPlatformFee = item.type === 'pasabuy' ? 12 : 10;
   const basePlatformFee =
     item.platformFee != null
       ? toNumber(item.platformFee, 0)
       : hasDeliveryFee
-        ? pasapayService.getCashPlatformFeeFromEarning(baseDeliveryFee)
+        ? inferredPlatformFee
         : 0;
   const computedNet = Math.max(0, Number((baseDeliveryFee - basePlatformFee).toFixed(2)));
   const netAmount =
