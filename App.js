@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { db, ref, get, set } from './firebaseConfig';
 
 // Core Screens
 import SplashScreen from './screens/SplashScreen';
@@ -25,6 +26,9 @@ import AvailabilityScreen from './screens/AvailabilityScreen';
 import PasapayWalletScreen from './screens/PasapayWalletScreen';
 import NewPasabuyRequestScreen from './screens/NewPasabuyRequestScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
+import AdminDashboardScreen from './screens/AdminDashboardScreen';
+import SupportInboxScreen from './screens/SupportInboxScreen';
+import SupportTicketScreen from './screens/SupportTicketScreen';
 
 // Profile Destination Screens
 import ReferFriendsScreen from './screens/ReferFriendsScreen';
@@ -41,6 +45,31 @@ const commonScreenOptions = {
 };
 
 export default function App() {
+  useEffect(() => {
+    const ensureDefaultAdmin = async () => {
+      try {
+        const adminRef = ref(db, 'users/admin');
+        const adminSnapshot = await get(adminRef);
+        if (adminSnapshot.exists()) return;
+
+        await set(adminRef, {
+          username: 'admin',
+          name: 'System Administrator',
+          email: 'admin@pasabuy.app',
+          password: 'admin',
+          role: 'admin',
+          approvalStatus: 'approved',
+          createdAt: new Date().toISOString(),
+          notifications: {},
+        });
+      } catch {
+        // Avoid blocking app start for bootstrap failures.
+      }
+    };
+
+    ensureDefaultAdmin();
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
@@ -68,6 +97,9 @@ export default function App() {
         <Stack.Screen name="Pasapay" component={PasapayWalletScreen} options={{ headerShown: false }} />
         <Stack.Screen name="NewPasabuyRequest" component={NewPasabuyRequestScreen} options={commonScreenOptions} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} options={commonScreenOptions} />
+        <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={commonScreenOptions} />
+        <Stack.Screen name="SupportInbox" component={SupportInboxScreen} options={commonScreenOptions} />
+        <Stack.Screen name="SupportTicket" component={SupportTicketScreen} options={commonScreenOptions} />
 
         {/* Profile Destination Screens */}
         <Stack.Screen

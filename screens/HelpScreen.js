@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Modal, TextInput, ScrollView, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FONT from '../styles/typography';
+import { db, ref, push, set, get } from '../firebaseConfig';
 
 const FAQS = [
   {
@@ -27,19 +28,73 @@ const FAQS = [
   },
 ];
 
-const HelpCenterScreen = ({ navigation }) => {
+const HelpCenterScreen = ({ navigation, route }) => {
+  const { userId } = route?.params || {};
   const [faqVisible, setFaqVisible] = useState(false);
   const [contactVisible, setContactVisible] = useState(false);
+  const [contactEmail, setContactEmail] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleSend = () => {
+  const resolveEmail = async () => {
+    if (contactEmail.trim()) return contactEmail.trim();
+    if (!userId) return '';
+    try {
+      const userSnap = await get(ref(db, `users/${userId}`));
+      if (userSnap.exists()) return (userSnap.val()?.email || '').trim();
+    } catch {}
+    return '';
+  };
+
+  const handleSend = async () => {
     if (!message.trim()) {
       Alert.alert('Please enter a message.');
       return;
     }
-    Alert.alert('Message Sent', 'Thanks for reaching out. We will get back to you soon.');
-    setMessage('');
-    setContactVisible(false);
+    const email = await resolveEmail();
+    if (!email) {
+      Alert.alert('Email Required', 'Please enter your email so admin can reply.');
+      return;
+    }
+
+    try {
+      const ticketRef = push(ref(db, 'supportTickets'));
+      const ticketId = ticketRef.key;
+      await set(ticketRef, {
+        id: ticketId,
+        userId: userId || null,
+        email,
+        subject: 'Help Center Inquiry',
+        status: 'open',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        source: 'help_center',
+      });
+      const msgRef = push(ref(db, `supportTickets/${ticketId}/messages`));
+      await set(msgRef, {
+        senderId: userId || null,
+        senderRole: 'user',
+        text: message.trim(),
+        createdAt: new Date().toISOString(),
+      });
+
+      if (userId) {
+        const notifRef = push(ref(db, `users/${userId}/notifications`));
+        await set(notifRef, {
+          type: 'support_ticket_created',
+          title: 'Support Ticket Created',
+          message: 'Your support ticket has been created.',
+          supportTicketId: ticketId,
+          read: false,
+          createdAt: new Date().toISOString(),
+        });
+      }
+      Alert.alert('Message Sent', 'Your support request was sent to admin.');
+      setMessage('');
+      setContactEmail('');
+      setContactVisible(false);
+    } catch (error) {
+      Alert.alert('Send Failed', error.message || 'Unable to send support request.');
+    }
   };
 
   return (
@@ -69,6 +124,13 @@ const HelpCenterScreen = ({ navigation }) => {
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>Contact Support</Text>
             <Text style={styles.cardDesc}>Send us a message</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SupportInbox', { userId, isAdmin: false })}>
+          <Ionicons name="mail-open-outline" size={28} color="#222" style={styles.cardIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>My Tickets</Text>
+            <Text style={styles.cardDesc}>View and continue your support chats</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -101,6 +163,15 @@ const HelpCenterScreen = ({ navigation }) => {
             <Text style={styles.contactInfo}><Ionicons name="mail" size={16} /> support@pasabuy.app</Text>
             <Text style={styles.contactInfo}><Ionicons name="call" size={16} /> +63 2 1234 5678</Text>
             <Text style={styles.contactLabel}>Send us a message:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Your email"
+              placeholderTextColor="#888"
+              value={contactEmail}
+              onChangeText={setContactEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
             <TextInput
               style={styles.input}
               placeholder="Type your message..."

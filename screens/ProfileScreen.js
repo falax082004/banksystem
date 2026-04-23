@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
-import { db, ref, get, update, set } from '../firebaseConfig';
+import { db, ref, get, update, set, push } from '../firebaseConfig';
 
 const ProfileScreen = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -65,7 +65,7 @@ const ProfileScreen = ({ navigation, route }) => {
     );
   };
 
-  const handleApplyPasabuyer = async () => {
+  const handleApplyForRole = async (requestedRole) => {
     try {
       if (!userId) {
         Alert.alert('Error', 'User not found. Please login again.');
@@ -73,7 +73,8 @@ const ProfileScreen = ({ navigation, route }) => {
       }
       const userRef = ref(db, `users/${userId}`);
       const snapshot = await get(userRef);
-      // If user record doesn't exist, create a minimal one
+      const roleLabel = requestedRole === 'rider' ? 'Rider' : 'Pasabuyer';
+
       if (!snapshot.exists()) {
         const nowIso = new Date().toISOString();
         const payload = {
@@ -81,26 +82,30 @@ const ProfileScreen = ({ navigation, route }) => {
           phoneNumber: phoneNumber || '',
           role: 'shopper',
           createdAt: nowIso,
-          shopperStatus: 'approved',
-          shopperVerified: true,
-          pasabuyerEnabled: true,
-          pasabuyerApprovedAt: nowIso,
+          requestedRole,
+          approvalStatus: 'pending',
         };
         await set(userRef, payload);
       } else {
-        // Prototype: instantly approve pasabuyer validation
-        await update(userRef, {
-          shopperStatus: 'approved',
-          shopperVerified: true,
-          pasabuyerEnabled: true,
-          pasabuyerApprovedAt: new Date().toISOString(),
-        });
+        await update(userRef, { requestedRole, approvalStatus: 'pending', roleRequestedAt: new Date().toISOString() });
       }
-      Alert.alert('Pasabuyer Enabled', 'You can now accept pasabuy requests. (Prototype)');
-      // Refresh tabs and show Nearby immediately
-      navigation.navigate('Home', { userId, screen: 'Nearby' });
+
+      const notifRef = push(ref(db, `users/${userId}/notifications`));
+      await set(notifRef, {
+        type: 'application_submitted',
+        title: 'Application Submitted',
+        message: 'Your application has been submitted and is waiting for admin approval.',
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+
+      Alert.alert(
+        'Application Submitted',
+        `Your ${roleLabel} application has been sent for review. Please wait for admin approval before accessing this role.`,
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+      );
     } catch (e) {
-      Alert.alert('Error', e.message || 'Failed to enable pasabuyer');
+      Alert.alert('Error', e.message || 'Failed to submit application');
     }
   };
 
@@ -262,8 +267,13 @@ const ProfileScreen = ({ navigation, route }) => {
                         />
                         <MenuItem 
                           icon="shopping-bag" 
-                          label="Apply as Pasabuyer" 
-                          onPress={handleApplyPasabuyer}
+                          label="Apply as Pasabuyer"
+                          onPress={() => handleApplyForRole('pasabuyer')}
+                        />
+                        <MenuItem
+                          icon="motorcycle"
+                          label="Apply as Rider"
+                          onPress={() => handleApplyForRole('rider')}
                         />
                         <MenuItem 
                           icon="user-friends" 
@@ -284,7 +294,7 @@ const ProfileScreen = ({ navigation, route }) => {
                 <MenuItem 
                   icon="question-circle" 
                   label="Help & Support" 
-                  onPress={() => navigation.navigate('Help')}
+                  onPress={() => navigation.navigate('Help', { userId })}
                 />
                 <MenuItem 
                   icon="sign-out-alt" 

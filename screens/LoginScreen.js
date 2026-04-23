@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Alert, Text, StyleSheet, Modal, Image } from 'react-native';
-import { db, ref, get, update, set, serverTimestamp } from '../firebaseConfig';
+import { db, ref, get, update, set, push } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/Feather';
 import { FONT } from '../styles/typography';
 
@@ -38,12 +38,31 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    // Check if user has selected a role
-    if (!userData.role) {
-      navigation.navigate('RoleSelection', { userId: username });
-    } else {
-      navigation.navigate('Home', { userId: username });
+    if (username === 'admin' && userData.role === 'admin') {
+      navigation.navigate('AdminDashboard');
+      return;
     }
+
+    if (userData.approvalStatus === 'pending' && !userData.role) {
+      Alert.alert('Pending Approval', 'Your application is pending admin approval. Please wait for confirmation.');
+      return;
+    }
+
+    // Rejected applicants can still log in as shopper and apply again from Profile.
+
+    const unreadRef = ref(db, `users/${username}/notifications`);
+    const unreadSnapshot = await get(unreadRef);
+    if (unreadSnapshot.exists()) {
+      const unreadRows = Object.keys(unreadSnapshot.val())
+        .map((id) => ({ id, ...unreadSnapshot.val()[id] }))
+        .filter((x) => x.read !== true)
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      if (unreadRows.length > 0) {
+        Alert.alert('Notifications', unreadRows[0].message || 'You have new notifications.');
+      }
+    }
+
+    navigation.navigate('Home', { userId: username });
   };
 
   const handleForgotPassword = () => {
@@ -153,12 +172,24 @@ const LoginScreen = ({ navigation }) => {
     }
 
     try {
-      const supportRef = ref(db, 'supportRequests');
-      await set(supportRef, {
+      const ticketRef = push(ref(db, 'supportTickets'));
+      const ticketId = ticketRef.key;
+      await set(ticketRef, {
+        id: ticketId,
+        userId: foundUsername || null,
         email: supportEmail,
-        message: supportMessage,
-        timestamp: serverTimestamp(),
-        status: 'pending'
+        subject: 'Login Support Inquiry',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: 'open',
+        source: 'login',
+      });
+      const msgRef = push(ref(db, `supportTickets/${ticketId}/messages`));
+      await set(msgRef, {
+        senderId: foundUsername || null,
+        senderRole: 'user',
+        text: supportMessage,
+        createdAt: new Date().toISOString(),
       });
 
       Alert.alert('Success', 'Your support request has been submitted. We will contact you soon.');

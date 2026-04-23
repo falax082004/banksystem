@@ -70,10 +70,13 @@ const RegisterScreen = ({ navigation }) => {
         barangay: selectedBarangay,
         address: derivedAddress,
         homeLocation: selectedArea.coordinates,
+        role: 'shopper',
+        approvalStatus: 'approved',
+        pasabuyerEnabled: false,
+        createdAt: new Date().toISOString(),
         pasapayBalance: 0,
         pasapayTransactions: [],
       });
-
       setSuccessMessage('Account Created Successfully!');
       navigation.navigate('Login');
     } catch (error) {

@@ -24,6 +24,14 @@ const NotificationsScreen = ({ navigation, route }) => {
     return () => off(notifRef, 'value', unsub);
   }, [userId]);
 
+  const openNotification = (item) => {
+    if (item?.supportTicketId) {
+      navigation.navigate('SupportTicket', { ticketId: item.supportTicketId, userId, isAdmin: false });
+      return;
+    }
+    navigation.goBack();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -44,7 +52,7 @@ const NotificationsScreen = ({ navigation, route }) => {
           </View>
         }
         renderItem={({ item }) => (
-          <View style={styles.row}>
+          <TouchableOpacity style={styles.row} onPress={() => openNotification(item)}>
             <Icon
               name={item.type === 'order_delivered' ? 'check-circle' : 'bell'}
               size={14}
@@ -54,7 +62,7 @@ const NotificationsScreen = ({ navigation, route }) => {
               <Text style={styles.message}>{item.message || item.title || 'Order update'}</Text>
               <Text style={styles.date}>{new Date(item.createdAt || Date.now()).toLocaleString()}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </SafeAreaView>

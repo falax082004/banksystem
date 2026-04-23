@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { db, ref, get, set } from '../firebaseConfig';
+import { db, ref, get, set, push } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 
@@ -25,22 +25,34 @@ const RoleSelectionScreen = ({ navigation, route }) => {
 
       const userData = snapshot.val();
 
-      // Prototype: directly assign role without verification
+      // Submit role application for admin approval (do not grant immediately).
       const updatedUserData = {
         ...userData,
-        role: role,
-        roleSelectedAt: new Date().toISOString()
+        requestedRole: role,
+        approvalStatus: 'pending',
+        role: null,
+        pasabuyerEnabled: false,
+        roleRequestedAt: new Date().toISOString(),
       };
       await set(userRef, updatedUserData);
 
+      const notifRef = push(ref(db, `users/${userId}/notifications`));
+      await set(notifRef, {
+        type: 'application_submitted',
+        title: 'Application Submitted',
+        message: 'Your application has been submitted and is waiting for admin approval.',
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+
       setIsLoading(false);
       Alert.alert(
-        'Role Selected!',
-        `You are now registered as a ${role === 'rider' ? 'Delivery Rider' : 'Shopper/Pasabuyer'}`,
+        'Application Submitted',
+        'Your application has been sent for review. Please wait for admin approval before accessing this role.',
         [
           {
-            text: 'Continue',
-            onPress: () => navigation.navigate('Home', { userId })
+            text: 'OK',
+            onPress: () => navigation.navigate('Login')
           }
         ]
       );
