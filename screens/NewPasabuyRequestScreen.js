@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { db, ref, get } from '../firebaseConfig';
 import { FONT } from '../styles/typography';
 import { orderActionsService } from '../services/orderActionsService';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const sanitizeAmountInput = (raw = '') => raw.replace(/[^\d.]/g, '');
 
@@ -23,6 +24,7 @@ const getSafeCashReserve = (amount) => {
 };
 
 const NewPasabuyRequestScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { userId } = route.params || {};
   const [itemName, setItemName] = useState('');
   const [notes, setNotes] = useState('');
@@ -88,61 +90,64 @@ const NewPasabuyRequestScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={14} color="#333" />
+          <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={14} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.topTitle}>New Pasabuy Request</Text>
+          <Text style={[styles.topTitle, { color: colors.text }]}>New Pasabuy Request</Text>
         </View>
-        <View style={styles.panel}>
-          <Text style={styles.label}>Requested Item</Text>
+        <View style={[styles.panel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.label, { color: colors.text }]}>Requested Item</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Example: specific medicine, bakery item, school supply"
+            placeholderTextColor={colors.mutedText}
             value={itemName}
             onChangeText={setItemName}
           />
 
-          <Text style={styles.label}>Notes</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Notes</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Brand, size, color, or any buying instruction"
+            placeholderTextColor={colors.mutedText}
             value={notes}
             onChangeText={setNotes}
             multiline
           />
 
-          <Text style={styles.label}>Budget</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Budget</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Enter estimated amount"
+            placeholderTextColor={colors.mutedText}
             value={budget}
             onChangeText={(value) => setBudget(sanitizeAmountInput(value))}
             keyboardType="numeric"
           />
 
-          <Text style={styles.label}>Delivery Address</Text>
-          <View style={styles.addressBox}>
-            <Icon name="map-marker-alt" size={14} color="#666" />
-            <Text style={styles.addressText}>{deliveryAddress || 'No Batangas address saved yet.'}</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Delivery Address</Text>
+          <View style={[styles.addressBox, { borderColor: colors.border, backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9' }]}>
+            <Icon name="map-marker-alt" size={14} color={colors.mutedText} />
+            <Text style={[styles.addressText, { color: colors.mutedText }]}>{deliveryAddress || 'No Batangas address saved yet.'}</Text>
           </View>
 
-          <Text style={styles.label}>Payment Method</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Payment Method</Text>
           <View style={styles.chipRow}>
             {['cash', 'online', 'pasapay'].map((option) => {
               const active = option === paymentMethod;
               return (
                 <TouchableOpacity
                   key={option}
-                  style={[styles.chip, active && styles.chipActive]}
+                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surface }, active && styles.chipActive]}
                   onPress={() => {
                     setPaymentMethod(option);
                     if (option !== 'online') setPaymentChannel('');
                   }}
                 >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  <Text style={[styles.chipText, { color: active ? '#fff' : colors.text }, active && styles.chipTextActive]}>
                     {option === 'cash' ? 'Cash' : option === 'online' ? 'Online' : 'Pasapay'}
                   </Text>
                 </TouchableOpacity>
@@ -152,17 +157,17 @@ const NewPasabuyRequestScreen = ({ navigation, route }) => {
 
           {paymentMethod === 'online' && (
             <>
-              <Text style={styles.label}>Online Channel</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Online Channel</Text>
               <View style={styles.chipRow}>
                 {['GCash', 'Maya', 'PayPal', 'Card'].map((channel) => {
                   const active = channel === paymentChannel;
                   return (
                     <TouchableOpacity
                       key={channel}
-                      style={[styles.chip, active && styles.chipActive]}
+                      style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surface }, active && styles.chipActive]}
                       onPress={() => setPaymentChannel(channel)}
                     >
-                      <Text style={[styles.chipText, active && styles.chipTextActive]}>{channel}</Text>
+                      <Text style={[styles.chipText, { color: active ? '#fff' : colors.text }, active && styles.chipTextActive]}>{channel}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -171,16 +176,16 @@ const NewPasabuyRequestScreen = ({ navigation, route }) => {
           )}
 
           {paymentMethod === 'cash' && budget ? (
-            <Text style={styles.hintText}>
+            <Text style={[styles.hintText, { color: colors.mutedText }]}>
               Cash requests require at least ₱{getSafeCashReserve(budget)} Pasapay balance before they can be accepted.
             </Text>
           ) : null}
 
           {paymentMethod === 'pasapay' && (
-            <Text style={styles.hintText}>Pasapay balance: ₱{pasapayBalance.toFixed(2)}</Text>
+            <Text style={[styles.hintText, { color: colors.mutedText }]}>Pasapay balance: ₱{pasapayBalance.toFixed(2)}</Text>
           )}
 
-          <TouchableOpacity style={styles.submitButton} onPress={submitRequest} disabled={submitting}>
+          <TouchableOpacity style={[styles.submitButton, { backgroundColor: isDark ? '#2F2F35' : '#333' }]} onPress={submitRequest} disabled={submitting}>
             <Icon name="paper-plane" size={16} color="#fff" />
             <Text style={styles.submitButtonText}>{submitting ? 'Submitting...' : 'Post Pasabuy Request'}</Text>
           </TouchableOpacity>

@@ -26,10 +26,12 @@ import { FONT } from '../styles/typography';
 import { useFocusEffect } from '@react-navigation/native';
 import { cartService } from '../services/cartService';
 import { orderService } from '../services/orderService';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const { width: screenWidth, height } = Dimensions.get('window');
 
 const BrowseScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { userId } = route.params || {};
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -162,46 +164,46 @@ const BrowseScreen = ({ navigation, route }) => {
 
   const StoreCard = ({ store }) => (
     <TouchableOpacity 
-      style={styles.storeCard} 
+      style={[styles.storeCard, { backgroundColor: colors.surface, borderColor: colors.border }]} 
       onPress={() => handleStoreSelect(store)}
     >
       <View style={styles.storeHeader}>
         <View style={styles.storeInfo}>
-          <Text style={styles.storeName}>{store.name}</Text>
-          <Text style={styles.storeCategory}>{store.category}</Text>
+          <Text style={[styles.storeName, { color: colors.text }]}>{store.name}</Text>
+          <Text style={[styles.storeCategory, { color: colors.mutedText }]}>{store.category}</Text>
         </View>
-        <View style={styles.storeRating}>
+        <View style={[styles.storeRating, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9' }]}>
           <Icon name="star" size={14} color="#FFD700" />
-          <Text style={styles.ratingText}>{store.rating}</Text>
+          <Text style={[styles.ratingText, { color: colors.text }]}>{store.rating}</Text>
         </View>
       </View>
       
-      <Text style={styles.storeAddress}>{store.address}</Text>
-      <Text style={styles.storeDistance}>{store.distance} away</Text>
+      <Text style={[styles.storeAddress, { color: colors.mutedText }]}>{store.address}</Text>
+      <Text style={[styles.storeDistance, { color: colors.mutedText }]}>{store.distance} away</Text>
       
       <View style={styles.storeItems}>
-        <Text style={styles.itemsLabel}>Popular items:</Text>
-        <Text style={styles.itemsText}>{store.items.slice(0, 3).join(', ')}</Text>
+        <Text style={[styles.itemsLabel, { color: colors.mutedText }]}>Popular items:</Text>
+        <Text style={[styles.itemsText, { color: colors.text }]}>{store.items.slice(0, 3).join(', ')}</Text>
       </View>
       
       <View style={styles.storeActions}>
         <TouchableOpacity 
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]}
           onPress={() => navigation.navigate('StoreItems', { store, userId: userId || 'user123' })}
         >
-          <Icon name="list" size={16} color="#333" />
-          <Text style={styles.actionText}>Browse Items</Text>
+          <Icon name="list" size={16} color={colors.text} />
+          <Text style={[styles.actionText, { color: colors.text }]}>Browse Items</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]}
           onPress={() => {
             console.log('Opening map for store:', store.name);
             setSelectedStore(store);
             setShowMap(true);
           }}
         >
-          <Icon name="map-marker-alt" size={16} color="#333" />
-          <Text style={styles.actionText}>View on Map</Text>
+          <Icon name="map-marker-alt" size={16} color={colors.text} />
+          <Text style={[styles.actionText, { color: colors.text }]}>View on Map</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -380,17 +382,17 @@ const BrowseScreen = ({ navigation, route }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Browse Stores</Text>
-        <Text style={styles.subtitle}>Discover stores and items near you</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Browse Stores</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedText }]}>Discover stores and items near you</Text>
 
         {/* keep cart button available but position it absolute to avoid centering the header */}
         <TouchableOpacity
           style={styles.cartButton}
           onPress={() => navigation.navigate('Cart', { userId: userId || 'user123' })}
         >
-          <Icon name="shopping-cart" size={24} color="#333" />
+          <Icon name="shopping-cart" size={24} color={colors.text} />
           {cartCount > 0 && (
             <View style={styles.cartBadge}>
               <Text style={styles.cartBadgeText}>{cartCount}</Text>
@@ -399,46 +401,46 @@ const BrowseScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Icon name="search" size={16} color="#666" style={styles.searchIcon} />
+      <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View style={[styles.searchInputContainer, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9', borderColor: colors.border }]}>
+          <Icon name="search" size={16} color={colors.mutedText} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search stores, items, or categories..."
             value={searchQuery}
             onChangeText={handleSearch}
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.mutedText}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => handleSearch('')} style={styles.clearButton}>
-              <Icon name="times" size={16} color="#666" />
+              <Icon name="times" size={16} color={colors.mutedText} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
       <View style={styles.resultsHeader}>
-        <Text style={styles.resultsCount}>
+        <Text style={[styles.resultsCount, { color: colors.mutedText }]}>
           {searchResults.length} store{searchResults.length !== 1 ? 's' : ''} found
         </Text>
         <TouchableOpacity 
-          style={styles.mapToggleButton}
+          style={[styles.mapToggleButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
           onPress={() => {
             console.log('Opening map view');
             setShowMap(true);
           }}
         >
-          <Icon name="map" size={16} color="#333" />
-          <Text style={styles.mapToggleText}>Map View</Text>
+          <Icon name="map" size={16} color={colors.text} />
+          <Text style={[styles.mapToggleText, { color: colors.text }]}>Map View</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
         {searchResults.length === 0 ? (
           <View style={styles.noResults}>
-            <Icon name="search" size={40} color="#999" />
-            <Text style={styles.noResultsText}>No stores found</Text>
-            <Text style={styles.noResultsSubtext}>Try a different search term</Text>
+            <Icon name="search" size={40} color={colors.mutedText} />
+            <Text style={[styles.noResultsText, { color: colors.text }]}>No stores found</Text>
+            <Text style={[styles.noResultsSubtext, { color: colors.mutedText }]}>Try a different search term</Text>
           </View>
         ) : (
           searchResults.map(store => (

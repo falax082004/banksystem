@@ -102,7 +102,7 @@ const PasapayWalletScreen = ({ route, navigation }) => {
       <View style={styles.contentContainer}>
         <View style={styles.screenHeader}>
           <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={16} color="#333" />
+            <Icon name="arrow-left" size={16} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.screenTitle, { color: colors.text }]}>Pasapay</Text>
         </View>
@@ -122,6 +122,7 @@ const PasapayWalletScreen = ({ route, navigation }) => {
             style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             keyboardType="numeric"
             placeholder="Enter amount"
+            placeholderTextColor={colors.mutedText}
             value={cashInAmount}
             onChangeText={(value) => setCashInAmount(sanitizeAmountInput(value))}
           />
@@ -138,12 +139,13 @@ const PasapayWalletScreen = ({ route, navigation }) => {
             style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             keyboardType="numeric"
             placeholder="Enter amount"
+            placeholderTextColor={colors.mutedText}
             value={withdrawAmount}
             onChangeText={(value) => setWithdrawAmount(sanitizeAmountInput(value))}
           />
           <Text style={[styles.feeText, { color: colors.mutedText }]}>Withdrawal fee: {formatPeso(withdrawalFee)}</Text>
           <TouchableOpacity style={[styles.secondaryButton, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]} onPress={handleWithdraw}>
-            <Icon name="arrow-circle-up" size={16} color="#333" />
+            <Icon name="arrow-circle-up" size={16} color={colors.text} />
             <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Withdraw from Pasapay</Text>
           </TouchableOpacity>
         </View>
@@ -168,7 +170,7 @@ const PasapayWalletScreen = ({ route, navigation }) => {
                 return (
                   <View key={transaction.id} style={styles.transactionRow}>
                     <View style={[styles.transactionIcon, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0' }]}>
-                      <Icon name={iconName} size={14} color="#333" />
+                      <Icon name={iconName} size={14} color={colors.text} />
                     </View>
                     <View style={styles.transactionBody}>
                       <Text style={[styles.transactionTitle, { color: colors.text }]}>{transaction.summary}</Text>

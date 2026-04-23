@@ -209,8 +209,9 @@ const LoginScreen = ({ navigation }) => {
             <Text style={styles.modalTitle}>Reset Password</Text>
             <Text style={styles.modalSubtitle}>Enter your email address</Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
               placeholder="Email"
+              placeholderTextColor={colors.mutedText}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -227,15 +228,17 @@ const LoginScreen = ({ navigation }) => {
             <Text style={styles.modalTitle}>New Password</Text>
             <Text style={styles.modalSubtitle}>Enter your new password</Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
               placeholder="New Password"
+              placeholderTextColor={colors.mutedText}
               value={newPassword}
               onChangeText={setNewPassword}
               secureTextEntry
             />
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
               placeholder="Confirm New Password"
+              placeholderTextColor={colors.mutedText}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -264,6 +267,7 @@ const LoginScreen = ({ navigation }) => {
         <TextInput
           style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
           placeholder="Username"
+          placeholderTextColor={colors.mutedText}
           value={username}
           onChangeText={setUsername}
           autoCapitalize="none"
@@ -274,6 +278,7 @@ const LoginScreen = ({ navigation }) => {
           <TextInput
             style={[styles.input, { flex: 1, marginBottom: 0, borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Password"
+            placeholderTextColor={colors.mutedText}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -355,8 +360,9 @@ const LoginScreen = ({ navigation }) => {
             <Text style={styles.modalSubtitle}>We're here to help you</Text>
             
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
               placeholder="Your Email"
+              placeholderTextColor={colors.mutedText}
               value={supportEmail}
               onChangeText={setSupportEmail}
               keyboardType="email-address"
@@ -364,8 +370,9 @@ const LoginScreen = ({ navigation }) => {
             />
             
             <TextInput
-              style={[styles.modalInput, styles.messageInput]}
+              style={[styles.modalInput, styles.messageInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
               placeholder="How can we help you?"
+              placeholderTextColor={colors.mutedText}
               value={supportMessage}
               onChangeText={setSupportMessage}
               multiline

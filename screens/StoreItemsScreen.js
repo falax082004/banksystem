@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Ale
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { cartService } from '../services/cartService';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const StoreItemsScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { store, userId } = route.params || {};
   const [quantities, setQuantities] = useState({});
 
@@ -70,48 +72,48 @@ const StoreItemsScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Icon name="chevron-left" size={18} color="#333" />
+          <Icon name="chevron-left" size={18} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerText}>
-          <Text style={styles.title}>{store?.name}</Text>
-          <Text style={styles.subtitle}>{store?.address}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{store?.name}</Text>
+          <Text style={[styles.subtitle, { color: colors.mutedText }]}>{store?.address}</Text>
         </View>
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
         {items.map(it => (
-          <View key={it.id} style={styles.itemRow}>
+          <View key={it.id} style={[styles.itemRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.itemInfo}>
-              <Text style={styles.itemName}>{it.name}</Text>
-              <Text style={styles.itemPrice}>₱{it.price}</Text>
+              <Text style={[styles.itemName, { color: colors.text }]}>{it.name}</Text>
+              <Text style={[styles.itemPrice, { color: colors.mutedText }]}>₱{it.price}</Text>
             </View>
             <View style={styles.qtyControls}>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => updateQty(it.id, -1)}>
-                <Icon name="minus" size={12} color="#333" />
+              <TouchableOpacity style={[styles.qtyBtn, { backgroundColor: isDark ? '#2A2A2D' : '#fff', borderColor: colors.border }]} onPress={() => updateQty(it.id, -1)}>
+                <Icon name="minus" size={12} color={colors.text} />
               </TouchableOpacity>
-              <Text style={styles.qtyText}>{quantities[it.id] || 0}</Text>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => updateQty(it.id, 1)}>
-                <Icon name="plus" size={12} color="#333" />
+              <Text style={[styles.qtyText, { color: colors.text }]}>{quantities[it.id] || 0}</Text>
+              <TouchableOpacity style={[styles.qtyBtn, { backgroundColor: isDark ? '#2A2A2D' : '#fff', borderColor: colors.border }]} onPress={() => updateQty(it.id, 1)}>
+                <Icon name="plus" size={12} color={colors.text} />
               </TouchableOpacity>
             </View>
           </View>
         ))}
         {items.length === 0 && (
           <View style={styles.empty}> 
-            <Text style={styles.emptyText}>No items available.</Text>
+            <Text style={[styles.emptyText, { color: colors.mutedText }]}>No items available.</Text>
           </View>
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
         <View style={styles.summary}> 
-          <Text style={styles.summaryLabel}>Subtotal</Text>
-          <Text style={styles.summaryValue}>₱{subtotal}</Text>
+          <Text style={[styles.summaryLabel, { color: colors.mutedText }]}>Subtotal</Text>
+          <Text style={[styles.summaryValue, { color: colors.text }]}>₱{subtotal}</Text>
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={addSelectedToCart}>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: isDark ? '#2F2F35' : '#333' }]} onPress={addSelectedToCart}>
           <Icon name="shopping-bag" size={16} color="#fff" />
           <Text style={styles.addButtonText}>Add Selected to Cart</Text>
         </TouchableOpacity>

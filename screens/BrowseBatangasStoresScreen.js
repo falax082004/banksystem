@@ -153,7 +153,7 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
         </View>
         <View style={styles.storeRating}>
           <Icon name="star" size={14} color="#FFD700" />
-          <Text style={styles.ratingText}>{store.rating}</Text>
+          <Text style={[styles.ratingText, { color: colors.text }]}>{store.rating}</Text>
         </View>
       </View>
 
@@ -172,7 +172,7 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
           style={[styles.actionButton, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]}
           onPress={() => navigation.navigate('StoreItems', { store, userId: userId || 'user123' })}
         >
-          <Icon name="list" size={16} color="#333" />
+          <Icon name="list" size={16} color={colors.text} />
           <Text style={[styles.actionText, { color: colors.text }]}>Browse Items</Text>
         </TouchableOpacity>
       </View>
@@ -194,7 +194,7 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
             style={styles.cartButton}
             onPress={() => navigation.navigate('Cart', { userId: userId || 'user123' })}
           >
-            <Icon name="shopping-cart" size={24} color="#333" />
+            <Icon name="shopping-cart" size={24} color={colors.text} />
             {cartCount > 0 && (
               <View style={styles.cartBadge}>
                 <Text style={styles.cartBadgeText}>{cartCount}</Text>
@@ -206,7 +206,7 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
 
       <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={[styles.searchInputContainer, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9', borderColor: colors.border }]}>
-          <Icon name="search" size={16} color="#666" style={styles.searchIcon} />
+          <Icon name="search" size={16} color={colors.mutedText} style={styles.searchIcon} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search stores, items, or categories..."
@@ -216,7 +216,7 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-              <Icon name="times" size={16} color="#666" />
+              <Icon name="times" size={16} color={colors.mutedText} />
             </TouchableOpacity>
           )}
         </View>
@@ -230,14 +230,14 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
               setSearchQuery('');
             }}
           >
-            <Icon name="globe-asia" size={16} color="#333" />
+            <Icon name="globe-asia" size={16} color={colors.text} />
             <Text style={[styles.mapToggleText, { color: colors.text }]}>{showAllBatangas ? 'My Area' : 'All Batangas'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.mapToggleButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigation.navigate('NewPasabuyRequest', { userId })}
           >
-            <Icon name="shopping-bag" size={16} color="#333" />
+            <Icon name="shopping-bag" size={16} color={colors.text} />
             <Text style={[styles.mapToggleText, { color: colors.text }]}>New Pasabuy Request</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -246,7 +246,7 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
       <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
         {searchResults.length === 0 ? (
           <View style={styles.noResults}>
-            <Icon name="search" size={40} color="#999" />
+            <Icon name="search" size={40} color={colors.mutedText} />
             <Text style={[styles.noResultsText, { color: colors.mutedText }]}>{userArea ? 'No stores found' : 'No area selected yet'}</Text>
             <Text style={[styles.noResultsSubtext, { color: colors.mutedText }]}>
               {userArea ? 'Try a different search term' : 'Set your Batangas area and barangay in your profile first.'}
