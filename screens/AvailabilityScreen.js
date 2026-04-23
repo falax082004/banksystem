@@ -105,8 +105,8 @@ const AvailabilityScreen = ({ navigation, route }) => {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Icon name="spinner" size={40} color="#333" />
-          <Text style={styles.loadingText}>Loading availability settings...</Text>
+          <Icon name="spinner" size={40} color={colors.text} />
+          <Text style={[styles.loadingText, { color: colors.mutedText }]}>Loading availability settings...</Text>
         </View>
       </SafeAreaView>
     );
@@ -117,7 +117,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.topBar}>
           <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={14} color="#333" />
+            <Icon name="arrow-left" size={14} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={[styles.title, { color: colors.text }]}>Availability</Text>
@@ -132,7 +132,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
         {/* Online Status */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
-            <Icon name="power-off" size={18} color="#333" />
+            <Icon name="power-off" size={18} color={colors.text} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Online Status</Text>
           </View>
           <View style={styles.settingRow}>
@@ -156,7 +156,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
         {/* Maximum Distance */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
-            <Icon name="route" size={18} color="#333" />
+            <Icon name="route" size={18} color={colors.text} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Maximum Distance</Text>
           </View>
           <Text style={[styles.settingDescription, { color: colors.mutedText }]}>
@@ -190,7 +190,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
         {/* Vehicle Type */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
-            <Icon name="car-side" size={18} color="#333" />
+            <Icon name="car-side" size={18} color={colors.text} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Vehicle Type</Text>
           </View>
           <Text style={[styles.settingDescription, { color: colors.mutedText }]}>
@@ -210,7 +210,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
                 <Icon
                   name={vehicle.icon}
                   size={20}
-                  color={availabilityData.vehicleType === vehicle.id ? '#fff' : '#333'}
+                  color={availabilityData.vehicleType === vehicle.id ? '#fff' : colors.text}
                 />
                 <Text
                   style={[
@@ -229,7 +229,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
         {/* Working Hours Info */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
-            <Icon name="clock" size={18} color="#333" />
+            <Icon name="clock" size={18} color={colors.text} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Working Hours</Text>
           </View>
           <View style={styles.workingHoursInfo}>
@@ -243,9 +243,9 @@ const AvailabilityScreen = ({ navigation, route }) => {
         </View>
 
         {/* Info Card */}
-        <View style={styles.infoCard}>
+        <View style={[styles.infoCard, { backgroundColor: isDark ? '#1D3A5F' : '#E3F2FD', borderColor: isDark ? '#2C5A8A' : '#BBDEFB' }]}>
           <Icon name="info-circle" size={20} color="#007AFF" />
-          <Text style={styles.infoText}>
+          <Text style={[styles.infoText, { color: isDark ? '#D9ECFF' : '#1976D2' }]}>
             When you're online, you'll receive notifications for nearby orders within your maximum distance.
           </Text>
         </View>

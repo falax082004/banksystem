@@ -2,8 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { db, ref, push, onValue, off, get, set } from '../firebaseConfig';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const ChatScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { orderId, userId, viewerRole, order, shopperId: propShopperId, riderId: propRiderId } = route.params || {};
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
@@ -78,9 +80,16 @@ const ChatScreen = ({ navigation, route }) => {
     const mine = item.senderId === userId;
     return (
       <View style={[styles.bubbleRow, mine ? { justifyContent: 'flex-end' } : { justifyContent: 'flex-start' }]}>
-        <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-          <Text style={[styles.msgText, mine ? { color: '#fff' } : { color: '#222' }]}>{item.text}</Text>
-          <Text style={[styles.meta, mine ? { color: '#f0f0f0' } : { color: '#888' }]}>
+        <View
+          style={[
+            styles.bubble,
+            mine
+              ? [styles.bubbleMine, { backgroundColor: isDark ? '#2F2F35' : '#333' }]
+              : [styles.bubbleTheirs, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0' }],
+          ]}
+        >
+          <Text style={[styles.msgText, mine ? { color: '#fff' } : { color: colors.text }]}>{item.text}</Text>
+          <Text style={[styles.meta, mine ? { color: '#E5E7EB' } : { color: colors.mutedText }]}>
             {item.senderRole === 'pasabuyer' || item.senderRole === 'rider' ? 'Rider' : item.senderRole === 'shopper' ? 'Shopper' : 'User'}
           </Text>
         </View>
@@ -101,19 +110,19 @@ const ChatScreen = ({ navigation, route }) => {
   }, [orderId, userId]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Icon name="arrow-left" size={18} color="#333" />
+          <Icon name="arrow-left" size={18} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Chat</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Chat</Text>
         <View style={{ width: 32 }} />
       </View>
 
       {notAllowed ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="lock" size={36} color="#bbb" />
-          <Text style={{ marginTop: 8, color: '#888' }}>You are not a participant of this chat.</Text>
+          <Text style={{ marginTop: 8, color: colors.mutedText }}>You are not a participant of this chat.</Text>
         </View>
       ) : (
       <KeyboardAvoidingWidget>
@@ -124,15 +133,15 @@ const ChatScreen = ({ navigation, route }) => {
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
         />
-        <View style={styles.inputBar}>
+        <View style={[styles.inputBar, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.surface }]}
             placeholder="Type a message..."
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.mutedText}
             value={text}
             onChangeText={setText}
           />
-          <TouchableOpacity style={styles.sendBtn} onPress={send}>
+          <TouchableOpacity style={[styles.sendBtn, { backgroundColor: isDark ? '#2F2F35' : '#333' }]} onPress={send}>
             <Icon name="paper-plane" size={16} color="#fff" />
           </TouchableOpacity>
         </View>

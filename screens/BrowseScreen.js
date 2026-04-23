@@ -172,7 +172,7 @@ const BrowseScreen = ({ navigation, route }) => {
           <Text style={[styles.storeName, { color: colors.text }]}>{store.name}</Text>
           <Text style={[styles.storeCategory, { color: colors.mutedText }]}>{store.category}</Text>
         </View>
-        <View style={[styles.storeRating, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9' }]}>
+        <View style={[styles.storeRating, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9', borderColor: colors.border }]}>
           <Icon name="star" size={14} color="#FFD700" />
           <Text style={[styles.ratingText, { color: colors.text }]}>{store.rating}</Text>
         </View>
@@ -589,6 +589,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   ratingText: {
     marginLeft: 4,

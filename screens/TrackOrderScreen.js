@@ -14,10 +14,12 @@ import { db, ref, set, get, push, update, onValue, off } from '../firebaseConfig
 import { earningsService } from '../services/earningsService';
 import { orderActionsService } from '../services/orderActionsService';
 import * as Location from 'expo-location';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
 
 const TrackOrderScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { order, userId, viewerRole } = route.params || {};
   const isRiderView = viewerRole === 'pasabuyer' || viewerRole === 'rider';
   const [currentStep, setCurrentStep] = useState(0);
@@ -69,7 +71,8 @@ const TrackOrderScreen = ({ navigation, route }) => {
       if (['delivered', 'cancelled'].includes(status)) return;
 
       try {
-        const { status: permStatus } = await Location.requestForegroundPermissionsAsync();
+        // Do not auto-prompt location permission here; only use if already granted.
+        const { status: permStatus } = await Location.getForegroundPermissionsAsync();
         if (permStatus !== 'granted') {
           return;
         }
@@ -279,13 +282,13 @@ const TrackOrderScreen = ({ navigation, route }) => {
     const getStepIconBg = () => {
       if (step.status === 'completed') return '#00C853';
       if (step.status === 'current') return '#007AFF';
-      return '#f0f0f0';
+      return isDark ? '#2A2A2D' : '#f0f0f0';
     };
 
     const getStepTitleColor = () => {
-      if (step.status === 'completed') return '#333';
+      if (step.status === 'completed') return colors.text;
       if (step.status === 'current') return '#007AFF';
-      return '#666';
+      return colors.mutedText;
     };
 
     return (
@@ -404,10 +407,10 @@ const TrackOrderScreen = ({ navigation, route }) => {
 
   if (!order) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
           <Icon name="exclamation-triangle" size={60} color="#ff6b6b" />
-          <Text style={styles.errorText}>Order not found</Text>
+          <Text style={[styles.errorText, { color: colors.mutedText }]}>Order not found</Text>
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => navigation.goBack()}
@@ -420,23 +423,23 @@ const TrackOrderScreen = ({ navigation, route }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity 
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Icon name="arrow-left" size={20} color="#333" />
+          <Icon name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Track Order</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Track Order</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Order Summary */}
-        <View style={styles.orderSummary}>
+        <View style={[styles.orderSummary, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.orderHeader}>
-            <Text style={styles.orderId}>Order #{trackingOrder?.orderNumber || order.id}</Text>
+            <Text style={[styles.orderId, { color: colors.text }]}>Order #{trackingOrder?.orderNumber || order.id}</Text>
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(trackingOrder?.status || 'pending') }]}>
               <Icon name={getStatusIcon(trackingOrder?.status || 'pending')} size={12} color="#fff" />
               <Text style={styles.statusText}>{(trackingOrder?.status || 'PENDING').toUpperCase()}</Text>
@@ -446,20 +449,20 @@ const TrackOrderScreen = ({ navigation, route }) => {
           <View style={styles.deliveryInfo}>
             <View style={styles.deliveryItem}>
               <Icon name="clock" size={16} color="#007AFF" />
-              <Text style={styles.deliveryLabel}>Estimated delivery:</Text>
-              <Text style={styles.deliveryValue}>{estimatedTime || getEstimatedTime()}</Text>
+              <Text style={[styles.deliveryLabel, { color: colors.mutedText }]}>Estimated delivery:</Text>
+              <Text style={[styles.deliveryValue, { color: colors.text }]}>{estimatedTime || getEstimatedTime()}</Text>
             </View>
             
             <View style={styles.deliveryItem}>
               <Icon name="map-marker-alt" size={16} color="#007AFF" />
-              <Text style={styles.deliveryLabel}>Total amount:</Text>
-              <Text style={styles.deliveryValue}>{formatPeso(trackingOrder?.totalAmount || order.totalAmount)}</Text>
+              <Text style={[styles.deliveryLabel, { color: colors.mutedText }]}>Total amount:</Text>
+              <Text style={[styles.deliveryValue, { color: colors.text }]}>{formatPeso(trackingOrder?.totalAmount || order.totalAmount)}</Text>
             </View>
 
             <View style={styles.deliveryItem}>
               <Icon name="credit-card" size={16} color="#007AFF" />
-              <Text style={styles.deliveryLabel}>Payment:</Text>
-              <Text style={styles.deliveryValue}>
+              <Text style={[styles.deliveryLabel, { color: colors.mutedText }]}>Payment:</Text>
+              <Text style={[styles.deliveryValue, { color: colors.text }]}>
                 {(trackingOrder?.paymentChannel || trackingOrder?.paymentMethod || order.paymentChannel || order.paymentMethod || 'cash').toString()}
               </Text>
             </View>
@@ -467,8 +470,8 @@ const TrackOrderScreen = ({ navigation, route }) => {
             {(viewerRole === 'rider' || viewerRole === 'pasabuyer') && (trackingOrder?.paymentMethod === 'cash' || order.paymentMethod === 'cash') && (
               <View style={styles.deliveryItem}>
                 <Icon name="wallet" size={16} color="#007AFF" />
-                <Text style={styles.deliveryLabel}>Required Pasapay:</Text>
-                <Text style={styles.deliveryValue}>
+                <Text style={[styles.deliveryLabel, { color: colors.mutedText }]}>Required Pasapay:</Text>
+                <Text style={[styles.deliveryValue, { color: colors.text }]}>
                   {formatPeso(trackingOrder?.cashReserveRequired || order.cashReserveRequired)}
                 </Text>
               </View>
@@ -476,15 +479,15 @@ const TrackOrderScreen = ({ navigation, route }) => {
 
             <View style={styles.deliveryItem}>
               <Icon name="home" size={16} color="#007AFF" />
-              <Text style={styles.deliveryLabel}>Address:</Text>
-              <Text style={styles.deliveryValue}>{trackingOrder?.deliveryAddress || order.deliveryAddress || 'No address saved'}</Text>
+              <Text style={[styles.deliveryLabel, { color: colors.mutedText }]}>Address:</Text>
+              <Text style={[styles.deliveryValue, { color: colors.text }]}>{trackingOrder?.deliveryAddress || order.deliveryAddress || 'No address saved'}</Text>
             </View>
 
             {riderLocation && (
               <View style={styles.deliveryItem}>
                 <Icon name="truck" size={16} color="#007AFF" />
-                <Text style={styles.deliveryLabel}>Rider location:</Text>
-                <Text style={styles.deliveryValue}>
+                <Text style={[styles.deliveryLabel, { color: colors.mutedText }]}>Rider location:</Text>
+                <Text style={[styles.deliveryValue, { color: colors.text }]}>
                   {typeof riderLocation?.lat === 'number' && typeof riderLocation?.lng === 'number'
                     ? `Lat ${riderLocation.lat.toFixed(5)}, Lng ${riderLocation.lng.toFixed(5)}`
                     : riderLocation?.address || 'Location updating...'}
@@ -495,8 +498,8 @@ const TrackOrderScreen = ({ navigation, route }) => {
         </View>
 
         {/* Tracking Steps */}
-        <View style={styles.trackingSection}>
-          <Text style={styles.sectionTitle}>Order Progress</Text>
+        <View style={[styles.trackingSection, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Order Progress</Text>
           {trackingSteps.map((step, index) => (
             <TrackingStep 
               key={step.id} 
@@ -507,20 +510,20 @@ const TrackOrderScreen = ({ navigation, route }) => {
         </View>
 
         {/* Store Details */}
-        <View style={styles.storesSection}>
-          <Text style={styles.sectionTitle}>Stores in this order</Text>
+        <View style={[styles.storesSection, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Stores in this order</Text>
           {order.stores.map((store, index) => (
-            <View key={index} style={styles.storeItem}>
-              <View style={styles.storeIcon}>
-                <Icon name="store" size={16} color="#666" />
+            <View key={index} style={[styles.storeItem, { borderBottomColor: colors.border }]}>
+              <View style={[styles.storeIcon, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0' }]}>
+                <Icon name="store" size={16} color={colors.mutedText} />
               </View>
               <View style={styles.storeInfo}>
-                <Text style={styles.storeName}>{store.storeName}</Text>
-                <Text style={styles.storeAddress}>{store.storeAddress}</Text>
-                <Text style={styles.storeCategory}>{store.storeCategory}</Text>
+                <Text style={[styles.storeName, { color: colors.text }]}>{store.storeName}</Text>
+                <Text style={[styles.storeAddress, { color: colors.mutedText }]}>{store.storeAddress}</Text>
+                <Text style={[styles.storeCategory, { color: colors.mutedText }]}>{store.storeCategory}</Text>
               </View>
-              <View style={styles.storeQuantity}>
-                <Text style={styles.quantityText}>x{store.serviceQuantity || store.quantity || 1}</Text>
+              <View style={[styles.storeQuantity, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0' }]}>
+                <Text style={[styles.quantityText, { color: colors.text }]}>x{store.serviceQuantity || store.quantity || 1}</Text>
               </View>
             </View>
           ))}
@@ -644,8 +647,8 @@ const TrackOrderScreen = ({ navigation, route }) => {
         </View>
 
         {canRateDelivery && (
-          <View style={styles.ratingPanel}>
-            <Text style={styles.sectionTitle}>Rate your {trackingOrder?.assignedRole === 'pasabuyer' ? 'pasabuyer' : 'rider'}</Text>
+        <View style={[styles.ratingPanel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Rate your {trackingOrder?.assignedRole === 'pasabuyer' ? 'pasabuyer' : 'rider'}</Text>
             <View style={styles.starsRow}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity key={star} onPress={() => setRatingScore(star)}>

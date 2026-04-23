@@ -166,7 +166,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
         <Text style={[styles.meta, { color: colors.mutedText }]}>Requested item: {order.requestedItem}</Text>
       ) : null}
       <View style={styles.storeRow}>
-        <Icon name="store" size={12} color="#666" />
+        <Icon name="store" size={12} color={colors.mutedText} />
         <Text style={[styles.storeText, { color: colors.mutedText }]}>{order.stores[0].storeName} • {order.stores[0].storeCategory}</Text>
       </View>
       <View style={styles.actions}>
@@ -199,7 +199,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
             }
           }}
         >
-          <Icon name="comments" size={14} color="#333" />
+          <Icon name="comments" size={14} color={colors.text} />
           <Text style={[styles.secondaryBtnText, { color: colors.text }]}>Chat Customer</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -225,7 +225,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
             );
           }}
         >
-          <Icon name="hand-paper" size={14} color="#333" />
+          <Icon name="hand-paper" size={14} color={colors.text} />
           <Text style={[styles.secondaryBtnText, { color: colors.text }]}>Accept Order</Text>
         </TouchableOpacity>
       </View>
@@ -245,7 +245,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
             </Text>
           </View>
           <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]} onPress={handleRefresh} disabled={isRefreshing}>
-            <Icon name="sync" size={16} color="#333" />
+            <Icon name="sync" size={16} color={colors.text} />
             <Text style={[styles.refreshText, { color: colors.text }]}>{isRefreshing ? 'Refreshing' : 'Refresh'}</Text>
           </TouchableOpacity>
         </View>
@@ -253,7 +253,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
 
       <View style={styles.filters}>
         <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Icon name="search" size={14} color="#666" />
+          <Icon name="search" size={14} color={colors.mutedText} />
           <TextInput
             style={[styles.input, { color: colors.text }]}
             placeholder="Search store, category, or order #"
@@ -264,7 +264,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
         </View>
         {viewerRole !== 'rider' ? (
           <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Icon name="ruler" size={14} color="#666" />
+            <Icon name="ruler" size={14} color={colors.mutedText} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
               placeholder="Max distance (km)"
@@ -276,7 +276,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
           </View>
         ) : (
           <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Icon name="globe-asia" size={14} color="#666" />
+            <Icon name="globe-asia" size={14} color={colors.mutedText} />
             <Text style={[styles.input, { color: colors.text }]}>Coverage: Entire Batangas</Text>
           </View>
         )}
@@ -288,7 +288,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
         ))}
         {filtered.length === 0 && (
           <View style={styles.emptyBox}>
-            <Icon name="map" size={24} color="#bbb" />
+            <Icon name="map" size={24} color={colors.mutedText} />
             <Text style={[styles.emptyText, { color: colors.mutedText }]}>No nearby orders match your filters</Text>
           </View>
         )}

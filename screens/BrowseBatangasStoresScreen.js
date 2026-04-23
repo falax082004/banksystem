@@ -9,33 +9,78 @@ import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
 import NotificationBell from './NotificationBell';
 import { useThemeMode } from '../theme/ThemeContext';
 
-// 3 stores per city/municipality (Batangas-only) - list UI only (no map)
-const STORE_TEMPLATES = [
+// 3 stores per city/municipality (Batangas-only), rotated per city for variety.
+const STORE_BASES = [
   {
-    suffix: 'Food Hub',
+    name: 'Aling Nena Sari-Sari',
+    category: 'Sari-Sari Store',
+    items: [
+      { name: 'Pandesal Pack', price: 35 },
+      { name: '3-in-1 Coffee Box', price: 62 },
+      { name: 'Instant Noodles (3 pcs)', price: 48 },
+    ],
+  },
+  {
+    name: 'Kusina ni Mang Tino',
     category: 'Restaurant',
     items: [
-      { name: 'Chicken Meal', price: 99 },
-      { name: 'Spaghetti Tray', price: 85 },
-      { name: 'Milk Tea', price: 75 },
+      { name: 'Adobo Meal', price: 95 },
+      { name: 'Sinigang Meal', price: 115 },
+      { name: 'Iced Tea 16oz', price: 45 },
     ],
   },
   {
-    suffix: 'Grocery Corner',
+    name: 'Batangas Fresh Mart',
     category: 'Supermarket',
     items: [
-      { name: 'Rice 1kg', price: 79 },
-      { name: 'Vegetable Pack', price: 99 },
-      { name: 'House Essentials', price: 150 },
+      { name: 'Rice 1kg', price: 62 },
+      { name: 'Eggs (12 pcs)', price: 108 },
+      { name: 'Cooking Oil 1L', price: 145 },
     ],
   },
   {
-    suffix: 'Mini Mart',
+    name: 'Luna Pharmacy',
+    category: 'Pharmacy',
+    items: [
+      { name: 'Paracetamol 10 tabs', price: 38 },
+      { name: 'Vitamin C 30 tabs', price: 180 },
+      { name: 'Alcohol 500ml', price: 95 },
+    ],
+  },
+  {
+    name: 'Pan de Bayan Bakery',
+    category: 'Bakery',
+    items: [
+      { name: 'Pandesal (10 pcs)', price: 45 },
+      { name: 'Spanish Bread (4 pcs)', price: 50 },
+      { name: 'Ensaymada', price: 55 },
+    ],
+  },
+  {
+    name: 'Merienda Express',
+    category: 'Snacks',
+    items: [
+      { name: 'Turon (2 pcs)', price: 40 },
+      { name: 'Banana Cue (2 pcs)', price: 35 },
+      { name: 'Palamig', price: 30 },
+    ],
+  },
+  {
+    name: 'Barangay Mini Mart',
     category: 'Convenience Store',
     items: [
-      { name: 'Drinks Set', price: 65 },
-      { name: 'Snacks Pack', price: 55 },
-      { name: 'Instant Noodles', price: 75 },
+      { name: 'Softdrinks 1.5L', price: 95 },
+      { name: 'Bottled Water 500ml', price: 20 },
+      { name: 'Snack Combo Pack', price: 75 },
+    ],
+  },
+  {
+    name: 'Gulay at Isda Corner',
+    category: 'Fresh Goods',
+    items: [
+      { name: 'Mixed Vegetables Pack', price: 85 },
+      { name: 'Galunggong 1/2kg', price: 110 },
+      { name: 'Tomato + Onion Set', price: 70 },
     ],
   },
 ];
@@ -53,7 +98,14 @@ const toRealisticPrice = (base) => {
 const generateBatangasStores = () => {
   const stores = [];
   BATANGAS_LOCATION_OPTIONS.forEach((loc, locIdx) => {
-    STORE_TEMPLATES.forEach((tpl, tplIdx) => {
+    const baseStart = locIdx % STORE_BASES.length;
+    const cityStoreSet = [
+      STORE_BASES[baseStart % STORE_BASES.length],
+      STORE_BASES[(baseStart + 2) % STORE_BASES.length],
+      STORE_BASES[(baseStart + 5) % STORE_BASES.length],
+    ];
+
+    cityStoreSet.forEach((base, tplIdx) => {
       const storeIndex = tplIdx + 1;
       const id = `${loc.key}-${storeIndex}`;
       const barangay = loc.barangays[(storeIndex - 1) % Math.max(1, loc.barangays.length)] || loc.barangays[0] || 'Poblacion';
@@ -64,14 +116,14 @@ const generateBatangasStores = () => {
 
       stores.push({
         id,
-        name: `${loc.label} ${tpl.suffix}`,
-        category: tpl.category,
+        name: `${base.name} - ${loc.label}`,
+        category: base.category,
         rating: Number((4.1 + ((locIdx + tplIdx) % 6) * 0.1).toFixed(1)),
         distance: `${(0.6 + ((locIdx + tplIdx) % 10) * 0.2).toFixed(1)} km`,
         address: `${barangay}, ${loc.label}, Batangas`,
         area: loc.label,
         coordinates: { latitude: lat, longitude: lng },
-        items: tpl.items.map((it, itemIdx) => ({
+        items: base.items.map((it, itemIdx) => ({
           id: `${id}-item-${itemIdx + 1}`,
           name: it.name,
           price: toRealisticPrice(it.price),
@@ -151,7 +203,7 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
           <Text style={[styles.storeName, { color: colors.text }]}>{store.name}</Text>
           <Text style={[styles.storeCategory, { color: colors.mutedText }]}>{store.category}</Text>
         </View>
-        <View style={styles.storeRating}>
+        <View style={[styles.storeRating, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9', borderColor: colors.border }]}>
           <Icon name="star" size={14} color="#FFD700" />
           <Text style={[styles.ratingText, { color: colors.text }]}>{store.rating}</Text>
         </View>
@@ -284,7 +336,7 @@ const styles = StyleSheet.create({
   storeInfo: { flex: 1 },
   storeName: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 2 },
   storeCategory: { fontSize: 14, color: '#666' },
-  storeRating: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f9f9f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+  storeRating: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f9f9f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, borderWidth: 1, borderColor: '#ddd' },
   ratingText: { marginLeft: 4, fontSize: 14, color: '#333', fontWeight: '500' },
   storeAddress: { fontSize: 14, color: '#666', marginBottom: 4 },
   storeDistance: { fontSize: 12, color: '#888', marginBottom: 12 },

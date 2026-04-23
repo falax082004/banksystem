@@ -44,7 +44,7 @@ const EarningsScreen = ({ route, navigation }) => {
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={14} color="#333" />
+            <Icon name="arrow-left" size={14} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: colors.text }]}>Earnings</Text>
         </View>
