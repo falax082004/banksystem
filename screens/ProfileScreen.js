@@ -10,13 +10,16 @@ import {
   Modal,
   TextInput,
   Pressable,
-  Alert
+  Alert,
+  Switch,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { db, ref, get, update, set, push } from '../firebaseConfig';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const ProfileScreen = ({ navigation, route }) => {
+  const { isDark, colors, toggleTheme } = useThemeMode();
   const { userId } = route.params;
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -143,18 +146,18 @@ const ProfileScreen = ({ navigation, route }) => {
 
   const MenuItem = ({ icon, label, onPress, requiresMpin = false }) => (
     <TouchableOpacity 
-      style={styles.menuItem} 
+      style={[styles.menuItem, { borderBottomColor: colors.border }]}
       onPress={() => requiresMpin ? handleProtectedNavigation(label, { userId, fullName: name }) : onPress()}
       activeOpacity={0.7}
     >
       <View style={styles.menuItemContent}>
         <View style={styles.iconContainer}>
-          <Icon name={icon} size={18} color="#333" solid />
+          <Icon name={icon} size={18} color={colors.text} solid />
         </View>
-        <Text style={styles.menuLabel}>{label}</Text>
+        <Text style={[styles.menuLabel, { color: colors.text }]}>{label}</Text>
       </View>
       <View style={styles.chevronContainer}>
-        <Icon name="chevron-right" size={16} color="#666" />
+        <Icon name="chevron-right" size={16} color={colors.mutedText} />
       </View>
     </TouchableOpacity>
   );
@@ -164,30 +167,37 @@ const ProfileScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <TouchableOpacity style={styles.profileCard} onPress={handleProfileImagePress}>
-          <View style={styles.avatar}>
-            <Icon name="user" size={32} color="#333" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <TouchableOpacity style={[styles.profileCard, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={handleProfileImagePress}>
+          <View style={[styles.avatar, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]}>
+            <Icon name="user" size={32} color={colors.text} />
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.name}>{name}</Text>
-            <Text style={styles.phone}>{phoneNumber}</Text>
-            <Text style={styles.role}>
+            <Text style={[styles.name, { color: colors.text }]}>{name}</Text>
+            <Text style={[styles.phone, { color: colors.mutedText }]}>{phoneNumber}</Text>
+            <Text style={[styles.role, { color: colors.mutedText }]}>
               {userRole === 'rider' ? 'Delivery Rider' : userRole === 'shopper' ? 'Shopper/Pasabuyer' : 'No Role Selected'}
             </Text>
           </View>
-          <Icon name="chevron-right" size={16} color="#666" />
+          <Icon name="chevron-right" size={16} color={colors.mutedText} />
         </TouchableOpacity>
 
-        <View style={styles.verificationCard}>
+        <View style={[styles.verificationCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Icon name="check-circle" size={16} color="#00c853" solid />
-          <Text style={styles.verificationText}>Verified User</Text>
+          <Text style={[styles.verificationText, { color: colors.text }]}>Verified User</Text>
+        </View>
+        <View style={[styles.verificationCard, { backgroundColor: colors.surface, borderColor: colors.border, alignSelf: 'stretch', justifyContent: 'space-between' }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="moon" size={16} color={isDark ? '#FFD54F' : '#333'} />
+            <Text style={[styles.verificationText, { color: colors.text }]}>Dark Mode</Text>
+          </View>
+          <Switch value={isDark} onValueChange={toggleTheme} />
         </View>
         {(userRole === 'rider' || pasabuyerEnabled) && (
-          <View style={styles.ratingCard}>
+          <View style={[styles.ratingCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Icon name="star" size={16} color="#FFC107" solid />
-            <Text style={styles.ratingText}>
+            <Text style={[styles.ratingText, { color: colors.text }]}>
               Rating: {ratingCount > 0 ? `${ratingAverage.toFixed(1)} / 5` : 'No ratings yet'}
               {ratingCount > 0 ? ` (${ratingCount})` : ''}
             </Text>
@@ -199,7 +209,7 @@ const ProfileScreen = ({ navigation, route }) => {
             {loading ? (
               <ActivityIndicator size="large" color="#333" />
             ) : (
-              <View style={styles.menuContainer}>
+              <View style={[styles.menuContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 {userRole === 'rider' ? (
                   <>
                     <MenuItem
@@ -314,9 +324,9 @@ const ProfileScreen = ({ navigation, route }) => {
           onRequestClose={() => setShowMpinModal(false)}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Enter MPIN</Text>
-              <Text style={styles.modalSubtitle}>Please enter your MPIN to continue</Text>
+            <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Enter MPIN</Text>
+              <Text style={[styles.modalSubtitle, { color: colors.mutedText }]}>Please enter your MPIN to continue</Text>
               <TextInput
                 style={styles.mpinInput}
                 value={mpin}

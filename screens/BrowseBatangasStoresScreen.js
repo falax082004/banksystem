@@ -7,6 +7,7 @@ import { cartService } from '../services/cartService';
 import { db, ref, get } from '../firebaseConfig';
 import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
 import NotificationBell from './NotificationBell';
+import { useThemeMode } from '../theme/ThemeContext';
 
 // 3 stores per city/municipality (Batangas-only) - list UI only (no map)
 const STORE_TEMPLATES = [
@@ -82,6 +83,7 @@ const generateBatangasStores = () => {
 };
 
 const BrowseBatangasStoresScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { userId } = route.params || {};
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -143,11 +145,11 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
   }, [searchQuery, baseStores]);
 
   const StoreCard = ({ store }) => (
-    <TouchableOpacity style={styles.storeCard} onPress={() => navigation.navigate('StoreItems', { store, userId: userId || 'user123' })}>
+    <TouchableOpacity style={[styles.storeCard, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => navigation.navigate('StoreItems', { store, userId: userId || 'user123' })}>
       <View style={styles.storeHeader}>
         <View style={styles.storeInfo}>
-          <Text style={styles.storeName}>{store.name}</Text>
-          <Text style={styles.storeCategory}>{store.category}</Text>
+          <Text style={[styles.storeName, { color: colors.text }]}>{store.name}</Text>
+          <Text style={[styles.storeCategory, { color: colors.mutedText }]}>{store.category}</Text>
         </View>
         <View style={styles.storeRating}>
           <Icon name="star" size={14} color="#FFD700" />
@@ -155,33 +157,33 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      <Text style={styles.storeAddress}>{store.address}</Text>
-      <Text style={styles.storeDistance}>
+      <Text style={[styles.storeAddress, { color: colors.mutedText }]}>{store.address}</Text>
+      <Text style={[styles.storeDistance, { color: colors.mutedText }]}>
         {store.area} • {store.distance} away
       </Text>
 
       <View style={styles.storeItems}>
-        <Text style={styles.itemsLabel}>Popular items:</Text>
-        <Text style={styles.itemsText}>{(store.items || []).slice(0, 3).map((x) => x.name).join(', ')}</Text>
+        <Text style={[styles.itemsLabel, { color: colors.mutedText }]}>Popular items:</Text>
+        <Text style={[styles.itemsText, { color: colors.text }]}>{(store.items || []).slice(0, 3).map((x) => x.name).join(', ')}</Text>
       </View>
 
       <View style={styles.storeActions}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]}
           onPress={() => navigation.navigate('StoreItems', { store, userId: userId || 'user123' })}
         >
           <Icon name="list" size={16} color="#333" />
-          <Text style={styles.actionText}>Browse Items</Text>
+          <Text style={[styles.actionText, { color: colors.text }]}>Browse Items</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Browse Stores</Text>
-        <Text style={styles.subtitle}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Browse Stores</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedText }]}>
           {userArea ? `My Area: ${userArea}${userBarangay ? `, ${userBarangay}` : ''}` : 'Set your Batangas area to browse nearby stores'}
           {showAllBatangas ? ' • Showing all Batangas stores' : userArea ? ' • Showing stores in your area' : ''}
         </Text>
@@ -202,15 +204,15 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View style={[styles.searchInputContainer, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9', borderColor: colors.border }]}>
           <Icon name="search" size={16} color="#666" style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search stores, items, or categories..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.mutedText}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
@@ -221,7 +223,7 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.headerActionRow} contentContainerStyle={styles.headerActionRowContent}>
           <TouchableOpacity
-            style={styles.mapToggleButton}
+            style={[styles.mapToggleButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => {
               const next = !showAllBatangas;
               setShowAllBatangas(next);
@@ -229,14 +231,14 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
             }}
           >
             <Icon name="globe-asia" size={16} color="#333" />
-            <Text style={styles.mapToggleText}>{showAllBatangas ? 'My Area' : 'All Batangas'}</Text>
+            <Text style={[styles.mapToggleText, { color: colors.text }]}>{showAllBatangas ? 'My Area' : 'All Batangas'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.mapToggleButton}
+            style={[styles.mapToggleButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigation.navigate('NewPasabuyRequest', { userId })}
           >
             <Icon name="shopping-bag" size={16} color="#333" />
-            <Text style={styles.mapToggleText}>New Pasabuy Request</Text>
+            <Text style={[styles.mapToggleText, { color: colors.text }]}>New Pasabuy Request</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -245,8 +247,8 @@ const BrowseBatangasStoresScreen = ({ navigation, route }) => {
         {searchResults.length === 0 ? (
           <View style={styles.noResults}>
             <Icon name="search" size={40} color="#999" />
-            <Text style={styles.noResultsText}>{userArea ? 'No stores found' : 'No area selected yet'}</Text>
-            <Text style={styles.noResultsSubtext}>
+            <Text style={[styles.noResultsText, { color: colors.mutedText }]}>{userArea ? 'No stores found' : 'No area selected yet'}</Text>
+            <Text style={[styles.noResultsSubtext, { color: colors.mutedText }]}>
               {userArea ? 'Try a different search term' : 'Set your Batangas area and barangay in your profile first.'}
             </Text>
           </View>

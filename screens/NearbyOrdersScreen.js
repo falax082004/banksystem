@@ -5,6 +5,7 @@ import { FONT } from '../styles/typography';
 import { db, ref, get, onValue, off, set } from '../firebaseConfig';
 import { orderActionsService } from '../services/orderActionsService';
 import { pasapayService } from '../services/pasapayService';
+import { useThemeMode } from '../theme/ThemeContext';
 
 // Prototype-only mock nearby orders
 const MOCK_ORDERS = [
@@ -44,6 +45,7 @@ const MOCK_ORDERS = [
 ];
 
 const NearbyOrdersScreen = ({ navigation, route }) => {
+  const { colors, isDark } = useThemeMode();
   const { userId } = route.params || {};
   const [query, setQuery] = useState('');
   const [maxDistance, setMaxDistance] = useState(''); // blank means no max filter
@@ -149,34 +151,34 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
   };
 
   const OrderRow = ({ order }) => (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
-        <Text style={styles.orderNumber}>#{order.orderNumber}</Text>
+        <Text style={[styles.orderNumber, { color: colors.text }]}>#{order.orderNumber}</Text>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) }]}>
           <Text style={styles.statusText}>{order.status.replace('_',' ').toUpperCase()}</Text>
         </View>
       </View>
-      <Text style={styles.meta}>Distance: {order.distanceKm} km</Text>
-      <Text style={styles.meta}>Total: ₱{order.totalAmount}</Text>
-      <Text style={styles.meta}>Payment: {(order.paymentChannel || order.paymentMethod || 'cash').toString()}</Text>
-      <Text style={styles.meta}>Address: {order.deliveryAddress || 'No delivery address'}</Text>
+      <Text style={[styles.meta, { color: colors.mutedText }]}>Distance: {order.distanceKm} km</Text>
+      <Text style={[styles.meta, { color: colors.mutedText }]}>Total: ₱{order.totalAmount}</Text>
+      <Text style={[styles.meta, { color: colors.mutedText }]}>Payment: {(order.paymentChannel || order.paymentMethod || 'cash').toString()}</Text>
+      <Text style={[styles.meta, { color: colors.mutedText }]}>Address: {order.deliveryAddress || 'No delivery address'}</Text>
       {order.requestType === 'custom_pasabuy' && order.requestedItem ? (
-        <Text style={styles.meta}>Requested item: {order.requestedItem}</Text>
+        <Text style={[styles.meta, { color: colors.mutedText }]}>Requested item: {order.requestedItem}</Text>
       ) : null}
       <View style={styles.storeRow}>
         <Icon name="store" size={12} color="#666" />
-        <Text style={styles.storeText}>{order.stores[0].storeName} • {order.stores[0].storeCategory}</Text>
+        <Text style={[styles.storeText, { color: colors.mutedText }]}>{order.stores[0].storeName} • {order.stores[0].storeCategory}</Text>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity
-          style={styles.primaryBtn}
+          style={[styles.primaryBtn, { backgroundColor: isDark ? '#2F2F35' : '#333' }]}
           onPress={() => navigation.navigate('TrackOrder', { order, userId, viewerRole })}
         >
           <Icon name="map-marker-alt" size={14} color="#fff" />
           <Text style={styles.primaryBtnText}>Track</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.secondaryBtn}
+          style={[styles.secondaryBtn, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]}
           onPress={async () => {
             try {
               if (!order?.id || !userId) return;
@@ -198,10 +200,10 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
           }}
         >
           <Icon name="comments" size={14} color="#333" />
-          <Text style={styles.secondaryBtnText}>Chat Customer</Text>
+          <Text style={[styles.secondaryBtnText, { color: colors.text }]}>Chat Customer</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.secondaryBtn}
+          style={[styles.secondaryBtn, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]}
           onPress={() => {
             Alert.alert(
               'Confirm Order',
@@ -224,58 +226,58 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
           }}
         >
           <Icon name="hand-paper" size={14} color="#333" />
-          <Text style={styles.secondaryBtnText}>Accept Order</Text>
+          <Text style={[styles.secondaryBtnText, { color: colors.text }]}>Accept Order</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>{viewerRole === 'rider' ? 'Available Orders' : 'Orders In My Barangay'}</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: colors.text }]}>{viewerRole === 'rider' ? 'Available Orders' : 'Orders In My Barangay'}</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedText }]}>
               {viewerRole === 'rider'
                 ? 'Riders can accept orders across Batangas.'
                 : `Pasabuyers only see requests in ${userBarangay || 'their barangay'}.`}
             </Text>
           </View>
-          <TouchableOpacity style={styles.refreshBtn} onPress={handleRefresh} disabled={isRefreshing}>
+          <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]} onPress={handleRefresh} disabled={isRefreshing}>
             <Icon name="sync" size={16} color="#333" />
-            <Text style={styles.refreshText}>{isRefreshing ? 'Refreshing' : 'Refresh'}</Text>
+            <Text style={[styles.refreshText, { color: colors.text }]}>{isRefreshing ? 'Refreshing' : 'Refresh'}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.filters}>
-        <View style={styles.inputWrap}>
+        <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Icon name="search" size={14} color="#666" />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="Search store, category, or order #"
             value={query}
             onChangeText={setQuery}
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.mutedText}
           />
         </View>
         {viewerRole !== 'rider' ? (
-          <View style={styles.inputWrap}>
+          <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Icon name="ruler" size={14} color="#666" />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Max distance (km)"
               keyboardType="numeric"
               value={maxDistance}
               onChangeText={setMaxDistance}
-              placeholderTextColor="#888"
+              placeholderTextColor={colors.mutedText}
             />
           </View>
         ) : (
-          <View style={styles.inputWrap}>
+          <View style={[styles.inputWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Icon name="globe-asia" size={14} color="#666" />
-            <Text style={styles.input}>Coverage: Entire Batangas</Text>
+            <Text style={[styles.input, { color: colors.text }]}>Coverage: Entire Batangas</Text>
           </View>
         )}
       </View>
@@ -287,7 +289,7 @@ const NearbyOrdersScreen = ({ navigation, route }) => {
         {filtered.length === 0 && (
           <View style={styles.emptyBox}>
             <Icon name="map" size={24} color="#bbb" />
-            <Text style={styles.emptyText}>No nearby orders match your filters</Text>
+            <Text style={[styles.emptyText, { color: colors.mutedText }]}>No nearby orders match your filters</Text>
           </View>
         )}
       </ScrollView>

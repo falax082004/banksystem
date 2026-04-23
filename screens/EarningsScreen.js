@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { onValue, off, ref, db } from '../firebaseConfig';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
 
 const EarningsScreen = ({ route, navigation }) => {
+  const { colors } = useThemeMode();
   const { userId, userType } = route?.params || {};
   const isPasabuyer = userType === 'pasabuyer';
   const [earnings, setEarnings] = useState([]);
@@ -38,51 +40,51 @@ const EarningsScreen = ({ route, navigation }) => {
   }, [userId, isPasabuyer]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
             <Icon name="arrow-left" size={14} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.title}>Earnings</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Earnings</Text>
         </View>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.mutedText }]}>
           Your {isPasabuyer ? 'pasabuy' : 'delivery'} earnings summary
         </Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>This week</Text>
-        <Text style={styles.value}>{formatPeso(totalThisWeek)}</Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.label, { color: colors.mutedText }]}>This week</Text>
+        <Text style={[styles.value, { color: colors.text }]}>{formatPeso(totalThisWeek)}</Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Total {isPasabuyer ? 'requests' : 'deliveries'}</Text>
-        <Text style={styles.value}>{earnings.length}</Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.label, { color: colors.mutedText }]}>Total {isPasabuyer ? 'requests' : 'deliveries'}</Text>
+        <Text style={[styles.value, { color: colors.text }]}>{earnings.length}</Text>
       </View>
 
-      <View style={[styles.card, { padding: 0 }] }>
-        <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' }}>
-          <Text style={styles.label}>Recent earnings</Text>
+      <View style={[styles.card, { padding: 0, backgroundColor: colors.surface, borderColor: colors.border }] }>
+        <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <Text style={[styles.label, { color: colors.mutedText }]}>Recent earnings</Text>
         </View>
         {earnings.length === 0 ? (
           <View style={{ padding: 16 }}>
-            <Text style={{ color: '#666' }}>No earnings yet</Text>
+            <Text style={{ color: colors.mutedText }}>No earnings yet</Text>
           </View>
         ) : (
           <FlatList
             data={earnings}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f3f3' }}>
-                <Text style={{ fontWeight: '600', color: '#333' }}>{formatPeso(item.amount)}</Text>
-                <Text style={{ color: '#666', fontSize: 12 }}>{item.type || 'delivery'} • {item.orderNumber || item.orderId}</Text>
+              <View style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                <Text style={{ fontWeight: '600', color: colors.text }}>{formatPeso(item.amount)}</Text>
+                <Text style={{ color: colors.mutedText, fontSize: 12 }}>{item.type || 'delivery'} • {item.orderNumber || item.orderId}</Text>
                 {item.paymentMethod === 'cash' && (
-                  <Text style={{ color: '#666', fontSize: 12 }}>
+                  <Text style={{ color: colors.mutedText, fontSize: 12 }}>
                     Delivery fee: {formatPeso(item.deliveryFee || item.grossAmount || item.amount)} • Platform fee: -{formatPeso(item.platformFee || 0)}
                   </Text>
                 )}
-                <Text style={{ color: '#999', fontSize: 12 }}>{new Date(item.createdAt).toLocaleString()}</Text>
+                <Text style={{ color: colors.mutedText, fontSize: 12 }}>{new Date(item.createdAt).toLocaleString()}</Text>
               </View>
             )}
           />

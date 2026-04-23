@@ -11,8 +11,10 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { db, ref, onValue, off, update, push, set, get } from '../firebaseConfig';
 import { FONT } from '../styles/typography';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const AdminDashboardScreen = ({ navigation }) => {
+  const { colors, isDark } = useThemeMode();
   const [activeTab, setActiveTab] = useState('applications');
   const [pendingApplications, setPendingApplications] = useState([]);
   const [users, setUsers] = useState([]);
@@ -172,39 +174,39 @@ const AdminDashboardScreen = ({ navigation }) => {
   }), [pendingApplications.length, supportTickets, users.length]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Admin Dashboard</Text>
-        <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.replace('Login')}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Admin Dashboard</Text>
+        <TouchableOpacity style={[styles.logoutBtn, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.replace('Login')}>
           <Icon name="sign-out-alt" size={13} color="#333" />
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={[styles.logoutText, { color: colors.text }]}>Logout</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{stats.pending}</Text>
-          <Text style={styles.statLabel}>Pending Apps</Text>
+        <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.statValue, { color: colors.text }]}>{stats.pending}</Text>
+          <Text style={[styles.statLabel, { color: colors.mutedText }]}>Pending Apps</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{stats.supportOpen}</Text>
-          <Text style={styles.statLabel}>Open Support</Text>
+        <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.statValue, { color: colors.text }]}>{stats.supportOpen}</Text>
+          <Text style={[styles.statLabel, { color: colors.mutedText }]}>Open Support</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{stats.users}</Text>
-          <Text style={styles.statLabel}>Users</Text>
+        <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.statValue, { color: colors.text }]}>{stats.users}</Text>
+          <Text style={[styles.statLabel, { color: colors.mutedText }]}>Users</Text>
         </View>
       </View>
 
       <View style={styles.tabRow}>
-        <TouchableOpacity style={[styles.tabBtn, activeTab === 'applications' && styles.tabBtnActive]} onPress={() => setActiveTab('applications')}>
-          <Text style={[styles.tabText, activeTab === 'applications' && styles.tabTextActive]}>Application Requests</Text>
+        <TouchableOpacity style={[styles.tabBtn, { borderColor: colors.border, backgroundColor: colors.surface }, activeTab === 'applications' && styles.tabBtnActive]} onPress={() => setActiveTab('applications')}>
+          <Text style={[styles.tabText, { color: colors.text }, activeTab === 'applications' && styles.tabTextActive]}>Application Requests</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.tabBtn, activeTab === 'support' && styles.tabBtnActive]} onPress={() => setActiveTab('support')}>
-          <Text style={[styles.tabText, activeTab === 'support' && styles.tabTextActive]}>Support Messages</Text>
+        <TouchableOpacity style={[styles.tabBtn, { borderColor: colors.border, backgroundColor: colors.surface }, activeTab === 'support' && styles.tabBtnActive]} onPress={() => setActiveTab('support')}>
+          <Text style={[styles.tabText, { color: colors.text }, activeTab === 'support' && styles.tabTextActive]}>Support Messages</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.tabBtn, activeTab === 'users' && styles.tabBtnActive]} onPress={() => setActiveTab('users')}>
-          <Text style={[styles.tabText, activeTab === 'users' && styles.tabTextActive]}>User Accounts</Text>
+        <TouchableOpacity style={[styles.tabBtn, { borderColor: colors.border, backgroundColor: colors.surface }, activeTab === 'users' && styles.tabBtnActive]} onPress={() => setActiveTab('users')}>
+          <Text style={[styles.tabText, { color: colors.text }, activeTab === 'users' && styles.tabTextActive]}>User Accounts</Text>
         </TouchableOpacity>
       </View>
 
@@ -212,13 +214,13 @@ const AdminDashboardScreen = ({ navigation }) => {
         {activeTab === 'applications' && (
           <>
             {pendingApplications.length === 0 ? (
-              <Text style={styles.emptyText}>No pending Rider/Pasabuyer applications.</Text>
+              <Text style={[styles.emptyText, { color: colors.mutedText }]}>No pending Rider/Pasabuyer applications.</Text>
             ) : pendingApplications.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{item.name || item.username || item.id}</Text>
-                <Text style={styles.cardMeta}>Username: {item.id}</Text>
-                <Text style={styles.cardMeta}>Requested role: {item.requestedRole}</Text>
-                <Text style={styles.cardMeta}>Email: {item.email || 'N/A'}</Text>
+              <View key={item.id} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>{item.name || item.username || item.id}</Text>
+                <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Username: {item.id}</Text>
+                <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Requested role: {item.requestedRole}</Text>
+                <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Email: {item.email || 'N/A'}</Text>
                 <View style={styles.actionRow}>
                   <TouchableOpacity style={styles.approveBtn} onPress={() => handleApprove(item)}>
                     <Text style={styles.approveText}>Approve</Text>
@@ -241,12 +243,12 @@ const AdminDashboardScreen = ({ navigation }) => {
               <Text style={styles.approveText}>Open Support Ticket Inbox</Text>
             </TouchableOpacity>
             {supportTickets.length === 0 ? (
-              <Text style={styles.emptyText}>No support tickets yet.</Text>
+              <Text style={[styles.emptyText, { color: colors.mutedText }]}>No support tickets yet.</Text>
             ) : supportTickets.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{item.email}</Text>
-                <Text style={styles.cardMeta}>{new Date(item.createdAt || Date.now()).toLocaleString()}</Text>
-                <Text style={styles.messageText}>Status: {item.status || 'open'}</Text>
+              <View key={item.id} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>{item.email}</Text>
+                <Text style={[styles.cardMeta, { color: colors.mutedText }]}>{new Date(item.createdAt || Date.now()).toLocaleString()}</Text>
+                <Text style={[styles.messageText, { color: colors.text }]}>Status: {item.status || 'open'}</Text>
                 <TouchableOpacity
                   style={styles.rejectBtn}
                   onPress={() => navigation.navigate('SupportTicket', { ticketId: item.id, isAdmin: true, userId: 'admin' })}
@@ -260,18 +262,18 @@ const AdminDashboardScreen = ({ navigation }) => {
 
         {activeTab === 'users' && (
           <>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>System Monitoring</Text>
-              <Text style={styles.cardMeta}>Orders tracked: {monitoring.orders}</Text>
-              <Text style={styles.cardMeta}>Deliveries tracked: {monitoring.deliveries}</Text>
-              <Text style={styles.cardMeta}>Pasapay transactions: {monitoring.pasapayTransactions}</Text>
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>System Monitoring</Text>
+              <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Orders tracked: {monitoring.orders}</Text>
+              <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Deliveries tracked: {monitoring.deliveries}</Text>
+              <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Pasapay transactions: {monitoring.pasapayTransactions}</Text>
             </View>
             {users.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{item.name || item.username || item.id}</Text>
-                <Text style={styles.cardMeta}>Username: {item.id}</Text>
-                <Text style={styles.cardMeta}>Role: {item.role || 'none'}</Text>
-                <Text style={styles.cardMeta}>Approval: {item.approvalStatus || 'approved'}</Text>
+              <View key={item.id} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>{item.name || item.username || item.id}</Text>
+                <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Username: {item.id}</Text>
+                <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Role: {item.role || 'none'}</Text>
+                <Text style={[styles.cardMeta, { color: colors.mutedText }]}>Approval: {item.approvalStatus || 'approved'}</Text>
               </View>
             ))}
           </>

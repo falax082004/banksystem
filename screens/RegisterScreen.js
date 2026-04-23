@@ -2,8 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { db, ref, set, get } from '../firebaseConfig';
 import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const RegisterScreen = ({ navigation }) => {
+  const { isDark, colors } = useThemeMode();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -85,41 +87,41 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.background}>
+    <View style={[styles.background, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.formContainer}>
-          <Text style={styles.headerText}>PASABUY</Text>
-          <Text style={styles.subtitleText}>Create your account</Text>
+        <View style={[styles.formContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.headerText, { color: colors.text }]}>PASABUY</Text>
+          <Text style={[styles.subtitleText, { color: colors.mutedText }]}>Create your account</Text>
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
           {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Username"
             value={username}
             onChangeText={setUsername}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Confirm Password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -127,7 +129,7 @@ const RegisterScreen = ({ navigation }) => {
           />
 
           <TouchableOpacity
-            style={styles.dropdownTrigger}
+            style={[styles.dropdownTrigger, { borderColor: colors.border, backgroundColor: colors.surface }]}
             onPress={() => {
               setShowAreaDropdown((value) => !value);
               setShowBarangayDropdown(false);
@@ -149,14 +151,14 @@ const RegisterScreen = ({ navigation }) => {
                     setShowAreaDropdown(false);
                   }}
                 >
-                  <Text style={styles.dropdownItemText}>{area.label}</Text>
+                    <Text style={[styles.dropdownItemText, { color: colors.text }]}>{area.label}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           )}
 
           <TouchableOpacity
-            style={[styles.dropdownTrigger, !selectedArea && styles.dropdownDisabled]}
+            style={[styles.dropdownTrigger, { borderColor: colors.border, backgroundColor: colors.surface }, !selectedArea && styles.dropdownDisabled]}
             disabled={!selectedArea}
             onPress={() => {
               if (!selectedArea) return;
@@ -179,20 +181,20 @@ const RegisterScreen = ({ navigation }) => {
                     setShowBarangayDropdown(false);
                   }}
                 >
-                  <Text style={styles.dropdownItemText}>{barangay}</Text>
+                    <Text style={[styles.dropdownItemText, { color: colors.text }]}>{barangay}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           )}
 
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+          <TouchableOpacity style={[styles.registerButton, { backgroundColor: isDark ? '#2F2F35' : '#333' }]} onPress={handleRegister}>
             <Text style={styles.registerButtonText}>Register</Text>
           </TouchableOpacity>
 
           <View style={styles.loginLinkContainer}>
-            <Text style={styles.loginLinkText}>Already have an account? </Text>
+            <Text style={[styles.loginLinkText, { color: colors.text }]}>Already have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.loginLink}>Login</Text>
+              <Text style={[styles.loginLink, { color: colors.text }]}>Login</Text>
             </TouchableOpacity>
           </View>
         </View>

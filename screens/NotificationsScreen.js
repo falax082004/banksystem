@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { db, ref, onValue, off } from '../firebaseConfig';
 import { FONT } from '../styles/typography';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const NotificationsScreen = ({ navigation, route }) => {
+  const { colors, isDark } = useThemeMode();
   const { userId } = route.params || {};
   const [notifications, setNotifications] = useState([]);
 
@@ -33,12 +35,12 @@ const NotificationsScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={14} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.title}>Notifications</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Notifications</Text>
       </View>
 
       <FlatList
@@ -52,15 +54,15 @@ const NotificationsScreen = ({ navigation, route }) => {
           </View>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.row} onPress={() => openNotification(item)}>
+          <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => openNotification(item)}>
             <Icon
               name={item.type === 'order_delivered' ? 'check-circle' : 'bell'}
               size={14}
               color={item.type === 'order_delivered' ? '#00C853' : '#007AFF'}
             />
             <View style={styles.rowBody}>
-              <Text style={styles.message}>{item.message || item.title || 'Order update'}</Text>
-              <Text style={styles.date}>{new Date(item.createdAt || Date.now()).toLocaleString()}</Text>
+              <Text style={[styles.message, { color: colors.text }]}>{item.message || item.title || 'Order update'}</Text>
+              <Text style={[styles.date, { color: colors.mutedText }]}>{new Date(item.createdAt || Date.now()).toLocaleString()}</Text>
             </View>
           </TouchableOpacity>
         )}

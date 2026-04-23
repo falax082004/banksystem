@@ -12,8 +12,10 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { db, ref, get, orderByChild, query, onValue, off } from '../firebaseConfig';
 import NotificationBell from './NotificationBell';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const OrdersScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { userId, viewerRole } = route.params || {};
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -171,11 +173,11 @@ const OrdersScreen = ({ navigation, route }) => {
   };
 
   const OrderCard = ({ order }) => (
-    <View style={styles.orderCard}>
+    <View style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.orderHeader}>
         <View style={styles.orderInfo}>
-          <Text style={styles.orderId}>Order #{order.orderNumber || order.id}</Text>
-          <Text style={styles.orderDate}>
+          <Text style={[styles.orderId, { color: colors.text }]}>Order #{order.orderNumber || order.id}</Text>
+          <Text style={[styles.orderDate, { color: colors.mutedText }]}>
             {new Date(order.createdAt).toLocaleDateString()}
           </Text>
         </View>
@@ -186,25 +188,25 @@ const OrdersScreen = ({ navigation, route }) => {
       </View>
 
       <View style={styles.storesSection}>
-        <Text style={styles.storesLabel}>Stores ({order.stores.length}):</Text>
+        <Text style={[styles.storesLabel, { color: colors.text }]}>Stores ({order.stores.length}):</Text>
         {order.stores.map((store, index) => (
           <View key={index} style={styles.storeItem}>
             <Icon name="store" size={14} color="#666" />
-            <Text style={styles.storeName}>{store.storeName}</Text>
-            <Text style={styles.storeQuantity}>x{store.serviceQuantity || store.quantity || 1}</Text>
+            <Text style={[styles.storeName, { color: colors.mutedText }]}>{store.storeName}</Text>
+            <Text style={[styles.storeQuantity, { color: colors.mutedText }]}>x{store.serviceQuantity || store.quantity || 1}</Text>
           </View>
         ))}
       </View>
 
       <View style={styles.orderFooter}>
         <View style={styles.totalSection}>
-          <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalAmount}>₱{order.totalAmount}</Text>
+          <Text style={[styles.totalLabel, { color: colors.mutedText }]}>Total:</Text>
+          <Text style={[styles.totalAmount, { color: colors.text }]}>₱{order.totalAmount}</Text>
         </View>
 
         <View style={styles.actionsSection}>
           <TouchableOpacity 
-            style={styles.trackButton}
+            style={[styles.trackButton, { backgroundColor: isDark ? '#1E3A5F' : '#E3F2FD' }]}
             onPress={() => handleTrackOrder(order)}
           >
             <Icon name="map-marker-alt" size={14} color="#007AFF" />
@@ -242,10 +244,10 @@ const OrdersScreen = ({ navigation, route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Orders</Text>
-        <Text style={styles.subtitle}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>My Orders</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedText }]}>
           {orders.length} order{orders.length !== 1 ? 's' : ''} total
         </Text>
         <NotificationBell userId={userId} navigation={navigation} style={styles.notifButton} />
@@ -254,16 +256,16 @@ const OrdersScreen = ({ navigation, route }) => {
       {loading ? (
         <View style={styles.loadingContainer}>
           <Icon name="spinner" size={40} color="#333" />
-          <Text style={styles.loadingText}>Loading orders...</Text>
+          <Text style={[styles.loadingText, { color: colors.mutedText }]}>Loading orders...</Text>
         </View>
       ) : orders.length === 0 ? (
         <View style={styles.emptyOrders}>
           <Icon name="hand-holding" size={60} color="#ccc" />
-          <Text style={styles.emptyOrdersText}>
+          <Text style={[styles.emptyOrdersText, { color: colors.mutedText }]}>
             {viewerRole === 'rider' ? 'You have no delivery orders' : 'No orders yet'}
           </Text>
           {viewerRole !== 'rider' && (
-            <Text style={styles.emptyOrdersSubtext}>
+            <Text style={[styles.emptyOrdersSubtext, { color: colors.mutedText }]}>
               Start shopping to see your orders here
             </Text>
           )}

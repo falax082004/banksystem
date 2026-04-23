@@ -10,10 +10,12 @@ import RiderInboxScreen from './RiderInboxScreen';
 import PasabuyerInboxScreen from './PasabuyerInboxScreen';
 import { db, ref, get, onValue, off } from '../firebaseConfig';
 import NearbyOrdersScreen from './NearbyOrdersScreen';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = ({ route }) => {
+  const { isDark, colors } = useThemeMode();
   const { userId } = route.params || {};
   const [role, setRole] = useState(null);
   const [pasabuyerEnabled, setPasabuyerEnabled] = useState(false);
@@ -36,12 +38,12 @@ const BottomTabs = ({ route }) => {
   return (
     <Tab.Navigator
       screenOptions={() => ({
-        tabBarActiveTintColor: '#ffffff',
-        tabBarInactiveTintColor: '#bbb',
+        tabBarActiveTintColor: isDark ? '#ffffff' : '#111111',
+        tabBarInactiveTintColor: isDark ? '#bbb' : '#666',
         tabBarStyle: {
-          backgroundColor: '#1c1c1c',
+          backgroundColor: colors.surface,
           borderTopWidth: 0.5,
-          borderTopColor: '#444',
+          borderTopColor: colors.border,
           height: 70,
           paddingBottom: 10,
         },

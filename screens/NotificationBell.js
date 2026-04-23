@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { db, ref, onValue, off, update } from '../firebaseConfig';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const NotificationBell = ({ userId, navigation, style }) => {
+  const { colors } = useThemeMode();
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
@@ -43,8 +45,8 @@ const NotificationBell = ({ userId, navigation, style }) => {
   };
 
   return (
-    <TouchableOpacity style={[styles.bellButton, style]} onPress={openNotificationList}>
-      <Icon name="bell" size={18} color="#333" />
+    <TouchableOpacity style={[styles.bellButton, { backgroundColor: colors.surface, borderColor: colors.border }, style]} onPress={openNotificationList}>
+      <Icon name="bell" size={18} color={colors.text} />
       {unreadCount > 0 && <View style={styles.redDot}><Text style={styles.dotText}>{unreadCount > 9 ? '9+' : unreadCount}</Text></View>}
     </TouchableOpacity>
   );

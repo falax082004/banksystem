@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { db, ref, get, set } from './firebaseConfig';
+import { ThemeProvider, useThemeMode } from './theme/ThemeContext';
 
 // Core Screens
 import SplashScreen from './screens/SplashScreen';
@@ -44,7 +45,33 @@ const commonScreenOptions = {
   headerShown: false,
 };
 
-export default function App() {
+const AppNavigator = () => {
+  const { isDark, colors } = useThemeMode();
+
+  const navTheme = isDark
+    ? {
+        ...DarkTheme,
+        colors: {
+          ...DarkTheme.colors,
+          background: colors.background,
+          card: colors.surface,
+          text: colors.text,
+          border: colors.border,
+          primary: colors.primary,
+        },
+      }
+    : {
+        ...DefaultTheme,
+        colors: {
+          ...DefaultTheme.colors,
+          background: colors.background,
+          card: colors.surface,
+          text: colors.text,
+          border: colors.border,
+          primary: colors.primary,
+        },
+      };
+
   useEffect(() => {
     const ensureDefaultAdmin = async () => {
       try {
@@ -71,7 +98,7 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         {/* Core Screens */}
         <Stack.Screen name="Splash" component={SplashScreen} />
@@ -125,5 +152,13 @@ export default function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+};
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppNavigator />
+    </ThemeProvider>
   );
 }

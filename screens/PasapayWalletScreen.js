@@ -13,6 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { pasapayService } from '../services/pasapayService';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const formatPeso = (value) => `₱${Math.round(Number(value || 0))}`;
 const sanitizeAmountInput = (raw = '') => raw.replace(/[^\d.]/g, '');
@@ -24,6 +25,7 @@ const safeWithdrawalFee = (amount) => {
 };
 
 const PasapayWalletScreen = ({ route, navigation }) => {
+  const { colors, isDark } = useThemeMode();
   const { userId } = route.params || {};
   const [wallet, setWallet] = useState({
     pasapayBalance: 0,
@@ -96,13 +98,13 @@ const PasapayWalletScreen = ({ route, navigation }) => {
   const withdrawalFee = safeWithdrawalFee(withdrawAmount);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.contentContainer}>
         <View style={styles.screenHeader}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
             <Icon name="arrow-left" size={16} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>Pasapay</Text>
+          <Text style={[styles.screenTitle, { color: colors.text }]}>Pasapay</Text>
         </View>
 
         <View style={styles.balanceCard}>
@@ -113,43 +115,43 @@ const PasapayWalletScreen = ({ route, navigation }) => {
           </Text>
         </View>
 
-        <View style={styles.panel}>
-          <Text style={styles.sectionTitle}>Cash In</Text>
+        <View style={[styles.panel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Cash In</Text>
           {renderChannelPicker(cashInChannel, setCashInChannel)}
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             keyboardType="numeric"
             placeholder="Enter amount"
             value={cashInAmount}
             onChangeText={(value) => setCashInAmount(sanitizeAmountInput(value))}
           />
-          <TouchableOpacity style={styles.primaryButton} onPress={handleCashIn}>
+          <TouchableOpacity style={[styles.primaryButton, { backgroundColor: isDark ? '#2F2F35' : '#333' }]} onPress={handleCashIn}>
             <Icon name="plus-circle" size={16} color="#fff" />
             <Text style={styles.primaryButtonText}>Deposit to Pasapay</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.panel}>
-          <Text style={styles.sectionTitle}>Withdraw</Text>
+        <View style={[styles.panel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Withdraw</Text>
           {renderChannelPicker(withdrawChannel, setWithdrawChannel)}
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             keyboardType="numeric"
             placeholder="Enter amount"
             value={withdrawAmount}
             onChangeText={(value) => setWithdrawAmount(sanitizeAmountInput(value))}
           />
-          <Text style={styles.feeText}>Withdrawal fee: {formatPeso(withdrawalFee)}</Text>
-          <TouchableOpacity style={styles.secondaryButton} onPress={handleWithdraw}>
+          <Text style={[styles.feeText, { color: colors.mutedText }]}>Withdrawal fee: {formatPeso(withdrawalFee)}</Text>
+          <TouchableOpacity style={[styles.secondaryButton, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]} onPress={handleWithdraw}>
             <Icon name="arrow-circle-up" size={16} color="#333" />
-            <Text style={styles.secondaryButtonText}>Withdraw from Pasapay</Text>
+            <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Withdraw from Pasapay</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.panel}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
+        <View style={[styles.panel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
           {loading ? (
-            <Text style={styles.emptyText}>Loading wallet activity...</Text>
+            <Text style={[styles.emptyText, { color: colors.mutedText }]}>Loading wallet activity...</Text>
           ) : wallet.pasapayTransactions?.length ? (
             <ScrollView style={styles.activityList} nestedScrollEnabled showsVerticalScrollIndicator={false}>
               {wallet.pasapayTransactions.map((transaction) => {
@@ -165,16 +167,16 @@ const PasapayWalletScreen = ({ route, navigation }) => {
                         : 'wallet';
                 return (
                   <View key={transaction.id} style={styles.transactionRow}>
-                    <View style={styles.transactionIcon}>
+                    <View style={[styles.transactionIcon, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0' }]}>
                       <Icon name={iconName} size={14} color="#333" />
                     </View>
                     <View style={styles.transactionBody}>
-                      <Text style={styles.transactionTitle}>{transaction.summary}</Text>
-                      <Text style={styles.transactionMeta}>
+                      <Text style={[styles.transactionTitle, { color: colors.text }]}>{transaction.summary}</Text>
+                      <Text style={[styles.transactionMeta, { color: colors.mutedText }]}>
                         {transaction.channel} • {new Date(transaction.createdAt).toLocaleString()}
                       </Text>
                     </View>
-                    <Text style={styles.transactionAmount}>
+                    <Text style={[styles.transactionAmount, { color: colors.text }]}>
                       {sign}{formatPeso(transaction.amount)}
                     </Text>
                   </View>
@@ -182,7 +184,7 @@ const PasapayWalletScreen = ({ route, navigation }) => {
               })}
             </ScrollView>
           ) : (
-            <Text style={styles.emptyText}>No Pasapay transactions yet.</Text>
+            <Text style={[styles.emptyText, { color: colors.mutedText }]}>No Pasapay transactions yet.</Text>
           )}
         </View>
       </View>

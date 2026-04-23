@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, TextI
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { db, ref, onValue, off, push, set, update } from '../firebaseConfig';
 import { FONT } from '../styles/typography';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const SupportTicketScreen = ({ navigation, route }) => {
+  const { colors, isDark } = useThemeMode();
   const { ticketId, userId, isAdmin } = route.params || {};
   const [ticket, setTicket] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -83,21 +85,21 @@ const SupportTicketScreen = ({ navigation, route }) => {
 
   if (!ticket) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.empty}>Ticket not found.</Text>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.empty, { color: colors.mutedText }]}>Ticket not found.</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <TouchableOpacity style={[styles.backBtn, { borderColor: colors.border }]} onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={14} color="#333" />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Support Ticket</Text>
-          <Text style={styles.meta}>{ticket.email} • {ticket.status}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Support Ticket</Text>
+          <Text style={[styles.meta, { color: colors.mutedText }]}>{ticket.email} • {ticket.status}</Text>
         </View>
         {ticket.status !== 'closed' && (
           <TouchableOpacity style={styles.closeBtn} onPress={closeTicket}>
@@ -124,10 +126,11 @@ const SupportTicketScreen = ({ navigation, route }) => {
       />
 
       {ticket.status !== 'closed' && (
-        <View style={styles.inputBar}>
+        <View style={[styles.inputBar, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Write a reply..."
+            placeholderTextColor={colors.mutedText}
             value={text}
             onChangeText={setText}
           />

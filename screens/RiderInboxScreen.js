@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList } from
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { db, ref, onValue, off, get } from '../firebaseConfig';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const RiderInboxScreen = ({ navigation, route }) => {
+  const { colors } = useThemeMode();
   const { userId } = route.params || {};
   const [threads, setThreads] = useState([]);
 
@@ -110,21 +112,21 @@ const RiderInboxScreen = ({ navigation, route }) => {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.thread} onPress={() => openChat(item)}>
+    <TouchableOpacity style={[styles.thread, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => openChat(item)}>
       <View style={styles.threadLeft}>
         <View style={styles.avatar}>
           <Icon name="comments" size={14} color="#fff" />
         </View>
       </View>
       <View style={styles.threadCenter}>
-        <Text style={styles.orderNumber}>Order #{item.orderNumber}</Text>
-        <Text style={styles.counterpart}>Chat with {item.shopperName}</Text>
+        <Text style={[styles.orderNumber, { color: colors.text }]}>Order #{item.orderNumber}</Text>
+        <Text style={[styles.counterpart, { color: colors.mutedText }]}>Chat with {item.shopperName}</Text>
         {item.lastMessage && (
-          <Text style={styles.lastMessage} numberOfLines={1}>
+          <Text style={[styles.lastMessage, { color: colors.mutedText }]} numberOfLines={1}>
             {item.lastMessage}
           </Text>
         )}
-        <Text style={styles.meta}>
+        <Text style={[styles.meta, { color: colors.mutedText }]}>
           ₱{item.totalAmount} • {item.status.replace('_', ' ')}
         </Text>
       </View>
@@ -135,16 +137,16 @@ const RiderInboxScreen = ({ navigation, route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Inbox</Text>
-        <Text style={styles.subtitle}>Messages with your shoppers</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Inbox</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedText }]}>Messages with your shoppers</Text>
       </View>
       {threads.length === 0 ? (
         <View style={styles.empty}>
           <Icon name="inbox" size={40} color="#bbb" />
-          <Text style={styles.emptyText}>No conversations yet</Text>
-          <Text style={styles.emptySubtext}>
+          <Text style={[styles.emptyText, { color: colors.text }]}>No conversations yet</Text>
+          <Text style={[styles.emptySubtext, { color: colors.mutedText }]}>
             Start accepting orders to begin chatting with shoppers
           </Text>
         </View>

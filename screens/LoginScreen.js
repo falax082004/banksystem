@@ -3,8 +3,10 @@ import { View, TextInput, TouchableOpacity, Alert, Text, StyleSheet, Modal, Imag
 import { db, ref, get, update, set, push } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/Feather';
 import { FONT } from '../styles/typography';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const LoginScreen = ({ navigation }) => {
+  const { isDark, colors } = useThemeMode();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [forgotPasswordModal, setForgotPasswordModal] = useState(false);
@@ -247,20 +249,20 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.background}>
-      <View style={styles.container}>
+    <View style={[styles.background, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         {/* Logo */}
         <Image
           source={require('../assets/Pasabuy.png')}
           style={styles.logo}
         />
         {/* Low-fidelity header */}
-        <Text style={styles.headerText}>PASABUY</Text>
-        <Text style={styles.subtitleText}>Login to your account</Text>
+        <Text style={[styles.headerText, { color: colors.text }]}>PASABUY</Text>
+        <Text style={[styles.subtitleText, { color: colors.mutedText }]}>Login to your account</Text>
 
         {/* Username input */}
         <TextInput
-          style={styles.input}
+          style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
           placeholder="Username"
           value={username}
           onChangeText={setUsername}
@@ -270,7 +272,7 @@ const LoginScreen = ({ navigation }) => {
         {/* Password input with eye icon */}
         <View style={styles.passwordInputContainer}>
           <TextInput
-            style={[styles.input, { flex: 1, marginBottom: 0 }]}
+            style={[styles.input, { flex: 1, marginBottom: 0, borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
@@ -282,31 +284,31 @@ const LoginScreen = ({ navigation }) => {
             onPress={() => setShowPassword((prev) => !prev)}
             accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
           >
-            <Icon name={showPassword ? 'eye' : 'eye-off'} size={22} color="#888" />
+            <Icon name={showPassword ? 'eye' : 'eye-off'} size={22} color={colors.mutedText} />
           </TouchableOpacity>
         </View>
 
         {/* Login button */}
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+        <TouchableOpacity style={[styles.loginButton, { backgroundColor: isDark ? '#2F2F35' : '#000' }]} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 
         {/* Grouped bottom actions */}
         <View style={styles.bottomActionsContainer}>
           <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPasswordContainer}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            <Text style={[styles.forgotPasswordText, { color: colors.text }]}>Forgot Password?</Text>
           </TouchableOpacity>
 
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Doesn't have an account? </Text>
+            <Text style={[styles.registerText, { color: colors.text }]}>Doesn't have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.registerLink}>Register</Text>
+              <Text style={[styles.registerLink, { color: colors.text }]}>Register</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.supportButton} onPress={handleSupport}>
-            <Icon name="help-circle" size={24} color="#000" />
-            <Text style={styles.supportButtonText}>Need Help?</Text>
+            <Icon name="help-circle" size={24} color={colors.text} />
+            <Text style={[styles.supportButtonText, { color: colors.text }]}>Need Help?</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -318,7 +320,7 @@ const LoginScreen = ({ navigation }) => {
         onRequestClose={() => setForgotPasswordModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setForgotPasswordModal(false)}
@@ -337,7 +339,7 @@ const LoginScreen = ({ navigation }) => {
         onRequestClose={() => setSupportModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setSupportModal(false)}

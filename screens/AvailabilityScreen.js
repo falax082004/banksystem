@@ -12,8 +12,10 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { db, ref, get, set, onValue, off } from '../firebaseConfig';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const AvailabilityScreen = ({ navigation, route }) => {
+  const { colors, isDark } = useThemeMode();
   const { userId, userType } = route.params || {};
   const isPasabuyer = userType === 'pasabuyer';
   const [isAvailable, setIsAvailable] = useState(true);
@@ -101,7 +103,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <Icon name="spinner" size={40} color="#333" />
           <Text style={styles.loadingText}>Loading availability settings...</Text>
@@ -111,15 +113,15 @@ const AvailabilityScreen = ({ navigation, route }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={[styles.backButton, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
             <Icon name="arrow-left" size={14} color="#333" />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Availability</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: colors.text }]}>Availability</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedText }]}>
               Manage your {isPasabuyer ? 'pasabuy' : 'delivery'} availability
             </Text>
           </View>
@@ -128,15 +130,15 @@ const AvailabilityScreen = ({ navigation, route }) => {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Online Status */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
             <Icon name="power-off" size={18} color="#333" />
-            <Text style={styles.sectionTitle}>Online Status</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Online Status</Text>
           </View>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Go Online</Text>
-              <Text style={styles.settingDescription}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>Go Online</Text>
+              <Text style={[styles.settingDescription, { color: colors.mutedText }]}>
                 {isAvailable 
                   ? 'You are currently online and can receive orders' 
                   : 'You are offline and will not receive new orders'}
@@ -152,12 +154,12 @@ const AvailabilityScreen = ({ navigation, route }) => {
         </View>
 
         {/* Maximum Distance */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
             <Icon name="route" size={18} color="#333" />
-            <Text style={styles.sectionTitle}>Maximum Distance</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Maximum Distance</Text>
           </View>
-          <Text style={styles.settingDescription}>
+          <Text style={[styles.settingDescription, { color: colors.mutedText }]}>
             Maximum distance you're willing to travel for deliveries
           </Text>
           <View style={styles.distanceOptions}>
@@ -166,6 +168,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
                 key={distance}
                 style={[
                   styles.distanceOption,
+                  { borderColor: colors.border, backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9' },
                   availabilityData.maxDistance === distance && styles.distanceOptionActive,
                 ]}
                 onPress={() => handleMaxDistanceChange(distance)}
@@ -173,6 +176,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
                 <Text
                   style={[
                     styles.distanceOptionText,
+                    { color: colors.text },
                     availabilityData.maxDistance === distance && styles.distanceOptionTextActive,
                   ]}
                 >
@@ -184,12 +188,12 @@ const AvailabilityScreen = ({ navigation, route }) => {
         </View>
 
         {/* Vehicle Type */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
             <Icon name="car-side" size={18} color="#333" />
-            <Text style={styles.sectionTitle}>Vehicle Type</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Vehicle Type</Text>
           </View>
-          <Text style={styles.settingDescription}>
+          <Text style={[styles.settingDescription, { color: colors.mutedText }]}>
             Select your primary mode of transportation
           </Text>
           <View style={styles.vehicleOptions}>
@@ -198,6 +202,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
                 key={vehicle.id}
                 style={[
                   styles.vehicleOption,
+                  { borderColor: colors.border, backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9' },
                   availabilityData.vehicleType === vehicle.id && styles.vehicleOptionActive,
                 ]}
                 onPress={() => handleVehicleTypeChange(vehicle.id)}
@@ -210,6 +215,7 @@ const AvailabilityScreen = ({ navigation, route }) => {
                 <Text
                   style={[
                     styles.vehicleOptionText,
+                    { color: colors.text },
                     availabilityData.vehicleType === vehicle.id && styles.vehicleOptionTextActive,
                   ]}
                 >
@@ -221,16 +227,16 @@ const AvailabilityScreen = ({ navigation, route }) => {
         </View>
 
         {/* Working Hours Info */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
             <Icon name="clock" size={18} color="#333" />
-            <Text style={styles.sectionTitle}>Working Hours</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Working Hours</Text>
           </View>
           <View style={styles.workingHoursInfo}>
-            <Text style={styles.workingHoursText}>
+            <Text style={[styles.workingHoursText, { color: colors.text }]}>
               {availabilityData.workingHours.start} - {availabilityData.workingHours.end}
             </Text>
-            <Text style={styles.settingDescription}>
+            <Text style={[styles.settingDescription, { color: colors.mutedText }]}>
               Your preferred working hours (coming soon: customizable schedule)
             </Text>
           </View>

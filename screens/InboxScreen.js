@@ -4,8 +4,10 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { FONT } from '../styles/typography';
 import { db, ref, onValue, off } from '../firebaseConfig';
 import NotificationBell from './NotificationBell';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const InboxScreen = ({ navigation, route }) => {
+  const { colors } = useThemeMode();
   const { userId, viewerRole } = route.params || {};
   const [threads, setThreads] = useState([]);
 
@@ -40,14 +42,14 @@ const InboxScreen = ({ navigation, route }) => {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.thread} onPress={() => openChat(item)}>
+    <TouchableOpacity style={[styles.thread, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => openChat(item)}>
       <View style={styles.threadLeft}>
         <View style={styles.avatar}><Icon name="comments" size={14} color="#fff" /></View>
       </View>
       <View style={styles.threadCenter}>
-        <Text style={styles.orderNumber}>Order #{item.orderNumber}</Text>
-        <Text style={styles.counterpart}>Chat with {item.counterpart}</Text>
-        <Text style={styles.meta}>₱{item.totalAmount} • {item.status.replace('_',' ')}</Text>
+        <Text style={[styles.orderNumber, { color: colors.text }]}>Order #{item.orderNumber}</Text>
+        <Text style={[styles.counterpart, { color: colors.mutedText }]}>Chat with {item.counterpart}</Text>
+        <Text style={[styles.meta, { color: colors.mutedText }]}>₱{item.totalAmount} • {item.status.replace('_',' ')}</Text>
       </View>
       <View style={styles.threadRight}>
         <Icon name="chevron-right" size={14} color="#999" />
@@ -56,16 +58,16 @@ const InboxScreen = ({ navigation, route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Inbox</Text>
-        <Text style={styles.subtitle}>Messages with your riders</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Inbox</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedText }]}>Messages with your riders</Text>
         <NotificationBell userId={userId} navigation={navigation} style={styles.notifButton} />
       </View>
       {threads.length === 0 ? (
         <View style={styles.empty}>
           <Icon name="inbox" size={40} color="#bbb" />
-          <Text style={styles.emptyText}>No conversations yet</Text>
+          <Text style={[styles.emptyText, { color: colors.mutedText }]}>No conversations yet</Text>
         </View>
       ) : (
         <FlatList

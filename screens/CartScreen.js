@@ -15,8 +15,10 @@ import { db, ref, get } from '../firebaseConfig';
 import { orderService } from '../services/orderService';
 import { FONT } from '../styles/typography';
 import { pasapayService } from '../services/pasapayService';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const CartScreen = ({ navigation, route }) => {
+  const { isDark, colors } = useThemeMode();
   const { userId } = route.params || {};
   const [cart, setCart] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -144,19 +146,19 @@ const CartScreen = ({ navigation, route }) => {
   const cashReserveRequired = cart.length > 0 ? pasapayService.getRequiredCashReserve(totalAmount) : 0;
 
   const CartItem = ({ store }) => (
-    <View style={styles.cartItem}>
+    <View style={[styles.cartItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.itemInfo}>
-        <Text style={styles.storeName}>{store.storeName}</Text>
-        <Text style={styles.storeCategory}>{store.storeCategory}</Text>
-        <Text style={styles.storeAddress}>{store.storeAddress}</Text>
+        <Text style={[styles.storeName, { color: colors.text }]}>{store.storeName}</Text>
+        <Text style={[styles.storeCategory, { color: colors.mutedText }]}>{store.storeCategory}</Text>
+        <Text style={[styles.storeAddress, { color: colors.mutedText }]}>{store.storeAddress}</Text>
         {(store.items || []).map(line => (
           <View key={`${store.storeId}-${line.itemId}`} style={styles.lineRow}>
-            <Text style={styles.lineName}>{line.itemName}</Text>
+            <Text style={[styles.lineName, { color: colors.text }]}>{line.itemName}</Text>
             <View style={styles.lineRight}>
-              <Text style={styles.linePrice}>₱{line.itemPrice}</Text>
-              <View style={styles.lineQtyControls}>
+              <Text style={[styles.linePrice, { color: colors.text }]}>₱{line.itemPrice}</Text>
+              <View style={[styles.lineQtyControls, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0' }]}>
                 <TouchableOpacity
-                  style={styles.quantityButton}
+                  style={[styles.quantityButton, { backgroundColor: colors.surface }]}
                   onPress={() => {
                     cartService.updateItemQuantity({ storeId: store.storeId, itemId: line.itemId, newQuantity: line.quantity - 1 });
                     setCart([...cartService.getCart()]);
@@ -164,9 +166,9 @@ const CartScreen = ({ navigation, route }) => {
                 >
                   <Icon name="minus" size={12} color="#333" />
                 </TouchableOpacity>
-                <Text style={styles.lineQtyText}>{line.quantity}</Text>
+                  <Text style={[styles.lineQtyText, { color: colors.text }]}>{line.quantity}</Text>
                 <TouchableOpacity
-                  style={styles.quantityButton}
+                  style={[styles.quantityButton, { backgroundColor: colors.surface }]}
                   onPress={() => {
                     cartService.updateItemQuantity({ storeId: store.storeId, itemId: line.itemId, newQuantity: line.quantity + 1 });
                     setCart([...cartService.getCart()]);
@@ -192,26 +194,26 @@ const CartScreen = ({ navigation, route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginRight: 8 }}>
             <Icon name="arrow-left" size={18} color="#333" />
           </TouchableOpacity>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Shopping Cart</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: colors.text }]}>Shopping Cart</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedText }]}>
               {cart.length} store{cart.length !== 1 ? 's' : ''} selected
             </Text>
           </View>
           <View style={styles.headerActions}>
             {cart.length > 0 && (
               <TouchableOpacity 
-                style={styles.continueShoppingButton}
+                style={[styles.continueShoppingButton, { backgroundColor: isDark ? '#2A2A2D' : '#f0f0f0', borderColor: colors.border }]}
                 onPress={() => navigation.navigate('Browse')}
               >
                 <Icon name="plus" size={16} color="#333" />
-                <Text style={styles.continueShoppingText}>Add More</Text>
+                <Text style={[styles.continueShoppingText, { color: colors.text }]}>Add More</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -221,8 +223,8 @@ const CartScreen = ({ navigation, route }) => {
       {cart.length === 0 ? (
         <View style={styles.emptyCart}>
           <Icon name="shopping-cart" size={60} color="#ccc" />
-          <Text style={styles.emptyCartText}>Your cart is empty</Text>
-          <Text style={styles.emptyCartSubtext}>
+          <Text style={[styles.emptyCartText, { color: colors.mutedText }]}>Your cart is empty</Text>
+          <Text style={[styles.emptyCartSubtext, { color: colors.mutedText }]}>
             Browse stores and add them to your cart to get started
           </Text>
           <TouchableOpacity 
@@ -241,26 +243,26 @@ const CartScreen = ({ navigation, route }) => {
             ))}
           </ScrollView>
 
-          <View style={styles.checkoutSection}>
+          <View style={[styles.checkoutSection, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
             <View style={styles.totalSection}>
-              <Text style={styles.totalLabel}>Total Amount:</Text>
-              <Text style={styles.totalAmount}>₱{calculateTotal()}</Text>
+              <Text style={[styles.totalLabel, { color: colors.text }]}>Total Amount:</Text>
+              <Text style={[styles.totalAmount, { color: colors.text }]}>₱{calculateTotal()}</Text>
             </View>
 
-            <View style={styles.addressCard}>
-              <Text style={styles.checkoutLabel}>Delivery Address</Text>
-              <Text style={styles.addressValue}>{deliveryAddress || 'Set your area and barangay in profile first.'}</Text>
+            <View style={[styles.addressCard, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9', borderColor: colors.border }]}>
+              <Text style={[styles.checkoutLabel, { color: colors.text }]}>Delivery Address</Text>
+              <Text style={[styles.addressValue, { color: colors.mutedText }]}>{deliveryAddress || 'Set your area and barangay in profile first.'}</Text>
             </View>
 
-            <View style={styles.paymentCard}>
-              <Text style={styles.checkoutLabel}>Payment Method</Text>
+            <View style={[styles.paymentCard, { backgroundColor: isDark ? '#2A2A2D' : '#f9f9f9', borderColor: colors.border }]}>
+              <Text style={[styles.checkoutLabel, { color: colors.text }]}>Payment Method</Text>
               <View style={styles.paymentOptionsRow}>
                 {paymentOptions.map((option) => {
                   const active = paymentMethod === option.id;
                   return (
                     <TouchableOpacity
                       key={option.id}
-                      style={[styles.paymentChip, active && styles.paymentChipActive]}
+                      style={[styles.paymentChip, { borderColor: colors.border, backgroundColor: colors.surface }, active && styles.paymentChipActive]}
                       onPress={() => {
                         setPaymentMethod(option.id);
                         if (option.id !== 'online') {
@@ -276,14 +278,14 @@ const CartScreen = ({ navigation, route }) => {
 
               {paymentMethod === 'online' && (
                 <>
-                  <Text style={styles.checkoutLabel}>Online Channel</Text>
+                  <Text style={[styles.checkoutLabel, { color: colors.text }]}>Online Channel</Text>
                   <View style={styles.paymentOptionsRow}>
                     {['GCash', 'Maya', 'PayPal', 'Card'].map((channel) => {
                       const active = paymentChannel === channel;
                       return (
                         <TouchableOpacity
                           key={channel}
-                          style={[styles.paymentChip, active && styles.paymentChipActive]}
+                          style={[styles.paymentChip, { borderColor: colors.border, backgroundColor: colors.surface }, active && styles.paymentChipActive]}
                           onPress={() => setPaymentChannel(channel)}
                         >
                           <Text style={[styles.paymentChipText, active && styles.paymentChipTextActive]}>{channel}</Text>
@@ -295,29 +297,29 @@ const CartScreen = ({ navigation, route }) => {
               )}
 
               {paymentMethod === 'pasapay' && (
-                <Text style={styles.checkoutInfoText}>
+                <Text style={[styles.checkoutInfoText, { color: colors.mutedText }]}>
                   Pasapay balance: ₱{pasapayBalance.toFixed(2)}
                 </Text>
               )}
 
               {paymentMethod === 'cash' && (
-                <Text style={styles.checkoutInfoText}>
+                <Text style={[styles.checkoutInfoText, { color: colors.mutedText }]}>
                   Cash orders require at least ₱{cashReserveRequired} Pasapay balance before a rider or pasabuyer can accept them.
                 </Text>
               )}
             </View>
             
             <View style={styles.checkoutInfo}>
-              <Text style={styles.checkoutInfoText}>
+              <Text style={[styles.checkoutInfoText, { color: colors.mutedText }]}>
                 • ₱50 per store visit
               </Text>
-              <Text style={styles.checkoutInfoText}>
+              <Text style={[styles.checkoutInfoText, { color: colors.mutedText }]}>
                 • Estimated delivery: 30 minutes
               </Text>
             </View>
 
             <TouchableOpacity 
-              style={[styles.checkoutButton, isLoading && styles.checkoutButtonDisabled]}
+              style={[styles.checkoutButton, { backgroundColor: isDark ? '#2F2F35' : '#333' }, isLoading && styles.checkoutButtonDisabled]}
               onPress={handleCheckout}
               disabled={isLoading}
             >

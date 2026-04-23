@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { db, ref, onValue, off } from '../firebaseConfig';
 import { FONT } from '../styles/typography';
+import { useThemeMode } from '../theme/ThemeContext';
 
 const SupportInboxScreen = ({ navigation, route }) => {
+  const { colors } = useThemeMode();
   const { userId, isAdmin } = route.params || {};
   const [tickets, setTickets] = useState([]);
 
@@ -25,26 +27,26 @@ const SupportInboxScreen = ({ navigation, route }) => {
   }, [isAdmin, userId]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <TouchableOpacity style={[styles.backBtn, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={14} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.title}>{isAdmin ? 'Support Inbox' : 'My Support Tickets'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{isAdmin ? 'Support Inbox' : 'My Support Tickets'}</Text>
       </View>
       <FlatList
         data={tickets}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.empty}>No tickets yet.</Text>}
+        ListEmptyComponent={<Text style={[styles.empty, { color: colors.mutedText }]}>No tickets yet.</Text>}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.ticketRow}
+            style={[styles.ticketRow, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigation.navigate('SupportTicket', { ticketId: item.id, userId, isAdmin })}
           >
             <View style={styles.ticketBody}>
-              <Text style={styles.ticketTitle}>{item.subject || 'Support Ticket'}</Text>
-              <Text style={styles.ticketMeta}>{item.email || 'No email'} • {item.status || 'open'}</Text>
+              <Text style={[styles.ticketTitle, { color: colors.text }]}>{item.subject || 'Support Ticket'}</Text>
+              <Text style={[styles.ticketMeta, { color: colors.mutedText }]}>{item.email || 'No email'} • {item.status || 'open'}</Text>
             </View>
             <Icon name="chevron-right" size={12} color="#999" />
           </TouchableOpacity>
