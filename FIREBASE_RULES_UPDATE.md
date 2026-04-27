@@ -14,25 +14,28 @@ To allow orders to be saved and retrieved, update your Firebase Realtime Databas
 }
 ```
 
-### Recommended Rules for Production:
+### Working Rules for This App (Current Code Paths):
 ```json
-{
-  "rules": {
-    "users": {
-      "$userId": {
-        ".read": "$userId === auth.uid",
-        ".write": "$userId === auth.uid"
-      }
-    },
-    "orders": {
-      "$userId": {
-        ".read": "$userId === auth.uid",
-        ".write": "$userId === auth.uid"
-      }
-    }
-  }
-}
+// Use the full file at firebase-rtdb-rules.json
 ```
+
+This project now includes a complete rules file: `firebase-rtdb-rules.json`.
+
+It already covers all active paths used by the app:
+
+- `users`
+- `usernames`
+- `orders`
+- `availableOrders`
+- `riderDeliveries`
+- `orderLocations`
+- `notifications`
+- `supportTickets` (current app path)
+- `support_tickets` (legacy schema compatibility)
+- `emailQueue`
+- `chats`
+- `earnings`
+- `admin`
 
 ### For Testing (Temporary - Less Secure):
 ```json
@@ -49,7 +52,7 @@ To allow orders to be saved and retrieved, update your Firebase Realtime Databas
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Select your project
 3. Go to **Realtime Database** → **Rules**
-4. Replace the existing rules with the recommended rules above
+4. Copy/paste the contents of `firebase-rtdb-rules.json`
 5. Click **Publish**
 
 ## ✅ What This Enables:

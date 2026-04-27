@@ -1,0 +1,85 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "notifications": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "ratings": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    },
+
+    "usernames": {
+      "$usernameKey": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.val() === auth.uid)"
+      }
+    },
+
+    "orders": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "availableOrders": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "riderDeliveries": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "orderLocations": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "notifications": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "supportTickets": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "support_tickets": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "emailQueue": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "chats": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "earnings": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "admin": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
+    }
+  }
+}

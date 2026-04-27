@@ -1,5 +1,5 @@
 // Order service to create and persist orders from the cart
-import { db, ref, push, set, get } from '../firebaseConfig';
+import { auth, db, ref, push, set, get } from '../firebaseConfig';
 import { cartService } from './cartService';
 import { pasapayService } from './pasapayService';
 
@@ -25,8 +25,13 @@ const haversineKm = (a, b) => {
 export const orderService = {
   createOrderFromCart: async (userId, checkout = {}) => {
     const cart = cartService.getCart();
-    if (!userId) {
+    const authUid = auth.currentUser?.uid || null;
+    const effectiveUserId = authUid || userId;
+    if (!effectiveUserId) {
       throw new Error('User ID is required to place an order');
+    }
+    if (!authUid) {
+      throw new Error('You are not signed in. Please login again.');
     }
     if (!cart || cart.length === 0) {
       throw new Error('Cart is empty');
@@ -41,7 +46,7 @@ export const orderService = {
       return `ORD-${y}${m}${day}-${rand}`;
     };
 
-    const userSnapshot = await get(ref(db, `users/${userId}`));
+    const userSnapshot = await get(ref(db, `users/${effectiveUserId}`));
     if (!userSnapshot.exists()) {
       throw new Error('User account not found.');
     }
@@ -67,7 +72,7 @@ export const orderService = {
     const cashReserveRequired = paymentMethod === 'cash' ? pasapayService.getRequiredCashReserve(totalAmount) : 0;
 
     if (paymentMethod === 'pasapay') {
-      await pasapayService.spend(userId, totalAmount, 'Store order paid via Pasapay', {
+      await pasapayService.spend(effectiveUserId, totalAmount, 'Store order paid via Pasapay', {
         paymentChannel: 'Pasapay',
       });
       paymentStatus = 'paid';
@@ -83,7 +88,7 @@ export const orderService = {
     const distanceKm = storeDistances.length ? Math.round(Math.max(...storeDistances) * 10) / 10 : null;
 
     const order = {
-      userId: userId,
+      userId: effectiveUserId,
       stores: cart.map(s => ({
         storeId: s.storeId,
         storeName: s.storeName,
@@ -110,12 +115,12 @@ export const orderService = {
       deliveryArea: userData.area,
       deliveryBarangay: userData.barangay,
       deliveryCoordinates,
-      shopperName: userData.name || userId,
+      shopperName: userData.name || effectiveUserId,
       cashReserveRequired,
       distanceKm,
     };
 
-    const ordersRef = ref(db, `orders/${userId}`);
+    const ordersRef = ref(db, `orders/${effectiveUserId}`);
     const newOrderRef = push(ordersRef);
     await set(newOrderRef, {
       ...order,
@@ -125,7 +130,7 @@ export const orderService = {
     // Also index this order in a public pool for riders/pasabuyers to discover
     const publicOrder = {
       id: newOrderRef.key,
-      ownerId: userId,
+      ownerId: effectiveUserId,
       status: order.status,
       orderNumber: order.orderNumber,
       totalAmount: order.totalAmount,
@@ -156,7 +161,7 @@ export const orderService = {
 
     // Initialize chat participants for this order (shopper only at creation)
     const chatMetaRef = ref(db, `chats/${newOrderRef.key}/participants`);
-    await set(chatMetaRef, { [userId]: true });
+    await set(chatMetaRef, { [effectiveUserId]: true });
 
     // Clear cart after successful save
     cartService.clearCart();

@@ -11,7 +11,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useFocusEffect } from '@react-navigation/native';
 import { cartService } from '../services/cartService';
-import { db, ref, get } from '../firebaseConfig';
+import { auth, db, ref, get } from '../firebaseConfig';
 import { orderService } from '../services/orderService';
 import { FONT } from '../styles/typography';
 import { pasapayService } from '../services/pasapayService';
@@ -20,6 +20,7 @@ import { useThemeMode } from '../theme/ThemeContext';
 const CartScreen = ({ navigation, route }) => {
   const { isDark, colors } = useThemeMode();
   const { userId } = route.params || {};
+  const effectiveUserId = auth.currentUser?.uid || userId;
   const [cart, setCart] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -45,9 +46,9 @@ const CartScreen = ({ navigation, route }) => {
       setCart(currentCart);
 
       const loadCheckoutData = async () => {
-        if (!userId) return;
+        if (!effectiveUserId) return;
         try {
-          const snapshot = await get(ref(db, `users/${userId}`));
+          const snapshot = await get(ref(db, `users/${effectiveUserId}`));
           if (snapshot.exists()) {
             const data = snapshot.val();
             setDeliveryAddress(
@@ -62,7 +63,7 @@ const CartScreen = ({ navigation, route }) => {
       };
 
       loadCheckoutData();
-    }, [])
+    }, [effectiveUserId])
   );
 
   const removeFromCart = (itemId) => {
@@ -85,7 +86,7 @@ const CartScreen = ({ navigation, route }) => {
       return;
     }
 
-    if (!userId) {
+    if (!effectiveUserId) {
       Alert.alert('Error', 'User not found. Please login again.');
       return;
     }
@@ -111,7 +112,7 @@ const CartScreen = ({ navigation, route }) => {
     setIsLoading(true);
     
     try {
-      await orderService.createOrderFromCart(userId, {
+      await orderService.createOrderFromCart(effectiveUserId, {
         paymentMethod,
         paymentChannel: paymentMethod === 'online' ? paymentChannel : '',
         deliveryAddress,
@@ -129,7 +130,7 @@ const CartScreen = ({ navigation, route }) => {
           `Cash payment selected. Riders or pasabuyers will need at least ₱${cashReserveRequired} Pasapay balance before they can accept this order.`
         );
       }
-      navigation.navigate('Home', { userId, screen: 'Orders' });
+      navigation.navigate('Home', { userId: effectiveUserId, screen: 'Orders' });
     } catch (error) {
       setIsLoading(false);
       Alert.alert('Error', `Failed to place order: ${error.message}`);

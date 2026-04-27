@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { auth, db, ref, set, createUserWithEmailAndPassword } from '../firebaseConfig';
+import { auth, db, ref, get, update, createUserWithEmailAndPassword } from '../firebaseConfig';
 import { deleteUser } from 'firebase/auth';
 import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
 import { useThemeMode } from '../theme/ThemeContext';
@@ -40,26 +40,47 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     try {
+      const normalizedUsername = username.trim();
+      const usernameKey = normalizedUsername.toLowerCase();
+      const usernameIndexRef = ref(db, `usernames/${usernameKey}`);
+      const usernameTakenSnapshot = await get(usernameIndexRef);
+      if (usernameTakenSnapshot.exists()) {
+        setErrorMessage('Username already taken');
+        return;
+      }
+
       const credentials = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
       const uid = credentials.user.uid;
 
-      const newUserRef = ref(db, `users/${uid}`);
+      const usersRef = ref(db);
       const derivedAddress = `${selectedBarangay}, ${selectedArea.label}, Batangas`;
       try {
-        await set(newUserRef, {
-          name: name.trim(),
-          email: email.trim(),
-          username: username.trim(),
-          area: selectedArea.label,
-          barangay: selectedBarangay,
-          address: derivedAddress,
-          homeLocation: selectedArea.coordinates,
-          role: 'shopper',
-          approvalStatus: 'approved',
-          pasabuyerEnabled: false,
-          createdAt: new Date().toISOString(),
-          pasapayBalance: 0,
-          pasapayTransactions: [],
+        const recheckUsernameSnapshot = await get(usernameIndexRef);
+        if (recheckUsernameSnapshot.exists()) {
+          await deleteUser(credentials.user).catch(() => {});
+          setErrorMessage('Username already taken');
+          return;
+        }
+
+        await update(usersRef, {
+          [`users/${uid}`]: {
+            name: name.trim(),
+            email: email.trim(),
+            username: normalizedUsername,
+            usernameKey,
+            accountUsername: normalizedUsername,
+            area: selectedArea.label,
+            barangay: selectedBarangay,
+            address: derivedAddress,
+            homeLocation: selectedArea.coordinates,
+            role: 'shopper',
+            approvalStatus: 'approved',
+            pasabuyerEnabled: false,
+            createdAt: new Date().toISOString(),
+            pasapayBalance: 0,
+            pasapayTransactions: [],
+          },
+          [`usernames/${usernameKey}`]: uid,
         });
       } catch (dbError) {
         // Keep Auth and DB in sync if profile write fails.
@@ -80,7 +101,7 @@ const RegisterScreen = ({ navigation }) => {
       } else if (error?.code === 'auth/configuration-not-found') {
         setErrorMessage('Firebase Auth is not configured. Enable Email/Password sign-in in Firebase Console.');
       } else if (String(error?.code || '').toLowerCase().includes('permission_denied')) {
-        setErrorMessage('Database permission denied. Please check Firebase Realtime Database rules.');
+        setErrorMessage('Database permission denied for username index. Add `usernames` rules in Firebase.');
       } else if (String(error?.message || '').toLowerCase().includes('permission_denied')) {
         setErrorMessage('Database permission denied. Please check Firebase Realtime Database rules.');
       } else {
