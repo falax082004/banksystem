@@ -71,6 +71,36 @@ To allow orders to be saved and retrieved, update your Firebase Realtime Databas
 
 **Note:** Use the "For Testing" rules temporarily if you want to test quickly, but switch to the "Recommended Rules" for production use.
 
+## One-time Legacy User Migration
+
+If your old accounts are stored in `users/<username>` (with plaintext `password` in DB), migrate them once to Firebase Auth + `users/<uid>`.
+
+1. Create a Firebase service account JSON (Firebase Console -> Project Settings -> Service Accounts).
+2. Set environment variables in PowerShell:
+
+```powershell
+$env:SERVICE_ACCOUNT_PATH="C:\path\to\serviceAccountKey.json"
+$env:FIREBASE_DATABASE_URL="https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app"
+```
+
+3. Run a dry run first:
+
+```powershell
+npm run migrate:legacy-users -- --dry-run
+```
+
+4. Run the actual migration:
+
+```powershell
+npm run migrate:legacy-users
+```
+
+5. Optional cleanup (delete old username keys after successful migration):
+
+```powershell
+npm run migrate:legacy-users -- --delete-legacy
+```
+
 
 
 

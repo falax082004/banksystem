@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { db, ref, set, get } from '../firebaseConfig';
+import { auth, db, ref, set, createUserWithEmailAndPassword } from '../firebaseConfig';
+import { deleteUser } from 'firebase/auth';
 import { BATANGAS_LOCATION_OPTIONS } from '../constants/batangasLocations';
 import { useThemeMode } from '../theme/ThemeContext';
 
@@ -39,50 +40,52 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     try {
-      const usersRef = ref(db, 'users/');
-      const snapshot = await get(usersRef);
+      const credentials = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
+      const uid = credentials.user.uid;
 
-      let emailExists = false;
-      let usernameExists = false;
-
-      snapshot.forEach((childSnapshot) => {
-        const userData = childSnapshot.val();
-        if (userData.email === email) emailExists = true;
-        if (childSnapshot.key === username) usernameExists = true;
-      });
-
-      if (emailExists) {
-        setErrorMessage('Email already taken');
-        return;
-      }
-
-      if (usernameExists) {
-        setErrorMessage('Username already taken');
-        return;
-      }
-
-      const newUserRef = ref(db, 'users/' + username);
+      const newUserRef = ref(db, `users/${uid}`);
       const derivedAddress = `${selectedBarangay}, ${selectedArea.label}, Batangas`;
-      await set(newUserRef, {
-        name,
-        email,
-        username,
-        password,
-        area: selectedArea.label,
-        barangay: selectedBarangay,
-        address: derivedAddress,
-        homeLocation: selectedArea.coordinates,
-        role: 'shopper',
-        approvalStatus: 'approved',
-        pasabuyerEnabled: false,
-        createdAt: new Date().toISOString(),
-        pasapayBalance: 0,
-        pasapayTransactions: [],
-      });
+      try {
+        await set(newUserRef, {
+          name: name.trim(),
+          email: email.trim(),
+          username: username.trim(),
+          area: selectedArea.label,
+          barangay: selectedBarangay,
+          address: derivedAddress,
+          homeLocation: selectedArea.coordinates,
+          role: 'shopper',
+          approvalStatus: 'approved',
+          pasabuyerEnabled: false,
+          createdAt: new Date().toISOString(),
+          pasapayBalance: 0,
+          pasapayTransactions: [],
+        });
+      } catch (dbError) {
+        // Keep Auth and DB in sync if profile write fails.
+        await deleteUser(credentials.user).catch(() => {});
+        throw dbError;
+      }
+
       setSuccessMessage('Account Created Successfully!');
       navigation.navigate('Login');
     } catch (error) {
-      setErrorMessage('Registration failed. Please try again.');
+      console.error('Registration failed:', error);
+      if (error?.code === 'auth/email-already-in-use') {
+        setErrorMessage('Email already taken');
+      } else if (error?.code === 'auth/invalid-email') {
+        setErrorMessage('Invalid email address');
+      } else if (error?.code === 'auth/weak-password') {
+        setErrorMessage('Password should be at least 6 characters');
+      } else if (error?.code === 'auth/configuration-not-found') {
+        setErrorMessage('Firebase Auth is not configured. Enable Email/Password sign-in in Firebase Console.');
+      } else if (String(error?.code || '').toLowerCase().includes('permission_denied')) {
+        setErrorMessage('Database permission denied. Please check Firebase Realtime Database rules.');
+      } else if (String(error?.message || '').toLowerCase().includes('permission_denied')) {
+        setErrorMessage('Database permission denied. Please check Firebase Realtime Database rules.');
+      } else {
+        setErrorMessage(`Registration failed: ${error?.message || 'Please try again.'}`);
+      }
     }
   };
 

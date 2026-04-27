@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { db, ref, get, set } from './firebaseConfig';
 import { ThemeProvider, useThemeMode } from './theme/ThemeContext';
 
 // Core Screens
@@ -71,31 +70,6 @@ const AppNavigator = () => {
           primary: colors.primary,
         },
       };
-
-  useEffect(() => {
-    const ensureDefaultAdmin = async () => {
-      try {
-        const adminRef = ref(db, 'users/admin');
-        const adminSnapshot = await get(adminRef);
-        if (adminSnapshot.exists()) return;
-
-        await set(adminRef, {
-          username: 'admin',
-          name: 'System Administrator',
-          email: 'admin@pasabuy.app',
-          password: 'admin',
-          role: 'admin',
-          approvalStatus: 'approved',
-          createdAt: new Date().toISOString(),
-          notifications: {},
-        });
-      } catch {
-        // Avoid blocking app start for bootstrap failures.
-      }
-    };
-
-    ensureDefaultAdmin();
-  }, []);
 
   return (
     <NavigationContainer theme={navTheme}>

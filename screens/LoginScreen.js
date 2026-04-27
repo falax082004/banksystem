@@ -1,163 +1,88 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Alert, Text, StyleSheet, Modal, Image } from 'react-native';
-import { db, ref, get, update, set, push } from '../firebaseConfig';
+import { auth, db, ref, get, set, push, signInWithEmailAndPassword, sendPasswordResetEmail } from '../firebaseConfig';
 import Icon from 'react-native-vector-icons/Feather';
 import { FONT } from '../styles/typography';
 import { useThemeMode } from '../theme/ThemeContext';
 
 const LoginScreen = ({ navigation }) => {
   const { isDark, colors } = useThemeMode();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [forgotPasswordModal, setForgotPasswordModal] = useState(false);
-  const [resetStep, setResetStep] = useState(1); // 1: email, 2: new password
-  const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [foundUsername, setFoundUsername] = useState(null);
+  const [resetEmail, setResetEmail] = useState('');
   const [supportModal, setSupportModal] = useState(false);
   const [supportMessage, setSupportMessage] = useState('');
   const [supportEmail, setSupportEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
-    if (!username.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter both username and password.');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both email and password.');
       return;
     }
+    try {
+      const credentials = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const uid = credentials.user.uid;
 
-    const userRef = ref(db, 'users/' + username);
-    const snapshot = await get(userRef);
+      const userRef = ref(db, `users/${uid}`);
+      const snapshot = await get(userRef);
+      if (!snapshot.exists()) {
+        Alert.alert('Error', 'User profile not found. Please contact support.');
+        return;
+      }
 
-    if (!snapshot.exists()) {
-      Alert.alert('Error', 'Invalid username. Please try again.');
-      return;
-    }
+      const userData = snapshot.val();
+      if (userData.role === 'admin') {
+        navigation.navigate('AdminDashboard');
+        return;
+      }
 
-    const userData = snapshot.val();
-    if (userData.password !== password) {
-      Alert.alert('Error', 'Incorrect password. Please check and try again.');
-      return;
-    }
+      if (userData.approvalStatus === 'pending' && !userData.role) {
+        Alert.alert('Pending Approval', 'Your application is pending admin approval. Please wait for confirmation.');
+        return;
+      }
 
-    if (username === 'admin' && userData.role === 'admin') {
-      navigation.navigate('AdminDashboard');
-      return;
-    }
+      const unreadRef = ref(db, `users/${uid}/notifications`);
+      const unreadSnapshot = await get(unreadRef);
+      if (unreadSnapshot.exists()) {
+        const unreadRows = Object.keys(unreadSnapshot.val())
+          .map((id) => ({ id, ...unreadSnapshot.val()[id] }))
+          .filter((x) => x.read !== true)
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        if (unreadRows.length > 0) {
+          Alert.alert('Notifications', unreadRows[0].message || 'You have new notifications.');
+        }
+      }
 
-    if (userData.approvalStatus === 'pending' && !userData.role) {
-      Alert.alert('Pending Approval', 'Your application is pending admin approval. Please wait for confirmation.');
-      return;
-    }
-
-    // Rejected applicants can still log in as shopper and apply again from Profile.
-
-    const unreadRef = ref(db, `users/${username}/notifications`);
-    const unreadSnapshot = await get(unreadRef);
-    if (unreadSnapshot.exists()) {
-      const unreadRows = Object.keys(unreadSnapshot.val())
-        .map((id) => ({ id, ...unreadSnapshot.val()[id] }))
-        .filter((x) => x.read !== true)
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-      if (unreadRows.length > 0) {
-        Alert.alert('Notifications', unreadRows[0].message || 'You have new notifications.');
+      navigation.navigate('Home', { userId: uid });
+    } catch (error) {
+      if (error?.code === 'auth/configuration-not-found') {
+        Alert.alert('Login Failed', 'Firebase Auth is not configured. Enable Email/Password sign-in in Firebase Console.');
+      } else {
+        Alert.alert('Login Failed', 'Invalid email or password.');
       }
     }
-
-    navigation.navigate('Home', { userId: username });
   };
 
   const handleForgotPassword = () => {
     setForgotPasswordModal(true);
-    setResetStep(1);
-    setEmail('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setFoundUsername(null);
+    setResetEmail('');
   };
 
   const verifyEmail = async () => {
-    if (!email.trim()) {
+    if (!resetEmail.trim()) {
       Alert.alert('Error', 'Please enter your email address.');
       return;
     }
 
     try {
-      // Search for user by email
-      const usersRef = ref(db, 'users/');
-      const snapshot = await get(usersRef);
-
-      if (!snapshot.exists()) {
-        Alert.alert('Error', 'No users found in the system.');
-        return;
-      }
-
-      let userFound = false;
-      let matchingUsername = null;
-
-      snapshot.forEach((childSnapshot) => {
-        const userData = childSnapshot.val();
-        if (userData.email && userData.email.toLowerCase() === email.toLowerCase()) {
-          userFound = true;
-          matchingUsername = childSnapshot.key;
-          return;
-        }
-      });
-
-      if (!userFound) {
-        Alert.alert('Error', 'No account found with this email address.');
-        return;
-      }
-
-      // Email found, proceed to password reset
-      setFoundUsername(matchingUsername);
-      setResetStep(2);
+      await sendPasswordResetEmail(auth, resetEmail.trim());
+      Alert.alert('Success', 'A password reset email has been sent.');
+      setForgotPasswordModal(false);
     } catch (error) {
-      Alert.alert('Error', 'Failed to verify email. Please try again.');
+      Alert.alert('Error', 'Failed to send reset email. Please check the email and try again.');
       console.error('Error verifying email:', error);
-    }
-  };
-
-
-  const resetPassword = async () => {
-    if (!newPassword.trim() || !confirmPassword.trim()) {
-      Alert.alert('Error', 'Please enter and confirm your new password.');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match.');
-      return;
-    }
-
-    if (!foundUsername) {
-      Alert.alert('Error', 'User information not found. Please try again.');
-      return;
-    }
-
-    try {
-      const userRef = ref(db, 'users/' + foundUsername);
-      await update(userRef, {
-        password: newPassword
-      });
-
-      Alert.alert('Success', 'Password has been reset successfully.', [
-        {
-          text: 'OK',
-          onPress: () => {
-            setForgotPasswordModal(false);
-            // Reset all states
-            setResetStep(1);
-            setEmail('');
-            setNewPassword('');
-            setConfirmPassword('');
-            setFoundUsername(null);
-          }
-        }
-      ]);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to reset password. Please try again.');
-      console.error('Error resetting password:', error);
     }
   };
 
@@ -178,7 +103,7 @@ const LoginScreen = ({ navigation }) => {
       const ticketId = ticketRef.key;
       await set(ticketRef, {
         id: ticketId,
-        userId: foundUsername || null,
+        userId: auth.currentUser?.uid || null,
         email: supportEmail,
         subject: 'Login Support Inquiry',
         createdAt: new Date().toISOString(),
@@ -188,7 +113,7 @@ const LoginScreen = ({ navigation }) => {
       });
       const msgRef = push(ref(db, `supportTickets/${ticketId}/messages`));
       await set(msgRef, {
-        senderId: foundUsername || null,
+        senderId: auth.currentUser?.uid || null,
         senderRole: 'user',
         text: supportMessage,
         createdAt: new Date().toISOString(),
@@ -202,53 +127,24 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const renderResetStep = () => {
-    switch (resetStep) {
-      case 1:
-        return (
-          <View>
-            <Text style={styles.modalTitle}>Reset Password</Text>
-            <Text style={styles.modalSubtitle}>Enter your email address</Text>
-            <TextInput
-              style={[styles.modalInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
-              placeholder="Email"
-              placeholderTextColor={colors.mutedText}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <TouchableOpacity style={styles.modalButton} onPress={verifyEmail}>
-              <Text style={styles.modalButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        );
-      case 2:
-        return (
-          <View>
-            <Text style={styles.modalTitle}>New Password</Text>
-            <Text style={styles.modalSubtitle}>Enter your new password</Text>
-            <TextInput
-              style={[styles.modalInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
-              placeholder="New Password"
-              placeholderTextColor={colors.mutedText}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry
-            />
-            <TextInput
-              style={[styles.modalInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
-              placeholder="Confirm New Password"
-              placeholderTextColor={colors.mutedText}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-            />
-            <TouchableOpacity style={styles.modalButton} onPress={resetPassword}>
-              <Text style={styles.modalButtonText}>Reset Password</Text>
-            </TouchableOpacity>
-          </View>
-        );
-    }
+    return (
+      <View>
+        <Text style={styles.modalTitle}>Reset Password</Text>
+        <Text style={styles.modalSubtitle}>Enter your email address</Text>
+        <TextInput
+          style={[styles.modalInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
+          placeholder="Email"
+          placeholderTextColor={colors.mutedText}
+          value={resetEmail}
+          onChangeText={setResetEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TouchableOpacity style={styles.modalButton} onPress={verifyEmail}>
+          <Text style={styles.modalButtonText}>Send Reset Link</Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   return (
@@ -263,13 +159,14 @@ const LoginScreen = ({ navigation }) => {
         <Text style={[styles.headerText, { color: colors.text }]}>PASABUY</Text>
         <Text style={[styles.subtitleText, { color: colors.mutedText }]}>Login to your account</Text>
 
-        {/* Username input */}
+        {/* Email input */}
         <TextInput
           style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
-          placeholder="Username"
+          placeholder="Email"
           placeholderTextColor={colors.mutedText}
-          value={username}
-          onChangeText={setUsername}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
           autoCapitalize="none"
         />
 

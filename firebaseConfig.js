@@ -1,5 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set, get, update, push, serverTimestamp, onValue, off } from "firebase/database";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getAuth, initializeAuth, getReactNativePersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBLAmXfNfrEmw3LDaR3P6mrSw-Mx8XmtDU",
@@ -14,5 +16,30 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+let auth;
+try {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (error) {
+  // Hot reload can re-run initializeAuth; fallback to existing instance.
+  auth = getAuth(app);
+}
 
-export { db, ref, set, get, update, push, serverTimestamp, onValue, off };
+export {
+  db,
+  auth,
+  ref,
+  set,
+  get,
+  update,
+  push,
+  serverTimestamp,
+  onValue,
+  off,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut,
+  onAuthStateChanged,
+};
