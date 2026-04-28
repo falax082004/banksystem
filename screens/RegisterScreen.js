@@ -43,11 +43,6 @@ const RegisterScreen = ({ navigation }) => {
       const normalizedUsername = username.trim();
       const usernameKey = normalizedUsername.toLowerCase();
       const usernameIndexRef = ref(db, `usernames/${usernameKey}`);
-      const usernameTakenSnapshot = await get(usernameIndexRef);
-      if (usernameTakenSnapshot.exists()) {
-        setErrorMessage('Username already taken');
-        return;
-      }
 
       const credentials = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
       const uid = credentials.user.uid;
